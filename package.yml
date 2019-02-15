@@ -1,0 +1,17 @@
+package: kal_termine
+version: '2.0.0'
+author: 'Wolfgang Busch'
+supportpage: redaxo.org/forum/
+
+page:
+    title: 'translate:kal_termine'
+    perm: kal_termine[]
+    subpages:
+        introduction:    { title: 'translate:introduction' }
+        description:     { title: 'translate:description' }
+        table_structure: { title: 'translate:table_structure' }
+        example:         { title: 'translate:example' }
+        settings:        { title: 'translate:settings' }
+
+requires:
+    redaxo: ^5.3.0
