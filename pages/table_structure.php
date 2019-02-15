@@ -5,6 +5,6 @@
  * @package redaxo5
  * @version Februar 2019
  */
-echo rex_view::title(rex_i18n::msg($this->getPackageId()));
-rex_be_controller::includeCurrentPageSubPath();
+#
+echo kal_termine_tabelle::kal_ausgabe_tabellenstruktur();
 ?>
