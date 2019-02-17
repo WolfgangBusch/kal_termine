@@ -26,7 +26,7 @@ gliedern.</div>
 - Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen<br/>
 - tabellarische Darstellung der Daten eines Termins</div>
 
-<div>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
+<div><br/>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
 anderen wechseln kann. Das Monatsmenü gestattet das Blättern zum Vor- oder
 Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr. Gesetzliche und
 christliche Feiertage sind entsprechend markiert.</div>
