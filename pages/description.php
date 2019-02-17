@@ -18,21 +18,16 @@ $string='
 
 <div>Als Terminmenüs stehen die folgenden Darstellungen zur Wahl:</div>
 <ul>
-    <li>Monatsmenü inkl. Darstellung der wesentlichen christlichen Feiertage;
-        alle Tage, an denen Termine eingetragen sind, werden durch Schraffur
-        gekennzeichnet</li>
-    <li>Monatsblatt mit einer halbgrafischen Darstellung der Termine an den
-        zugehörigen Tagen</li>
-    <li>Wochenblatt mit einer halbgrafischen Darstellung der Termine an den
-        zugehörigen Tagen</li>
-    <li>Tagesblatt mit einer halbgrafischen Darstellung der Termine an diesem Tage</li>
+    <li>Monatsmenü, Tage mit eingetragenen Termine sind schraffiert</li>
+    <li>Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine</li>
     <li>Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen</li>
     <li>tabellarische Darstellung der Daten eines Termins</li>
 </ul>
 
 <div>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
 anderen wechseln kann. Das Monatsmenü gestattet das Blättern zum Vor- oder
-Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr.</div>
+Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr. Gesetzliche und
+christliche Feiertage sind entsprechend markiert.</div>
 ';
 echo utf8_encode($string);
 ?>
