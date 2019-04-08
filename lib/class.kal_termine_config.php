@@ -3,14 +3,41 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2019
+ * @version April 2019
  */
 #
-define ('PACKAGE', 'kal_termine');
+define ('PACKAGE',     $this->getPackageId());
+define ('TAB_NAME',    'rex_'.$this->getPackageId());
+define ('COL_PID',        'pid');
+define ('COL_NAME',       'name');
+define ('COL_DATUM',      'datum');
+define ('COL_BEGINN',     'beginn');
+define ('COL_ENDE',       'ende');
+define ('COL_AUSRICHTER', 'ausrichter');
+define ('COL_ORT',        'ort');
+define ('COL_LINK',       'link');
+define ('COL_KOMM',       'komm');
+define ('COL_KATEGORIE',  'kategorie');
+define ('COL_ZEIT2',      'zeit2');
+define ('COL_TEXT2',      'text2');
+define ('COL_ZEIT3',      'zeit3');
+define ('COL_TEXT3',      'text3');
+define ('COL_ZEIT4',      'zeit4');
+define ('COL_TEXT4',      'text4');
+define ('COL_ZEIT5',      'zeit5');
+define ('COL_TEXT5',      'text5');
+define ('COL_ANZAHL',     18);          // Anzahl der Konstanten mit Namen 'COL_...'
+define ('STD_BEG_UHRZEIT',   'stauhrz');
+define ('STD_END_UHRZEIT',   'enduhrz');
+define ('STD_ANZ_PIXEL',     'pixel');
+define ('STD_ANZ_KATEG',     'anzkat');
 #
 class kal_termine_config {
 #
 #----------------------------------------- Inhaltsuebersicht
+#   Tabellenstruktur
+#         kal_define_tabellenspalten()
+#         kal_ausgabe_tabellenstruktur()
 #   Definition der Default-Daten
 #         kal_default_terminkategorien()
 #         kal_default_stundenleiste()
@@ -33,17 +60,119 @@ class kal_termine_config {
 #         kal_get_stundenleiste()
 #         kal_define_stundenleiste()
 #
+#----------------------------------------- Tabellenstruktur
+public static function kal_define_tabellenspalten() {
+   #   Rueckgabe der Daten zu den Kalender-Tabellenspalten als Array,
+   #   - Keys und Typen der Spalten (zur Einrichtung der Tabelle)
+   #   - Beschreibung und Hinweise zu den Tabellenspalten
+   #
+   $cols=array(
+      COL_PID=>array('int(11) NOT NULL auto_increment',
+         'Termin-Id', 'auto_increment', 'Primärschlüssel'),
+      COL_NAME=>array('varchar(255) NOT NULL',
+         'Veranstaltung', 'Kurztext', 'nicht leer'),
+      COL_DATUM=>array('date NOT NULL',
+         'Datum', 'tt.mm.yyyy', 'nicht leer'),
+      COL_BEGINN=>array('time NOT NULL',
+         'Beginn', 'hh:mm', ''),
+      COL_ENDE=>array('time NOT NULL',
+         'Ende', 'hh:mm', ''),
+      COL_AUSRICHTER=>array('varchar(500) NOT NULL',
+         'Ausrichter', 'Kurztext', ''),
+      COL_ORT=>array('varchar(255) NOT NULL',
+         'Ort', 'Kurztext', ''),
+      COL_LINK=>array('varchar(500) NOT NULL',
+         'Link', 'Kurztext', ''),
+      COL_KOMM=>array('text NOT NULL',
+         'Hinweise', 'Text', ''),
+      COL_KATEGORIE=>array('varchar(255) NOT NULL',
+         'Kategorie', 'Kurztext', 'nicht leer'),
+      COL_ZEIT2=>array('time NOT NULL',
+         'Beginn 2', 'hh:mm', ''),
+      COL_TEXT2=>array('varchar(255) NOT NULL',
+         'Ereignis 2', 'Kurztext', ''),
+      COL_ZEIT3=>array('time NOT NULL',
+         'Beginn 3', 'hh:mm', ''),
+      COL_TEXT3=>array('varchar(255) NOT NULL',
+         'Ereignis 3', 'Kurztext', ''),
+      COL_ZEIT4=>array('time NOT NULL',
+         'Beginn 4', 'hh:mm', ''),
+      COL_TEXT4=>array('varchar(255) NOT NULL',
+         'Ereignis 4', 'Kurztext', ''),
+      COL_ZEIT5=>array('time NOT NULL',
+         'Beginn 5', 'hh:mm', ''),
+      COL_TEXT5=>array('varchar(255) NOT NULL',
+         'Ereignis 5', 'Kurztext', ''));
+   ###         create table:     'PRIMARY KEY (pid)'
+   return $cols;
+   }
+public static function kal_ausgabe_tabellenstruktur() {
+   #   Rueckgabe der Tabellenstrukturen
+   #   benutzte functions:
+   #      self::kal_define_tabellenspalten()
+   #
+   # --- Schleife ueber die Tabellenspalten
+   $cols=self::kal_define_tabellenspalten();
+   $keys=array_keys($cols);
+   $string='
+<table class="kal_table">
+    <tr><td colspan="5" align="center">
+            <h4>Tabelle \''.TAB_NAME.'\'</h4></td></tr>
+    <tr><th class="kal_config_pad kal_config_border">Spaltenname</th>
+        <th class="kal_config_pad kal_config_border">Spalteninhalt</th>
+        <th class="kal_config_pad kal_config_border">Format</th>
+        <th class="kal_config_pad kal_config_border">Restriktionen</th>
+        <th class="kal_config_pad kal_config_border">Bem.</th></tr>
+';
+   for($i=0;$i<count($cols);$i=$i+1):
+      $inha=$cols[$keys[$i]][1];
+      $arr=explode(' ',$cols[$keys[$i]][0]);
+      $form=$arr[0];
+      $arr=explode('(',$form);
+      $form=$arr[0];
+      $bedg=$cols[$keys[$i]][3];
+      $beme='';
+      if($form=='date') $beme='*';
+      if($form=='time') $beme='**';
+      $string=$string.'
+    <tr><td class="kal_config_pad kal_config_border"><tt>'.$keys[$i].'</tt></td>
+        <td class="kal_config_pad">'.$inha.'</td>
+        <td class="kal_config_pad"><tt>'.$form.'</tt></td>
+        <td class="kal_config_pad"><i>'.$bedg.'</i></td>
+        <td class="kal_config_pad"><i>'.$beme.'</i></td></tr>
+';
+     endfor;
+   $string=$string.'
+</table><br/>
+<table class="kal_table">
+    <tr><td class="kal_config_pad">&nbsp;(*)</td>
+        <td class="kal_config_pad">Datumsformat: <tt>tt.mm.yyyy</tt>
+            (wird für MySQL in <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
+    <tr><td class="kal_config_pad">(**)</td>
+        <td class="kal_config_pad">Zeitformat: <tt>hh:mm</tt>
+            (wird ins MySQL-Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
+    <tr><td class="kal_config_pad"> </td>
+        <td class="kal_config_pad">Kurz-/Langtexte (<tt>varchar</tt> bzw. <tt>text</tt>)
+            müssen ohne HTML-Tags formuliert werden</td></tr>
+    <tr><td class="kal_config_pad"> </td>
+        <td class="kal_config_pad">Mit <tt>'.COL_ZEIT2.'/'.COL_TEXT2.', ... , '.COL_ZEIT5.'/'.COL_TEXT5.'</tt>
+            können 4 Teilereignisse genauer beschrieben werden</td></tr>
+</table>
+';
+   return $string;
+   }
+#
 #----------------------------------------- Definition der Default-Daten
-static public function kal_default_terminkategorien() {
+public static function kal_default_terminkategorien() {
    #   Rueckgabe der Default-Terminkategorien
    #
    $kat[1]='Allgemein';
    $kat[2]='Verbandsvorstand';
-   $kat[3]=utf8_encode('Leistungsf�rderung');
+   $kat[3]='Leistungsförderung';
    $kat[4]='Breitensport';
    return $kat;
    }
-static public function kal_default_stundenleiste() {
+public static function kal_default_stundenleiste() {
    #   Rueckgabe der Default-Werte zur Stundenleiste
    #
    $daten[1]=array('stl'=>  8, 'name'=>'Start-Uhrzeit (ganze Zahl)');
@@ -51,7 +180,7 @@ static public function kal_default_stundenleiste() {
    $daten[3]=array('stl'=>500, 'name'=>'Gesamtbreite Zeitleiste (Anzahl Pixel)');
    return $daten;
    }
-static public function kal_default_farben() {
+public static function kal_default_farben() {
    #   Rueckgabe der Default-Werte der RGB-Farben fuer die Kalendermenues
    #
    $rgb[1]=array('rgb'=>'rgb(5,90,28)',     'name'=>'dunkle Schriftfarbe');
@@ -65,7 +194,7 @@ static public function kal_default_farben() {
    $rgb[9]=array('rgb'=>'rgb(150,150,150)', 'name'=>'Schrift- und Rahmenfarbe');
    return $rgb;
    }
-static public function kal_get_default_config() {
+public static function kal_get_default_config() {
    #   Rueckgabe der Default-Konfigurationswerte
    #   benutzte functions:
    #      self::kal_default_farben()
@@ -76,27 +205,27 @@ static public function kal_get_default_config() {
    $farben=self::kal_default_farben();
    for($i=1;$i<=count($farben);$i=$i+1):
       $key='col'.$i;
-      $sett[$key]=$farben[$i][rgb];
+      $sett[$key]=$farben[$i]['rgb'];
       endfor;
    #
    # --- Stundenleiste
    $daten=self::kal_default_stundenleiste();
-   $sett['stauhrz']=$daten[1]['stl'];
-   $sett['enduhrz']=$daten[2]['stl'];
-   $sett['pixel']  =$daten[3]['stl'];
+   $sett[STD_BEG_UHRZEIT]=$daten[1]['stl'];
+   $sett[STD_END_UHRZEIT]=$daten[2]['stl'];
+   $sett[STD_ANZ_PIXEL]  =$daten[3]['stl'];
    #
    # --- Terminkategorien
    $kat=self::kal_default_terminkategorien();
-   $sett['anzkat']=count($kat);
+   $sett[STD_ANZ_KATEG]=count($kat);
    for($i=1;$i<=count($kat);$i=$i+1):
       $key='kat'.$i;
-      $sett[$key]=utf8_decode($kat[$i]);
+      $sett[$key]=$kat[$i];
       endfor;
    return $sett;
    }
 #
 #----------------------------------------- Setzen/Lesen der konfigurierten Daten
-static public function kal_set_config($settings) {
+public static function kal_set_config($settings) {
    #   Setzen der Konfigurationsparamter gemaess gegebenem Array
    #   $settings       assoziatives Array der Konfigurationsparameter
    #                   gemaess Funktion kal_get_default_config()
@@ -110,27 +239,28 @@ static public function kal_set_config($settings) {
    $keys=array_keys($settings);
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      $set=utf8_encode($settings[$key]);
+      $set=$settings[$key];
       if(substr($key,0,3)!='col' and substr($key,0,3)!='kat') $set=intval($set);
       $bool=rex_config::set(PACKAGE,$key,$set);
       endfor;
    rex_config::save();
    }
-static public function kal_get_config() {
+public static function kal_get_config() {
    #   Rueckgabe der gesetzten Konfigurationsparameter als
    #   assoziatives Array analog Funktion kal_get_default_config()
    #
    $sett=rex_config::get(PACKAGE,NULL);
    $keys=array_keys($sett);
+   $settings=array();
    for($i=0;$i<count($sett);$i=$i+1):
       $key=$keys[$i];
-      if(rex_config::has(PACKAGE,$key)) $settings[$key]=utf8_decode($sett[$key]);
+      if(rex_config::has(PACKAGE,$key)) $settings[$key]=$sett[$key];
       endfor;
    return $settings;
    }
 #
 #----------------------------------------- Einlesen der Konfigurationsdaten
-static public function kal_config() {
+public static function kal_config() {
    #   Einlesen und Setzen der Konfigurationsdaten
    #   benutzte functions:
    #      self::kal_get_default_config()
@@ -150,8 +280,8 @@ static public function kal_config() {
      $keys=array_keys($confsett);
      endif;
    #
-   # --- Nummer des key 'anzkat'
-   for($i=0;$i<count($keys);$i=$i+1) if($keys[$i]=='anzkat') $ianzk=$i;
+   # --- Nummer des key STD_ANZ_KATEG
+   for($i=0;$i<count($keys);$i=$i+1) if($keys[$i]==STD_ANZ_KATEG) $ianzk=$i;
    #
    # --- Auslesen der Daten, leere Werte werden durch die gegebenen Daten ersetzt
    for($i=0;$i<count($keys);$i=$i+1):
@@ -162,13 +292,23 @@ static public function kal_config() {
         $k=intval(substr($kt,0,strlen($kt)));
         $defcol =self::kal_split_color($defsett[$key]);
         $confcol=self::kal_split_color($confsett[$key]);
-        $red  =self::kal_read_conf_def($_POST[r][$k],$confcol[red],  $defcol[red]);
-        $green=self::kal_read_conf_def($_POST[g][$k],$confcol[green],$defcol[green]);
-        $blue =self::kal_read_conf_def($_POST[b][$k],$confcol[blue], $defcol[blue]);
+        if(!empty($_POST)):
+          $red  =$_POST['r'][$k];
+          $green=$_POST['g'][$k];
+          $blue =$_POST['b'][$k];
+          else:
+          $red  ='';
+          $green='';
+          $blue ='';
+          endif;
+        $red  =self::kal_read_conf_def($red,  $confcol['red'],  $defcol['red']);
+        $green=self::kal_read_conf_def($green,$confcol['green'],$defcol['green']);
+        $blue =self::kal_read_conf_def($blue ,$confcol['blue'], $defcol['blue']);
         $readsett[$key]='rgb('.$red.','.$green.','.$blue.')';
         else:
         # --- Sonstige
-        $post=$_POST["$key"];
+        $post='';
+        if(!empty($_POST)) $post=$_POST[$key];
         $readsett[$key]=self::kal_read_conf_def($post,$confsett[$key],$defsett[$key]);
         if($i==$ianzk) $anzkat=$readsett[$key];
         endif;
@@ -178,19 +318,17 @@ static public function kal_config() {
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
       if(substr($key,0,3)=='kat'):
-        if(intval(substr($key,3))<=$anzkat):
-          $rs[$key]=$readsett[$key];
-          else:
-          unset($readsett);
-          $readsett=$rs;
-          break;
-          endif;
+        if(intval(substr($key,3))>$anzkat) break;
         endif;
+      $rs[$key]=$readsett[$key];
       endfor;
+   unset($readsett);
+   $readsett=$rs;
    #
    # --- ggf. weitere Kategorien erzeugen
    $ke=$keys[$ianzk];
-   $anzkat=$_POST["$ke"];
+   $anzkat=0;
+   if(!empty($_POST)) $anzkat=$_POST[$ke];
    $confanzkat=$confsett[$ke];
    if($anzkat>0 and $confanzkat>0):
      for($j=$confanzkat+1;$j<=$anzkat;$j=$j+1):
@@ -202,20 +340,14 @@ static public function kal_config() {
      endif;
    #
    # --- Konfigurationsparameter zuruecksetzen
-   $reset=$_POST['reset'];
+   $reset='';
+   if(!empty($_POST['reset'])) $reset=$_POST['reset'];
    if(!empty($reset)) $readsett=self::kal_get_default_config();
    #
    # --- Konfigurationsparameter speichern
-   $save =$_POST['save'];
+   $save='';
+   if(!empty($_POST['save'])) $save=$_POST['save'];
    if(!empty($save) or !empty($reset)):
-     ###
-     if(empty($reset)):
-       $keys=array_keys($readsett);
-       for($i=0;$i<count($keys);$i=$i+1)
-          if(substr($keys[$i],0,3)=='kat')
-            $readsett[$keys[$i]]=utf8_decode($readsett[$keys[$i]]);
-       endif;
-     ###
      self::kal_set_config($readsett);
      #
      # --- Stylesheet-Datei ueberschreiben und nach /assets/addons/ kopieren
@@ -225,21 +357,27 @@ static public function kal_config() {
    # --- Eingabeformular anzeigen
    self::kal_config_form($readsett);
    }
-static public function kal_split_color($color) {
+public static function kal_split_color($color) {
    #   Rueckgabe der RGB-Komponenten eines RGB-Farbstrings
    #   in Form eines assoziativen Arrays mit diesen Keys:
-   #      [red]    rote Komponente
-   #      [green]  gruene Komponente
-   #      [blue]   blaue Komponente
+   #      ['red']    rote Komponente
+   #      ['green']  gruene Komponente
+   #      ['blue']   blaue Komponente
    #   $color            RGB-String der Farbe
    #
    $arr=explode(',',$color);
-   $red  =trim(substr($arr[0],4));
-   $green=trim($arr[1]);
-   $blue =trim(substr($arr[2],0,strlen($arr[2])-1));
+   if(count($arr)>1):
+     $red  =trim(substr($arr[0],4));
+     $green=trim($arr[1]);
+     $blue =trim(substr($arr[2],0,strlen($arr[2])-1));
+     else:
+     $red  ='';
+     $green='';
+     $blue ='';
+     endif;
    return array('red'=>$red, 'green'=>$green, 'blue'=>$blue);
    }
-static public function kal_read_conf_def($post,$config,$default) {
+public static function kal_read_conf_def($post,$config,$default) {
    #   Eingegebene Parameter auflesen, und zwar so,
    #   dass eine per $_POST[...][.] eingelesene '0' als 0
    #   und nicht als 'empty' interpretiert wird.
@@ -272,7 +410,7 @@ static public function kal_read_conf_def($post,$config,$default) {
    if($ret==='0') $ret=0;
    return $ret;
    }
-static public function kal_config_form($readsett) {
+public static function kal_config_form($readsett) {
    #   Anzeige des Formulars zur Eingabe der Konfigurationsdaten
    #   $readsett         Array der Formulardaten
    #                     Format gemaess Funktion kal_get_default_config()
@@ -282,41 +420,35 @@ static public function kal_config_form($readsett) {
    #
    $keys=array_keys($readsett);
    #
-   # --- Eingabeformular, Styles
-   $width1=50;
-   $width2=400;
-   $stc='class="form-control"';
-   $std='style="width:'.$width1.'px; text-align:right; padding-right:5px;"';
-   $ste='style="width:100%; padding-left:5px;"';
-   $stf='width:'.$width2.'px; padding-left:5px; white-space:nowrap;';
-   $stx='style="height:2.5em; font-weight:bold;"';
-   $sty='style="padding-left:20px;"';
-   #
    # --- Formular, Farben
    $string='
 <form method="post">
-<table style="background-color:inherit;">
-    <tr><td '.$stx.'>Farben in den Kalendermen&uuml;s (RGB):</td>
-        <td '.$sty.' align="center">R</td>
-        <td '.$sty.' align="center">G</td>
-        <td '.$sty.' align="center">B</td></tr>';
+<table class="kal_table">
+    <tr><td class="kal_config_th">Farben in den Kalendermenüs (RGB):</td>
+        <td class="kal_config_indent" align="center">R</td>
+        <td class="kal_config_indent" align="center">G</td>
+        <td class="kal_config_indent" align="center">B</td></tr>';
    # --- Formular, Erlaeuterungstexte zu den Farben
    $df=self::kal_default_farben();
    $anzcol=count($df);
-   for($i=1;$i<=$anzcol;$i=$i+1) $coltext[$i]=$df[$i][name];
+   for($i=1;$i<=$anzcol;$i=$i+1) $coltext[$i]=$df[$i]['name'];
    #
    for($i=1;$i<=$anzcol;$i=$i+1):
       $k=$i-1;
       $kalcol=$readsett[$keys[$k]];
       $col=self::kal_split_color($kalcol);
       $stcol='black';
-      if(max($col[red],$col[green],$col[blue])<=130) $stcol='white';
+      if(max($col['red'],$col['green'],$col['blue'])<=130) $stcol='white';
       $string=$string.'
-    <tr><td '.$sty.'><input '.$stc.' style="'.$stf.' background-color:'.$kalcol.'; color:'.$stcol.';"
-                            type="text" value="'.$coltext[$i].':" /></td>
-        <td '.$sty.'><input '.$stc.' '.$std.' type="text" name="r['.$i.']" value="'.$col[red].'" /></td>
-        <td '.$sty.'><input '.$stc.' '.$std.' type="text" name="g['.$i.']" value="'.$col[green].'" /></td>
-        <td '.$sty.'><input '.$stc.' '.$std.' type="text" name="b['.$i.']" value="'.$col[blue].'" /></td></tr>';
+    <tr><td class="kal_config_indent">
+            <input class="form-control kal_config_bgcol" style="background-color:'.$kalcol.'; color:'.$stcol.';"
+                   type="text" value="'.$coltext[$i].':" /></td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="r['.$i.']" value="'.$col['red'].'" /></td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="g['.$i.']" value="'.$col['green'].'" /></td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="b['.$i.']" value="'.$col['blue'].'" /></td></tr>';
       endfor;
    #
    # --- Formular, Stundenleiste
@@ -324,28 +456,28 @@ static public function kal_config_form($readsett) {
    $l=$k+1;
    $m=$l+1;
    $string=$string.'
-    <tr><td '.$stx.' colspan="4">
-            halbgrafische Darstellung des Uhrzeit-Bereichs bei Tagesterminen:</td></tr>
-    <tr><td '.$sty.'>Start-Uhrzeit (ganze Zahl):</td>
-        <td '.$sty.'>
-            <input '.$stc.' '.$std.' type="text" name="'.$keys[$k].'" value="'.$readsett[$keys[$k]].'" /></td>
+    <tr><td class="kal_config_th" colspan="4"><br/>
+            Darstellung des Uhrzeit-Bereichs bei Tagesterminen:</td></tr>
+    <tr><td class="kal_config_indent">Start-Uhrzeit (ganze Zahl):</td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="'.$keys[$k].'" value="'.$readsett[$keys[$k]].'" /></td>
         <td colspan="2"> &nbsp; : 00 Uhr</td></tr>
-    <tr><td '.$sty.'>End-Uhrzeit (ganze Zahl):</td>
-        <td  '.$sty.'>
-            <input '.$stc.' '.$std.' type="text" name="'.$keys[$l].'" value="'.$readsett[$keys[$l]].'" /></td>
+    <tr><td class="kal_config_indent">End-Uhrzeit (ganze Zahl):</td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="'.$keys[$l].'" value="'.$readsett[$keys[$l]].'" /></td>
         <td colspan="2"> &nbsp; : 00 Uhr</td></tr>
-    <tr><td '.$sty.'>Gesamtbreite (ganze Zahl):</td>
-        <td  '.$sty.'>
-            <input '.$stc.' '.$std.' type="text" name="'.$keys[$m].'" value="'.$readsett[$keys[$m]].'" /></td>
+    <tr><td class="kal_config_indent">Gesamtbreite (ganze Zahl):</td>
+        <td class="kal_config_indent">
+            <input class="form-control kal_config_number" type="text" name="'.$keys[$m].'" value="'.$readsett[$keys[$m]].'" /></td>
         <td colspan="2"> &nbsp; Pixel</td></tr>';
    #
    # --- Formular, Anzahl Terminkategorien
    $k=$anzcol+3;
    $string=$string.'
-       <tr><td '.$stx.' colspan="4">Terminkategorien:</td></tr>
-       <tr><td '.$sty.'>Anzahl der Terminkategorien:</td>
-           <td '.$sty.' colspan="3">
-               <input '.$stc.' '.$std.' type="text" name="'.$keys[$k].'" value="'.$readsett[$keys[$k]].'" /></td></tr>';
+       <tr><td class="kal_config_th" colspan="4">Terminkategorien:</td></tr>
+       <tr><td class="kal_config_indent">Anzahl der Terminkategorien:</td>
+           <td class="kal_config_indent" colspan="3">
+               <input class="form-control kal_config_number" type="text" name="'.$keys[$k].'" value="'.$readsett[$keys[$k]].'" /></td></tr>';
    #
    # --- Formular, Terminkategorien
    $anzkat=$readsett[$keys[$k]];
@@ -361,34 +493,34 @@ static public function kal_config_form($readsett) {
         endif;
       $set=$readsett[$key];
       $string=$string.'
-       <tr><td '.$sty.'>'.$lkat.'</td>
-           <td '.$sty.' colspan="3">
-               <input '.$stc.' '.$ste.' type="text" name="'.$key.'" value="'.$set.'" /></td></tr>';
+       <tr><td class="kal_config_indent">'.$lkat.'</td>
+           <td class="kal_config_indent" colspan="3">
+               <input class="form-control kal_config_kat" type="text" name="'.$key.'" value="'.$set.'" /></td></tr>';
       endfor;
    #
    # --- Formular, Abschluss
    $sptit='Parameter und css-Stylesheet speichern';
-   $str='auf Defaultwerte zur�cksetzen und ';
+   $str='auf Defaultwerte zurücksetzen und ';
    $title=$str.'speichern';
    $retit='Parameter '.$str."\n".$sptit;
    $string=$string.'
     <tr><td><br/>
             <button class="btn btn-update" type="submit" name="reset" value="reset" title="'.$retit.'">'.$title.'</button></td>
-        <td '.$sty.' colspan="3"><br/>
+        <td class="kal_config_indent" colspan="3"><br/>
             <button class="btn btn-save"   type="submit" name="save"  value="save"  title="'.$sptit.'"> speichern </button></td></tr>
 </table>
 </form>';
-   echo utf8_encode($string);
+   echo $string;
    }
 #
 #----------------------------------------- Erzeugen der Stylesheet-Datei
-function kal_hatch_gen($dif,$bgcolor) {
+public static function kal_hatch_gen($dif,$bgcolor) {
    #   Rueckgabe eines Style-Elementes zur 45 Grad-Schraffur
    #   $dif              Streifenbreite in %
    #   $bgcolor          Hintergrundfarbe
    #
    $ii=0;
-   $hatch="background-image:linear-gradient(-45deg,\n";
+   $hatch='#hatch { background-image:linear-gradient(-45deg,';
    $n=0;
    for($i=0;$i<100;$i=$i+$dif):
       $kk=$ii+$dif;
@@ -399,13 +531,14 @@ function kal_hatch_gen($dif,$bgcolor) {
         $col=$bgcolor;
         $n=0;
         endif;
-      $hatch=$hatch."   $col $i%, $col $kk%,\n";
+      $hatch=$hatch.'
+   '.$col.' '.$i.'%, '.$col.' '.$kk.'%,';
       $ii=$kk;
       endfor;
-   $hatch=substr($hatch,0,strlen($hatch)-2).");";
+   $hatch=substr($hatch,0,strlen($hatch)-1).'); }';
    return $hatch;
    }
-static public function kal_define_css() {
+public static function kal_define_css() {
    #   Rueckgabe der Quelle einer Stylesheet-Datei
    #   basierend auf den konfigurierten Farben fuer die Kalendermenues
    #   benutzte functions:
@@ -459,7 +592,7 @@ static public function kal_define_css() {
    color:'.$kalcol[7].'; }
 .kal_vntag { background-color:transparent;    border:solid 1px '.$kalcol[9].';
    color:'.$kalcol[9].'; }
-#hatch { '.$hatch.' }
+'.$hatch.'
 
 /*   Tagesstreifen im Monats-/Wochen-/Tagesblatt   */
 .kal_pix { max-width:'.$stdsiz.'px; min-width:'.$stdsiz.'px; line-height:0.2em;
@@ -512,20 +645,34 @@ static public function kal_define_css() {
 .kal_fail { color:red; }
 
 /*   Formulare im Backend   */
+.kal_install_menue { padding-left:20px; vertical-align:top; }
+.kal_install_number { width:50px; padding-right:5px; text-align:right; }
+.kal_install_termlist { padding-left:20px; white-space:nowrap; }
+.kal_config_pad { padding-left:5px; padding-right:5px; white-space:nowrap; }
+.kal_config_border { border:solid 1px grey; }
+.kal_config_indent { padding-left:20px; }
+.kal_config_th { height:2.5em; font-weight:bold; }
+.kal_config_kat { width:100%; padding-left:5px; }
+.kal_config_number { width:50px; padding-right:5px; text-align:right; }
+.kal_config_bgcol { width:400px; padding-left:5px; white-space:nowrap; }
+.kal_form_input_text { width:450px; padding-left:2px; padding-right:2px; }
+.kal_form_input_date { width:80px; padding-left:2px; padding-right:2px; }
+.kal_form_input_time { width:60px; padding-left:2px; padding-right:2px; }
 .kal_form_th { vertical-align:top; text-decoration:underline; font-weight:bold; white-space:nowrap; width:110px; }
-.kal_form_pad { padding-left:5px; }
-.kal_form_padnowrap { padding-left:5px; white-space:nowrap; }
+.kal_form_pad { padding-left:10px; }
+.kal_form_nowrap { white-space:nowrap; }     
 .kal_form_td450 { padding-left:5px; width:450px; white-space:nowrap; }
 .kal_form_prom { white-space:nowrap; color:blue; }
 .kal_form_msg { white-space:nowrap; color:blue; background-color:yellow; }
 .kal_form_search { width:150px; padding-left:2px; padding-right:2px; }
 .kal_form_block { color:green; white-space:nowrap; font-style:italic; }
 .kal_form_fail { color:red; white-space:nowrap; }
-.kal_form_list_th { vertical-align:top; padding-left:15px; padding-right:10px; text-align:right; font-weight:bold; }
+.kal_form_list_th { vertical-align:top; padding-left:15px; padding-right:10px;
+    text-align:right; font-weight:bold; white-space:nowrap; }
 ';
    return $string;
    }
-static public function kal_write_css() {
+public static function kal_write_css() {
    #   Schreiben der Stylesheet-Datei in den assets-Ordner des AddOns
    #   und Kopieren derselben in den Ordner /assets/addons/AddOn/
    #   benutzte functions:
@@ -552,7 +699,7 @@ static public function kal_write_css() {
    }
 #
 #----------------------------------------- Auslesen der konfigurierten Daten
-static public function kal_get_terminkategorien() {
+public static function kal_get_terminkategorien() {
    #   Rueckgabe der konfigurierten Terminkategorien
    #   als nummeriertes Array (Nummerierung ab 1)
    #   benutzte functions:
@@ -569,7 +716,7 @@ static public function kal_get_terminkategorien() {
       endfor;
    return $kat;
    }
-static public function kal_get_stundenleiste() {
+public static function kal_get_stundenleiste() {
    #   Rueckgabe der konfigurierten Daten zur Stundenleiste als nummeriertes Array
    #   (Nummerierung ab 1). Die Gesamtlaenge ist die Summe der Netto-Inhalte der
    #   Tabellenzellen ohne Border- und Padding-Breiten.
@@ -588,7 +735,7 @@ static public function kal_get_stundenleiste() {
       endfor;
    return $stl;
    }
-static public function kal_define_stundenleiste() {
+public static function kal_define_stundenleiste() {
    #   Rueckgabe der erweiterten und modifizierten Daten fuer die konfigurierte
    #   Stundenleiste in Form eines nummerierten Arrays (Nummerierung ab 1).
    #   Die Gesamtlaenge der Leiste wird soweit reduziert, dass die Pixelanzahl
@@ -598,7 +745,7 @@ static public function kal_define_stundenleiste() {
    #   der Stundenleiste ist daher deutlich groesser als $daten[3] angibt.
    #      $daten[1]    Startpunkt der Tagestermine (Uhrzeit, ganze Zahl)
    #      $daten[2]    Endpunkt der Tagestermine (Uhrzeit, ganze Zahl)
-   #      $daten[3]    Anzahl Pixel fuer die Gesamtlaenge der Tageszeile,
+   #      $daten[3]    Anzahl Pixel (ganze Zahl) fuer die Gesamtlaenge der Tageszeile,
    #                   falls 1 Stunde einer gebrochenen Pixel-Anzahl entspricht,
    #                   wird die gemaess Konfiguration vorgegebene Gesamtlaenge
    #                   so verkleinert, dass 1 Stunde einer ganzzahligen

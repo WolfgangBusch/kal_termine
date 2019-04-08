@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2019
+ * @version April 2019
  */
 define ('ACTION_START',  'start');
 define ('ACTION_SEARCH', 'search');
@@ -18,19 +18,23 @@ class kal_termine_formulare {
 #----------------------------------------- Inhaltsuebersicht
 #         kal_proof_termin($termin)
 #   Terminformulare
-#         kal_formular_radiobutton($action,$pid)
-#         kal_formular_fuellen($value)
-#         kal_formular_suchen($spar)
-#         kal_formular_startauswahl()
-#         kal_formular_eingeben($value)
-#         kal_formular_loeschen($pid)
-#         kal_formular_korrigieren($pid,$value)
-#         kal_formular_kopieren($pid,$anz)
+#         kal_radiobutton($action,$pid)
+#         kal_fuellen($value)
+#         kal_select_kategorie($name,$kategorie,$kont)
+#         kal_startauswahl()
+#         kal_eingeben($value,$action)
+#         kal_aktionsauswahl($pid)
+#         kal_loeschen($pid,$action)
+#         kal_korrigieren($value,$pid,$action)
+#         kal_kopieren($pid,$action,$kop,$anz)
+#   Terminblatt
+#         kal_terminblatt($termin,$headline)
+#         kal_terminblatt_head($datum,$name)
 #   Terminliste
 #         kal_terminliste($termin)
 #         kal_terminliste_merge($termin)
 #
-static public function kal_proof_termin($termin) {
+public static function kal_proof_termin($termin) {
    #   Ueberpruefen der Felder eines Termin-Arrays auf
    #   - leere Pflichtfelder
    #   - Format und Zahlen der Datumsangabe
@@ -39,11 +43,11 @@ static public function kal_proof_termin($termin) {
    #   Rueckgabe entsprechender Fehlermeldungen (rote Schrift)
    #   leere Ruckgabe, falls kein Fehler vorliegt
    #   benutzte functions
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      kal_termine_config::kal_define_tabellenspalten()
    #      kal_termine_kalender::kal_monatstage($jahr)
    #      kal_termine_kalender::kal_monate()
    #
-   $cols=kal_termine_tabelle::kal_define_tabellenspalten();
+   $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
    $vor='<span class="kal_fail">';
    #
@@ -60,18 +64,18 @@ static public function kal_proof_termin($termin) {
       endfor;
    #
    # --- Pruefen der Datumsangabe: Standardformat
-   $errdat1=$vor.'Datumsangabe \'<tt>'.$termin[datum].'</tt>\': hat kein Standardformat \'<tt>'.$cols[datum][2].'</tt>\'</span>';
-   $arr=explode('.',$termin[datum]);
+   $errdat1=$vor.'Datumsangabe \'<tt>'.$termin[COL_DATUM].'</tt>\': hat kein Standardformat \'<tt>'.$cols[COL_DATUM][2].'</tt>\'</span>';
+   $arr=explode('.',$termin[COL_DATUM]);
    if(count($arr)<>3) return $errdat1;
    #
    # --- Pruefen der Datumsangabe: Jahreszahl
    $jahr=$arr[2];
-   $errdat2=$vor.'Datumsangabe \'<tt>'.$termin[datum].'</tt>\': Jahreszahl kein Integer</span>';
+   $errdat2=$vor.'Datumsangabe \'<tt>'.$termin[COL_DATUM].'</tt>\': Jahreszahl kein Integer</span>';
    if(intval($jahr)<=0 and $jahr!='00') return $errdat2;
    #
    # --- Pruefen der Datumsangabe: Monatszahl
    $monat=intval($arr[1]);
-   $errdat3=$vor.'Datumsangabe \'<tt>'.$termin[datum].'</tt>\': Monatszahl nicht zwischen 1 und 12</span>';
+   $errdat3=$vor.'Datumsangabe \'<tt>'.$termin[COL_DATUM].'</tt>\': Monatszahl nicht zwischen 1 und 12</span>';
    if($monat<1 or $monat>12) return $errdat3;
    #
    # --- Pruefen der Datumsangabe: Tageszahl
@@ -80,7 +84,7 @@ static public function kal_proof_termin($termin) {
    $mt=$mtage[$monat];
    $mon=kal_termine_kalender::kal_monate();
    $moname=$mon[$monat];
-   $errdat4=$vor.'Datumsangabe \'<tt>'.$termin[datum].'</tt>\': Tageszahl im $moname nicht zwischen 1 und '.$mt.'</span>';
+   $errdat4=$vor.'Datumsangabe \'<tt>'.$termin[COL_DATUM].'</tt>\': Tageszahl im '.$moname.' nicht zwischen 1 und '.$mt.'</span>';
    if($tag<1 or $tag>$mt) return $errdat4;
    #
    # --- Schleife ueber die Zeitangaben
@@ -102,15 +106,20 @@ static public function kal_proof_termin($termin) {
         return $errtim2;
       #
       # --- Pruefen der Zeitangaben: Minutenzahl
-      $min=intval($arr[1]);
+      $strmin='';
+      $min=0;
+      if(count($arr)==2):
+        $strmin=$arr[1];
+        $min=intval($strmin);
+        endif;
       $errtim3=$vor.'Zeitangabe \'<tt>'.$val.'</tt>\': Minutenzahl nicht zwischen 0 und 59</span>';
-      if($min<0 or $min>59 or ($min==0 and $arr[1]!='' and $arr[1]!='0' and $arr[1]!='00'))
+      if($min<0 or $min>59 or ($min==0 and $strmin!='' and $strmin!='0' and $strmin!='00'))
         return $errtim3;
       endfor;
    }
 #
 #----------------------------------------- Terminformulare
-static public function kal_formular_radiobutton($action,$pid) {
+public static function kal_radiobutton($action,$pid) {
    #   Rueckgabe des HTML-Codes einer 2-spaltigen Zeile einer HTML-Tabelle in einer der
    #   Funktionen kal_formular_aktion (aktion='eingeben' oder 'loeschen' oder 'korrigieren'
    #   oder 'kopieren'). Inhalt der beiden Spalten:
@@ -121,19 +130,17 @@ static public function kal_formular_radiobutton($action,$pid) {
    #   $pid            Id des betroffenen Termins
    #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
    #   REX_INPUT_VALUE[count($cols)] ($cols = Array der Spaltennamen der Termintabelle)
-   #   benutzte functions:
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
    #
    $block='';
    if(rex::isBackend())
-     $block=' &nbsp; <span class="kal_form_block">(&laquo;Block &uuml;bernehmen&raquo;)</span>';
+     $block=' &nbsp; <span class="kal_form_block">(&laquo;Block übernehmen&raquo;)</span>';
    $actionpid=$action.':'.$pid;
    #
    # --- Ausgabe der Radio-Buttons (Aktion / Abbruch)
-   $actstr='ausw&auml;hlen';
+   $actstr='auswählen';
    if($action==ACTION_SEARCH) $actstr='Termin suchen';
    if($action==ACTION_INSERT) $actstr='Termin eintragen';
-   if($action==ACTION_DELETE) $actstr='Termin l&ouml;schen';
+   if($action==ACTION_DELETE) $actstr='Termin löschen';
    if($action==ACTION_UPDATE) $actstr='Termin korrigieren';
    if($action==ACTION_COPY)   $actstr='Termin kopieren';
    if(empty($action) or $action==ACTION_SEARCH or $action==ACTION_INSERT or $pid>0):
@@ -143,19 +150,17 @@ static public function kal_formular_radiobutton($action,$pid) {
      $check1='';
      $check2='checked="checked"';
      endif;
-   $cols=kal_termine_tabelle::kal_define_tabellenspalten();
-   $nzcols=count($cols);
    return '
-    <tr><td class="kal_form_th">
+    <tr><td class="kal_form_list_th">
             Aktion:</td>
-        <td class="kal_form_padnowrap">
+        <td class="kal_form_pad kal_form_nowrap">
             <span class="kal_form_prom">'.$actstr.':</span>
-            <input type="radio" name="REX_INPUT_VALUE['.$nzcols.']" value="'.$actionpid.'" '.$check1.' />
+            <input type="radio" name="REX_INPUT_VALUE['.COL_ANZAHL.']" value="'.$actionpid.'" '.$check1.' />
             &nbsp; / &nbsp; Abbruch:
-            <input type="radio" name="REX_INPUT_VALUE['.$nzcols.']" value="start" '.$check2.' />
+            <input type="radio" name="REX_INPUT_VALUE['.COL_ANZAHL.']" value="'.ACTION_START.'" '.$check2.' />
             '.$block.'</td></tr>';
    }
-static public function kal_formular_fuellen($value) {
+public static function kal_fuellen($value) {
    #   Rueckgabe eines HTML-Formular zum Eintragen oder Korrigieren eines Termins
    #   in der Datenbanktabelle in Form von 2-spaltigen Zeilen einer HTML-Tabelle.
    #   Tabellenanfang (ohne Newline) und -ende muessen im aufrufenden Programm definiert werden.
@@ -168,18 +173,14 @@ static public function kal_formular_fuellen($value) {
    #                   $i=1, 2, ..., $nzcols-1=count($cols)-1)
    #                   ($cols = Namen der Tabellenspalten, $keys=array_keys($cols))
    #   benutzte functions:
+   #      self::kal_select_kategorie($name,$kategorie,$kont)
    #      kal_termine_config::kal_get_terminkategorien()
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      kal_termine_config::kal_define_tabellenspalten()
    #      kal_termine_tabelle::kal_standard_termin_intern($value,$cols)
    #
-   $kat=kal_termine_config::kal_get_terminkategorien();
-   $cols=kal_termine_tabelle::kal_define_tabellenspalten();
+   $kat =kal_termine_config::kal_get_terminkategorien();
+   $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
-   #
-   # --- Konstanten
-   $stdwidth=450;
-   $datwidth=80;
-   $timwidth=60;
    #
    # --- Standardisierung der date- und time-Werte
    $value=kal_termine_tabelle::kal_standard_termin_intern($value,$cols);
@@ -204,9 +205,6 @@ static public function kal_formular_fuellen($value) {
       $type=$arr[0];
       $arr=explode('(',$type);
       $type=$arr[0];
-      $width=$stdwidth;
-      if($type=='date') $width=$datwidth;
-      if($type=='time') $width=$timwidth;
       $form=$cols[$key][2];
       if($form=='Kurztext' or $form=='Text') $form='';
       if(!empty($form)) $form=' &nbsp; (<tt>'.$form.'</tt>)';
@@ -219,29 +217,20 @@ static public function kal_formular_fuellen($value) {
       # --- Ausgabe einer Formularzeile
       $zeile='
     <tr valign="top">
-        <td style="white-space:nowrap;">
-            '.$restr.' '.$spname.': &nbsp; </td>';
+        <td class="kal_form_nowrap">'.$restr.' '.$spname.': &nbsp; </td>';
       if($key=='kategorie'):
         $zeile=$zeile.'
-        <td align="right" class="kal_form_td450">
-            <select name="REX_INPUT_VALUE['.$i.']">';
-        for($k=1;$k<=count($kat);$k=$k+1):
-           $kateg=utf8_encode($kat[$k]);
-           if($value[$i]==$kateg):
-             $sel=' selected="selected"';
-             else:
-             $sel='';
-             endif;
-           $zeile=$zeile.'
-                <option'.$sel.'>'.$kateg.'</option>';
-           endfor;
-        $zeile=$zeile.'
-            </select></td></tr>';
+        <td align="right" class="kal_form_td450">';
+        $str=self::kal_select_kategorie('REX_INPUT_VALUE['.$i.']',$value[$i],1);
+        $zeile=$zeile.$str.'</td></tr>';
         else:
+        $class='kal_form_input_text';
+        if($type=='date') $class='kal_form_input_date';
+        if($type=='time') $class='kal_form_input_time';
         $zeile=$zeile.'
         <td class="kal_form_td450">
             <input type="text" name="REX_INPUT_VALUE['.$i.']" value="'.$value[$i].'"
-                   style="width:'.$width.'px;" />'.$form.'</td></tr>';
+                   class="'.$class.'" />'.$form.'</td></tr>';
         endif;
       $string=$string.$zeile;
       #
@@ -254,80 +243,23 @@ static public function kal_formular_fuellen($value) {
       endfor;
    return $string;
    }
-static public function kal_formular_suchen($spar) {
-   #   Rueckgabe eines HTML-Formulars zur Suche nach einem Termin, gesteuert ueber
-   #   diese 4 Parameter: Starttermin, Endtermin, Terminkategorie und Stichwort.
-   #   Bei nicht korrekt ausgefuellten Feldern oder mehr als 1 gefundenem Termin
-   #   wird das Formular durch eine Fehlermeldung ergaenzt.
-   #   $spar           Array der Formularparameter-Werte:
-   #                   [1]  Starttermin     (Parametername REX_INPUT_VALUE[1])
-   #                   [2]  Endtermin       (Parametername REX_INPUT_VALUE[2])
-   #                   [3]  Terminkategorie (Parametername REX_INPUT_VALUE[3])
-   #                   [4]  Stichwort       (Parametername REX_INPUT_VALUE[4])
-   #                   [5]  = ACTION_DELETE / ACTION_UPDATE / ACTION_COPY
-   #                          Kuerzel fuer die Aktion, die nach Abschluss der Suche fuer
-   #                          den Termin auf der Datenbanktabelle durchgefuehrt werden soll,
-   #                          wird als 'hidden' Parameter weiter gereicht
-   #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
-   #   REX_INPUT_VALUE[count($cols)] ($cols = Array der Terminspaltennamen)
-   #      mit dem Schlusswert 'action:$pid' und
-   #         'action' = Aktion gemaess $spar[5]), falls genau 1 Termin gefunden wurde
-   #                  = 'ACTION_SEARCH, falls kein Termin oder mehr als 1 Termin gefunden wurde
+public static function kal_select_kategorie($name,$kategorie,$kont) {
+   #   Rueckgabe des HTML-Codes fuer die Auswahl der moeglichen Kategorien.
+   #   $name           Name des select-Formulars
+   #   $kategorie      Bezeichnung der schon gewaehlten Kategorie
+   #   $kont           =1:    es ist genau eine Kategorie zu waehlen
+   #                   sonst: man kann sich auch fuer keine spezielle Kategorie
+   #                          entscheiden, die Wahl umfasst dann alle Kategorien
    #   benutzte functions:
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      self::kal_terminliste($termin)
-   #      kal_termine_kalender::kal_standard_datum($datum)
    #      kal_termine_config::kal_get_terminkategorien()
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
-   #      kal_termine_tabelle::kal_datum_standard_mysql($datum)
-   #      kal_termine_tabelle::kal_select_termine($von,$bis,$kategorie,$stichwort)
    #
-   $nextaction=$spar[5];
-   #
-   # --- Ueberschrift
-   $string='
-<div class="kal_form_prom">Suche eines Termins in der Datenbanktabelle zwischen \'Startdatum\' und \'Enddatum\'</div>
-<table class="kal_table">';
-   #
-   # --- Tabelle
-   $string=$string.'
-    <tr valign="top">
-        <td class="kal_form_th">
-            Restriktionen:</td>
-        <td class="kal_form_pad">
-            <b>Restriktionen mit &nbsp * &nbsp; erfordern eine Eingabe</b></td></tr>';
-   #
-   # --- Standardisieren der Datumseingaben
-   if(!empty($spar[1])) $spar[1]=kal_termine_kalender::kal_standard_datum($spar[1]);
-   if(!empty($spar[2])) $spar[2]=kal_termine_kalender::kal_standard_datum($spar[2]);
-   #
-   # --- Auswahlmaske: Startdatum
-   $string=$string.'
-    <tr valign="top">
-        <td><b>*</b> Startdatum:</td>
-        <td class="kal_form_pad">
-            <input name="REX_INPUT_VALUE[1]" type="text" value="'.$spar[1].'"
-                   style="width:100px;" /> &nbsp; (<tt>tt.mm.yyyy</tt>)</td></tr>';
-   #
-   # --- Auswahlmaske: Enddatum
-   $string=$string.'
-    <tr valign="top">
-        <td><b>*</b> Enddatum:</td>
-        <td class="kal_form_pad">
-            <input name="REX_INPUT_VALUE[2]" type="text" value="'.$spar[2].'"
-                   style="width:100px;" /> &nbsp; (<tt>tt.mm.yyyy</tt>)</td></tr>';
-   #
-   # --- Auswahlmaske: Kategorien
    $kat=kal_termine_config::kal_get_terminkategorien();
-   $string=$string.'
-    <tr valign="top">
-        <td>Kategorie:</td>
-        <td class="kal_form_pad">
-            <select name="REX_INPUT_VALUE[3]" class="kal_form_search">
+   $string='<select name="'.$name.'" class="kal_form_search">';
+   if($kont!=1) $string=$string.'
                 <option></option>';
    for($i=1;$i<=count($kat);$i=$i+1):
-      $kateg=utf8_encode($kat[$i]);
-      if($spar[3]==$kateg):
+      $kateg=$kat[$i];
+      if($kategorie==$kateg):
         $sel='selected="selected"';
         else:
         $sel='';
@@ -336,142 +268,95 @@ static public function kal_formular_suchen($spar) {
                 <option '.$sel.'>'.$kateg.'</option>';
       endfor;
    $string=$string.'
-            </select> &nbsp; &nbsp; &nbsp;
-            (ggf. nur Termine einer bestimmten Kategorie)</td></tr>';
+            </select>';
+   return $string;
+   }
+public static function kal_startauswahl() {
+   #   Rueckgabe des HTML-Formulars zur Entscheidung, ob ein neuer Termin
+   #   eingegeben werden soll oder ob ein vorhandener Termin bearbeitet
+   #   (geloescht bzw. korrigiert bzw. kopiert) werden soll.
+   #   Die Auswahlentscheidung erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
+   #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
+   #   REX_INPUT_VALUE[count($cols)] ($cols = Array der Terminspaltennamen).
+   #   benutzte functions:
+   #      self::kal_radiobutton($action,$pid)
    #
-   # --- Auswahlmaske: Stichwort
-   $string=$string.'
+   # --- Ausgabe der Radio-Buttons zur Auswahl
+   $string='
+<h4 align="center">Verwaltung der Termine in der Datenbanktabelle</h4>
+<table class="kal_table">
     <tr valign="top">
-        <td>Stichwort:</td>
+        <td class="kal_form_list_th">
+            gewünschte Aktion:</td>
         <td class="kal_form_pad">
-            <input name="REX_INPUT_VALUE[4]" type="text" value="'.$spar[4].'"
-                   class="kal_form_search" /> &nbsp; &nbsp; &nbsp;
-            (ggf. nur Termine, die ein Stichwort enthalten)</td></tr>';
-   #
-   # --- hidden value (String zur Markierung der gewuenschten Aktion auf der DB-Tabelle)
-   $string=$string.'
+            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_INSERT.'"
+                   onfocus="this.blur();" />
+            &nbsp; Eintragen eines neuen Termins</td></tr>
     <tr valign="top">
-        <td> </td>
-        <td><input type="hidden" name="REX_INPUT_VALUE[5]" value="'.$nextaction.'" /></td></tr>';
-   #
-   # --- Pruefung der Eingabedaten
-   $error='';
-   if(empty($spar[1])) $error='Bitte ein Startdatum angeben';
-   if(empty($spar[2]) and !empty($spar[1])) $error='Bitte ein Enddatum angeben';
-   if(!empty($spar[1]) and !empty($spar[2]) and
-      kal_termine_tabelle::kal_datum_standard_mysql($spar[1])>
-      kal_termine_tabelle::kal_datum_standard_mysql($spar[2]))
-     $error='Das Enddatum muss NACH dem Startdatum liegen';
-   #
-   # --- zugehoerige Termine auslesen
-   $pid=0;
-   if(empty($error)):
-     $termin=kal_termine_tabelle::kal_select_termine($spar[1],$spar[2],$spar[3],$spar[4]);
-     if(count($termin)<=0):
-       $str1='';
-       $str2='            <span class="kal_form_fail">keine entsprechenden Termine gefunden, bitte Suche vergr&ouml;bern</span>';
-       endif;
-     if(count($termin)>1):
-       $str1=count($termin).' Termine gefunden:';
-       $str2='            <div class="kal_form_fail">bitte Suche verfeinern, bis genau 1 Termin vorliegt</div>';
-       endif;
-     if(count($termin)==1):
-       $pid=$termin[1][pid];
-       $str1='1 Termin gefunden:';
-       $str2='';
-       endif;
-     endif;
-   #
-   if(!empty($error)):
-   # --- entweder: Fehlermeldung ausgeben
-     $string=$string.'
-    <tr valign="top">
-        <td> </td>
+        <td class="kal_form_list_th"> </td>
         <td class="kal_form_pad">
-            <span class="kal_form_fail">'.$error.'</span></td></tr>';
-     else:
-   # --- oder: Gefunden-Zeile ausgeben, inkl. Terminliste
-     $string=$string.'
-    <tr valign="top">
-        <td class="kal_form_th">
-            '.$str1.'</td>
-        <td class="kal_form_pad">
-            '.$str2;
-     if(count($termin)>0) $string=$string.self::kal_terminliste($termin);
-     $string=$string.'
-        </td></tr>';
-     endif;
+            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_SEARCH.'"
+                   onfocus="this.blur();" />
+            &nbsp; Suchen eines vorhandenen Termins<br/>
+            &nbsp; &nbsp; &nbsp;
+            &nbsp; (um ihn zu löschen oder zu korrigieren oder zu kopieren)</td></tr>';
    #
-   # --- Hinweis-Zeile (Termin gefunden / noch nicht gefunden)
-   if($pid>0):
-     $action=$nextaction;
-     else:
-     $action=ACTION_SEARCH;
-     $pid='';
-     endif;
-   $string=$string.self::kal_formular_radiobutton($action,$pid);
-   #
-   $string=$string.'
+   # --- Hinweis auf die Durchfuehrung
+   $string=$string.self::kal_radiobutton('','').'
 </table>
 ';
    return $string;
    }
-static public function kal_formular_startauswahl() {
+public static function kal_aktionsauswahl($pid) {
    #   Rueckgabe des HTML-Formulars zur Auswahl einer Aktion fuer einen Termin
-   #   auf der Datenbanktabelle (Eintragen / Korrigieren / Loeschen / Kopieren).
+   #   auf der Datenbanktabelle (Korrigieren / Loeschen / Kopieren).
+   #   $pid            Id des Termins
    #   Die Auswahl der Aktion erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
    #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
    #   REX_INPUT_VALUE[count($cols)] ($cols = Array der Terminspaltennamen).
    #   benutzte functions:
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      self::kal_radiobutton($action,$pid)
    #
    # --- Ausgabe der Radio-Buttons
    $string='
 <table class="kal_table">
     <tr valign="top">
-        <td colspan="2" class="kal_form_prom">
-            Verwaltung der Termine in der Datenbanktabelle</td></tr>
-    <tr valign="top">
-        <td class="kal_form_th">
-            gew&uuml;nschte Aktion:</td>
-        <td class="kal_form_pad">
-            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_INSERT.'" '.$chkein.'
+        <td class="kal_form_list_th">
+            Dieser Termin soll:</td>
+        <td class="kal_form_pad"> &nbsp;
+            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_DELETE.'"
                    onfocus="this.blur();" />
-            &nbsp; Eintragen eines neuen Termins</td></tr>
+            &nbsp; gelöscht werden</td></tr>
     <tr valign="top">
-        <td class="kal_form_th"> </td>
-        <td class="kal_form_pad">
-            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_DELETE.'" '.$chkloe.'
+        <td class="kal_form_list_th"> </td>
+        <td class="kal_form_pad"> &nbsp;
+            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_UPDATE.'"
                    onfocus="this.blur();" />
-            &nbsp; L&ouml;schen eines vorhandenen Termins</td></tr>
+            &nbsp; korrigiert werden</td></tr>
     <tr valign="top">
-            <td class="kal_form_th"> </td>
-        <td class="kal_form_pad">
-            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_UPDATE.'" '.$chkkor.'
+        <td class="kal_form_list_th"> </td>
+        <td class="kal_form_pad"> &nbsp;
+            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_COPY.'"
                    onfocus="this.blur();" />
-            &nbsp; Korrigieren eines vorhandenen Termins</td></tr>
-    <tr valign="top">
-        <td class="kal_form_th"> </td>
-        <td class="kal_form_pad">
-            <input type="radio" name="REX_INPUT_VALUE[1]" value="'.ACTION_COPY.'" '.$chkcop.'
-                   onfocus="this.blur();" />
-            &nbsp; Kopieren eines vorhandenen Termins</td></tr>';
+            &nbsp; kopiert werden</td></tr>';
    #
    # --- Hinweis auf die Durchfuehrung
-   $string=$string.self::kal_formular_radiobutton('','').'
+   $string=$string.self::kal_radiobutton('',$pid).'
 </table>
 ';
    return $string;
    }
-static public function kal_formular_eingeben($value) {
+public static function kal_eingeben($value,$action) {
    #   Rueckgabe eines HTML-Formulars zur Eintragung eines Termins in die Datenbanktabelle.
    #   Die eingegebenen Termindaten werden formal ueberprueft.
    #   $value          Array der Formularparameter-Werte
    #                      $value[$i] = Terminparameter mit dem Schluessel $keys[$i]
    #                         ($i=1, ..., count($cols)-1, $cols = Array der Terminspaltennamen)
-   #                      $value[count($cols)] = '' / 'insert:'
+   #                      $value[count($cols)] = '' / ACTION_INSERT:'
    #                         vor / nach Eintragung in die Formularfelder)
+   #   $action         =ACTION_INSERT: der Termin wird in die Tabelle eingetragen
+   #                   leer: es werden nur die zu einzutragenen Termindaten angezeigt
+   #                         und nach Bestaetigung der Eintragung gefragt
    #                   Die Uebergabe der Werte erfolgt ueber die Werte der
    #                   Redaxo-Variablen REX_INPUT_VALUE[$i], REX_INPUT_VALUE[count($cols)]
    #   #################################################################
@@ -486,20 +371,18 @@ static public function kal_formular_eingeben($value) {
    #      - der Termin schon in der Datenbanktabelle enthalten ist oder
    #      - der Termin aus anderen Gruenden nicht eingetragen werden konnte
    #   benutzte functions:
-   #      self::kal_formular_fuellen($value)
+   #      self::kal_fuellen($value)
    #      self::kal_proof_termin($termin)
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      self::kal_formular_startauswahl()
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      self::kal_radiobutton($action,$pid)
+   #      self::kal_startauswahl()
+   #      kal_termine_config::kal_define_tabellenspalten()
    #   die Datenbank nutzende functions:
    #      kal_termine_tabelle::kal_exist_termin($termin)
    #      kal_termine_tabelle::kal_insert_termin($termin)
    #
-   $cols=kal_termine_tabelle::kal_define_tabellenspalten();
+   $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
    $nzcols=count($cols);
-   $arr=explode(':',$value[$nzcols]);
-   $action=$arr[0];
    #
    # --- Uebertragen der Eingabedaten in ein Termin-Array
    $termin[$keys[0]]=0;
@@ -510,9 +393,10 @@ static public function kal_formular_eingeben($value) {
    #
    # --- Eintragen des neuen Termins in die Datenbank (erst nach Auftrag zum Eintragen)
    $msg='';
-   if(empty($error) and $action==ACTION_INSERT):
-     $pid=kal_termine_tabelle::kal_insert_termin($termin);
-     if($pid>0):
+   $error='';
+   if($action==ACTION_INSERT):
+     $pidneu=kal_termine_tabelle::kal_insert_termin($termin);
+     if($pidneu>0):
        $msg='<span class="kal_form_msg">Der Termin wurde in die Datenbank eingetragen</span>';
        else:
        $error='<span class="kal_form_fail">Der Termin konnte nicht eingetragen werden</span>';
@@ -520,15 +404,15 @@ static public function kal_formular_eingeben($value) {
      endif;
    #
    # --- Formularausgabe
-   if($pid<=0):
+   if(empty($action) or !empty($error)):
      #
      #     Ueberschrift
      $string='
-<div class="kal_form_prom">Eintragen eines einzelnen Termins in die Datenbanktabelle</div>
+<h4 align="center">Eintragen eines einzelnen Termins in die Datenbanktabelle</h4>
 <table class="kal_table">';
      #
      #     Fuellen der Formularfelder
-     $string=$string.self::kal_formular_fuellen($value);
+     $string=$string.self::kal_fuellen($value);
      #
      #     Ausgabe der Radio-Buttons (Eintragen / Abbruch)
      if(!empty($error)) $string=$string.'
@@ -539,19 +423,23 @@ static public function kal_formular_eingeben($value) {
     <tr><td> </td>
         <td class="kal_form_pad">'.
             $msg.'</td></tr>';
-     $string=$string.self::kal_formular_radiobutton(ACTION_INSERT,$pid).'
+     $string=$string.self::kal_radiobutton(ACTION_INSERT,'').'
 </table>
 ';
    #
    # --- Zurueck zum Startmenue
      else:
-     $string=$msg.self::kal_formular_startauswahl();
+     $string=$msg.self::kal_startauswahl();
      endif;
    return $string;
    }
-static public function kal_formular_loeschen($pid) {
+public static function kal_loeschen($pid,$action) {
    #   Rueckgabe eines HTML-Formulars zum Loeschen eines Termins in der Datenbanktabelle.
    #   $pid            Id des zu loeschenden Termins
+   #   $action         leer: es wird nur der zu loeschende Termin angezeigt
+   #                         und nach Bestaetigung der Loeschung gefragt
+   #                   =ACTION_DELETE: die Loeschung wird durchgefuehrt
+   #                   =ACTION_START:  Rueckkehr zum Startmenue ohne Loeschung
    #   #################################################################
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
@@ -561,44 +449,41 @@ static public function kal_formular_loeschen($pid) {
    #   Es wird eine Fehlermeldung zurueck gegeben (in rot), falls der Termin nicht
    #   geloescht werden konnte
    #   benutzte functions:
-   #      self::kal_terminliste($termin)
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      self::kal_formular_startauswahl()
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      self::kal_terminblatt($termin,$headline)
+   #      self::kal_terminblatt_head($datum,$name)
+   #      self::kal_radiobutton($action,$pid)
+   #      self::kal_startauswahl()
    #   die Datenbank nutzende functions:
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
    #      kal_termine_tabelle::kal_delete_termin($termin)
    #
    # --- Ermittlung der zu $pid gehoerigen Termindaten (falls vorhanden)
+   $error='';
    if($pid>0):
-     $termin[1]=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-     $error='';
-     if(count($termin[1])<=0):
-       $error='<span class="kal_form_fail">Der Termin (pid='.$pid.') wurde nicht gefunden</span>';
-       $pid=0;
-       endif;
-     else:
-     $error='<span class="kal_form_fail">Kein zu l&ouml;schender Termin angegeben</span>';
-     $pid=0;
+     $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
+     if(count($termin)<=0)
+       $error='<span class="kal_form_fail">Der Termin ('.COL_PID.'='.$pid.') wurde nicht gefunden</span>';
      endif;
+   if($pid<=0 and $action!=ACTION_START)
+     $error='<span class="kal_form_fail">Kein zu löschender Termin angegeben</span>';
    #
    # --- Loeschen des Termins in der Datenbanktabelle
    $msg='';
    $error2='';
-   if($pid>0 and empty($error)):
+   if($action==ACTION_DELETE and $pid>0 and empty($error)):
      $ret=kal_termine_tabelle::kal_delete_termin($pid);
      if(empty($ret)):
-       $msg='<span class="kal_form_msg">Der Termin wurde in der Datenbank gel&ouml;scht</span>';
+       $msg='<span class="kal_form_msg">Der Termin wurde in der Datenbank gelöscht</span>';
        else:
-       $error2='<span class="kal_form_fail">Der Termin (pid='.$pid.') konnte nicht gel&ouml;scht werden</span>';
+       $error2='<span class="kal_form_fail">Der Termin ('.COL_PID.'='.$pid.') konnte nicht gelöscht werden</span>';
        endif;
      endif;
    #
    # --- Formularausgabe
-   if($pid<=0 or !empty($error) or !empty($error2)):
+   if(empty($action) or !empty($error) or !empty($error2)):
    #  -  Ueberschrift
      $string='
-<div class="kal_form_prom">L&ouml;schen eines einzelnen Termins in der Datenbanktabelle</div>
+<h4 align="center">Löschen eines einzelnen Termins in der Datenbanktabelle</h4>
 <table class="kal_table">';
    #  -  zu loeschender Termin
      if(!empty($error)):
@@ -610,44 +495,44 @@ static public function kal_formular_loeschen($pid) {
        else:
        $string=$string.'
     <tr valign="top">
-        <td class="kal_form_th">
+        <td class="kal_form_list_th">
             Termin:</td>
-        <td class="kal_form_pad">'.self::kal_terminliste($termin).'
+        <td class="kal_form_pad">'.self::kal_terminblatt($termin,'self::kal_terminblatt_head').'
         </td></tr>';
        endif;
    #  -  Termin konnte nicht geloescht werden
      if(!empty($error2))
        $string=$string.'
     <tr valign="top">
-        <td class="kal_form_th"> </td>
+        <td class="kal_form_list_th"> </td>
         <td class="kal_form_pad">
             '.$error2.'</td></tr>';
    #  -  Radio-Buttons (Loeschen / Abbruch)
-     $string=$string.self::kal_formular_radiobutton(ACTION_DELETE,$pid).'
+     $string=$string.self::kal_radiobutton(ACTION_DELETE,$pid).'
 </table>';
    #
    # --- zurueck zum Startmenue
      else:
      $string='
 <div>'.$msg.'</div>';
-     $string=$string.self::kal_formular_startauswahl();
+     $string=$string.self::kal_startauswahl();
      endif;
    return $string;
    }
-static public function kal_formular_korrigieren($pid,$value) {
+public static function kal_korrigieren($value,$pid,$action) {
    #   Rueckgabe eines HTML-Formulars zur Korrektur eines Termins in der Datenbanktabelle
-   #   $pid            Id des zu korrigierenden Termins
-   #   $value          Array zur Aufnahme der Daten des zu korrigierenden Termins
-   #                   falls $value[1] (und damit das gesamte Array) nicht leer ist:
-   #                      das Array die eingelesenen korrigierten Terminparameter:
+   #   $value          Array zur Aufnahme der Daten des zu korrigierenden Termins:
    #                      $value[$i] = Terminparameter mit dem Schluessel $keys[$i]
    #                      ($keys=array_keys($cols), $i=1, ..., count($cols)-1)
    #                      ($cols = Array der Namen der Tabellenspalten)
    #                      Die Uebergabe der Werte erfolgt ueber die Werte der
    #                      Redaxo-Variablen REX_INPUT_VALUE[$i]
-   #                   falls $value[1] (und damit das gesamte Array) leer ist:
-   #                      die Daten des zu korrigierenden Termins werden
-   #                      in das Array eingelesen
+   #                   Mit diesen Daten werden die aktuellen Termindaten ueberschrieben.
+   #   $pid            Id des zu korrigierenden Termins
+   #   $action         leer: es werden nur die zu korrigierenden Termindaten angezeigt
+   #                         und nach Bestaetigung der Korrektur gefragt
+   #                   =ACTION_UPDATE: die Korektur wird durchgefuehrt
+   #                   =ACTION_START:  Rueckkehr zum Startmenue ohne Korrektur
    #   #################################################################
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
@@ -657,49 +542,33 @@ static public function kal_formular_korrigieren($pid,$value) {
    #   Es wird eine Fehlermeldung ausgegeben (in rot), falls der Termin nicht
    #   korrigiert werden konnte
    #   benutzte functions:
-   #      self::kal_formular_fuellen($value)
+   #      self::kal_fuellen($value)
    #      self::kal_proof_termin($termin)
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      self::kal_formular_startauswahl()
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
+   #      self::kal_radiobutton($action,$pid)
+   #      self::kal_startauswahl()
+   #      kal_termine_config::kal_define_tabellenspalten()
    #   die Datenbank nutzende functions:
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
    #      kal_termine_tabelle::kal_update_termin($pid,$termin)
    #
-   $cols=kal_termine_tabelle::kal_define_tabellenspalten();
+   $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
    $nzcols=count($cols);
    #
    # --- Termindaten aus der Datenbanktabelle holen (falls vorhanden)
+   $error='';
    if($pid>0):
      $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-     $error='';
-     if(count($termin)<=0):
+     if(count($termin)<=0)
        $error='<span class="kal_form_fail">Der Termin wurde nicht gefunden</span>';
-       $pid=0;
-       endif;
-     else:
-     $error='<span class="kal_form_fail">Kein zu korrigierender Termin angegeben</span>';
-     $pid=0;
      endif;
+   if($pid<=0 and $action!=ACTION_START)
+       $error='<span class="kal_form_fail">Kein zu korrigierender Termin angegeben</span>';
    #
-   # --- Termindaten aus der Datenbanktabelle ($val)
+   # --- Termindaten aus dem Formularfeld uebernehmen
    if($pid>0 and empty($error)):
-     for($i=1;$i<$nzcols;$i=$i+1):
-        $key=$keys[$i];
-        if($key!='pid') $val[$i]=$termin[$key];
-        endfor;
-     endif;
-   #
-   # --- neue Termindaten aus dem Formularfeld ($val:=$value)
-   if($pid>0 and empty($error)):
-     for($i=1;$i<$nzcols;$i=$i+1):
-        if(!empty($value[$i])):
-          $val[$i]=$value[$i];
-          $key=$keys[$i];
-          if($key!='pid') $termin[$key]=$val[$i];
-          endif;
-        endfor;
+     for($i=1;$i<$nzcols;$i=$i+1)
+        $termin[$keys[$i]]=$value[$i];
      #  -  formale Ueberpruefung der Termindaten
      $error=self::kal_proof_termin($termin);
      endif;
@@ -707,7 +576,7 @@ static public function kal_formular_korrigieren($pid,$value) {
    # --- Korrigieren des Termins
    $msg='';
    $error2='';
-   if($pid>0 and empty($error) and !empty($value[1])):
+   if($action==ACTION_UPDATE and $pid>0 and empty($error)):
      $ret=kal_termine_tabelle::kal_update_termin($pid,$termin);
      if(empty($ret)):
        $msg='<span class="kal_form_msg">Der Termin wurde in der Datenbanktabelle korrigiert</span>';
@@ -717,15 +586,13 @@ static public function kal_formular_korrigieren($pid,$value) {
      endif;
    #
    # --- Formularausgabe
-   if($pid<=0 or !empty($error) or !empty($error2) or empty($value[1])):
+   if(empty($action) or !empty($error) or !empty($error2)):
      #  -  Ueberschrift
      $string='
-<div class="kal_form_prom">Korrigieren eines einzelnen Termins in der Datenbanktabelle</div>
+<h4 align="center">Korrigieren eines einzelnen Termins in der Datenbanktabelle</h4>
 <table class="kal_table">';
      #  -  Formular
-     if(empty($error) or !empty($value[1])):
-       $string=$string.self::kal_formular_fuellen($val);
-       endif;
+     $string=$string.self::kal_fuellen($value);
      #  -  Fehlermeldungen
      if(!empty($error2)):
        if(empty($error)):
@@ -736,24 +603,28 @@ static public function kal_formular_korrigieren($pid,$value) {
        endif;
      if(!empty($error))  $string=$string.'
     <tr valign="top">
-        <td class="kal_form_th"> </td>
+        <td class="kal_form_list_th"> </td>
         <td class="kal_form_pad">
             '.$error.'</td></tr>';
      #  -  Radio-Button (Korrigieren / Abbruch)
-     $string=$string.self::kal_formular_radiobutton(ACTION_UPDATE,$pid).'
+     $string=$string.self::kal_radiobutton(ACTION_UPDATE,$pid).'
 </table>';
      #
      # --- zurueck zum Startmenue
      else:
      $string='<div>'.$msg.'</div>';
-     $string=$string.self::kal_formular_startauswahl();
+     $string=$string.self::kal_startauswahl();
      endif;
    return $string;
    }
-static public function kal_formular_kopieren($pid,$kop,$anz) {
+public static function kal_kopieren($pid,$action,$kop,$anz) {
    #   Rueckgabe eines HTML-Formulars zur Kopie eines Termins in der Datenbanktabelle,
    #   entweder auf den Folgetag (Doppeltermin) oder woechentlich (bis zu MAXCOPY Kopien)
    #   $pid            Id des zu kopierenden Termins
+   #   $action         leer: es werden nur die zu korrigierenden Termindaten angezeigt
+   #                         und nach Bestaetigung der Korrektur gefragt
+   #                   =ACTION_COPY:  die Kopien werden durchgefuehrt
+   #                   =ACTION_START: Rueckkehr zum Startmenue ohne Kopien
    #   $kop            Art der Kopie
    #                   =0: Art der Kopie muss noch ausgewaehlt werden
    #                   =1: Kopie auf den Folgetag
@@ -774,11 +645,11 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
    #   Es wird eine Fehlermeldung ausgegeben (in rot), falls der Termin nicht
    #   kopiert werden konnte
    #   benutzte functions:
-   #      self::kal_formular_radiobutton($action,$pid)
-   #      self::kal_terminliste($termin)
+   #      self::kal_radiobutton($action,$pid)
+   #      self::kal_terminblatt($termin,$headline)
+   #      self::kal_terminblatt_head($datum,$name)
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$nzahl)
    #      kal_termine_kalender::kal_wochentag($datum)
-   #      kal_termine_tabelle::kal_define_tabellenspalten()
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
    #      kal_termine_tabelle::kal_copy_termin($pid,$datumneu)
    #
@@ -788,20 +659,18 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
    if($anzkop>MAXCOPY) $anzkop=MAXCOPY;
    #
    # --- Ermittlung der zu $pid gehoerigen Termindaten (falls vorhanden)
+   $error='';
    if($pid>0):
-     $termin[1]=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-     $error='';
-     if(count($termin[1])<=0):
+     $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
+     if(count($termin)<=0)
        $error='<span class="kal_form_fail">Der zu kopierende Termin wurde nicht gefunden</span>';
-       $pid=0;
-       endif;
-     $datum=$termin[1][datum];
-     else:
-     $error='<span class="kal_form_fail">Kein zu kopierender Termin angegeben</span>';
+     $datum=$termin[COL_DATUM];
      endif;
+   if($pid<=0 and $action!=ACTION_START)
+     $error='<span class="kal_form_fail">Kein zu kopierender Termin angegeben</span>';
    #
    # --- zusaetzliche Termintage $datneu[$i] (falls eine Kopie vorgenommen werden kann)
-   if(empty($error)):
+   if(empty($error) and $action!=ACTION_START):
      #  -  Datum moeglicher Kopierziele ($datum1 / $datkop[1], $datkop[2], ...)
      $datum1=kal_termine_kalender::kal_datum_vor_nach($datum,1);
      for($i=1;$i<=MAXCOPY;$i=$i+1)
@@ -817,7 +686,7 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
    # --- Kopieren des Termins (erst nach Festlegung der Kopieart)
    $msg='';
    $warning='';
-   if($pid>0 and $kop>0 and empty($error)):
+   if($action==ACTION_COPY and $kop>0 and empty($error)):
      $ziel='';
      for($i=1;$i<=count($datneu);$i=$i+1):
         $ziel=$ziel.', '.$datneu[$i];
@@ -825,7 +694,7 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
         $warn='';
         if(intval($erg)<0):
           $ter=kal_termine_tabelle::kal_select_termin_by_pid(abs(intval($erg)));
-          $warn='<span class="kal_form_fail">Die Terminkopie am <tt>'.$ter[datum].
+          $warn='<span class="kal_form_fail">Die Terminkopie am <tt>'.$ter[COL_DATUM].
              '</tt> ist schon vorhanden</span>';
           endif;
         if(strlen($erg)>15) $warn=$erg;
@@ -837,10 +706,10 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
      endif;
    #
    # --- Formularausgabe
-   if($pid<=0 or $kop<=0 or !empty($error)):
+   if(empty($action) or $kop<=0 or !empty($error)):
      #  -  Ueberschrift
      $string='
-<div class="kal_form_prom">Kopieren eines Termins auf den Folgetag oder mehrfach auf denselben Wochentag</div>
+<h4 align="center">Kopieren eines Termins auf den Folgetag oder mehrfach auf denselben Wochentag</h4>
 <table class="kal_table">';
      #  -  zu kopierender Termin
      if(!empty($error)):
@@ -852,16 +721,15 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
        else:
        $string=$string.'
     <tr valign="top">
-        <td class="kal_form_th">
+        <td class="kal_form_list_th">
             Termin:</td>
-        <td class="kal_form_pad">'.self::kal_terminliste($termin).'
+        <td class="kal_form_pad">'.self::kal_terminblatt($termin,'self::kal_terminblatt_head').'
         </td></tr>';
        endif;
      if(empty($error)):
        #  -  Auswahl der Kopierart (Folgetag / Folgewochentage)
        $aktstr1='auf den Folgetag ('.$wotag1.', '.$datum1.')';
-       $aktstr2='auf jeden folgenden '.$wotag.' bis einschlie&szlig;lich &nbsp;';
-       $aktstr2=$aktstr2.'
+       $aktstr2='auf jeden folgenden '.$wotag.' bis einschließlich &nbsp;	   
             <select name="REX_INPUT_VALUE[2]">';
        for($i=1;$i<=MAXCOPY;$i=$i+1):
           if($i==$anzkop):
@@ -873,7 +741,7 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
                 <option value="'.$i.'" '.$sel.'>'.$datkop[$i].'</option>';
           endfor;
        $aktstr2=$aktstr2.'
-            </select>';
+            </select>';			
        if($kop<=1):
          $chk1='checked';
          $chk2='';
@@ -883,7 +751,7 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
          endif;
        $string=$string.'
     <tr valign="top">
-        <td class="kal_form_th">
+        <td class="kal_form_list_th">
             zu kopieren:</td>
         <td class="kal_form_pad">
             <input type="radio" name="REX_INPUT_VALUE[1]" value="1" '.$chk1.' />
@@ -892,48 +760,195 @@ static public function kal_formular_kopieren($pid,$kop,$anz) {
             &nbsp; '.$aktstr2.'</td></tr>';
        endif;
      #  -  Radio-Buttons (Kopieren / Abbruch)
-     $string=$string.self::kal_formular_radiobutton(ACTION_COPY,$pid).'
+     $string=$string.self::kal_radiobutton(ACTION_COPY,$pid).'
 </table>';
      #
      # --- zurueck zum Startmenue
      else:
      $string='
 <div>'.$msg.'</div>';
-     $string=$string.self::kal_formular_startauswahl();
+     $string=$string.self::kal_startauswahl();
      endif;
    return $string;
    }
 #
+#----------------------------------------- Terminblatt
+public static function kal_terminblatt($termin,$headline) {
+   #   Rueckgabe des HTML-Codes zur formatierten Ausgabe der Daten eines Termins
+   #   $termin         assoziatives Array des Termins
+   #   $headline       function, die den HTML-Code der Ueberschrift-Zeile zurueck gibt.
+   #                   Die Zeile kann enthalten
+   #                   - die Ueberschrift des Termins (Termin-Name)
+   #                   - einen Link auf das Kalendermenue des Monats
+   #                   - einen Link auf das aktuelle Tagesblatt
+   #                   oder nur die Ueberschrift des Termins (Termin-Name)
+   #   benutzte functions:
+   #      kal_termine_kalender::kal_wotag($datum)
+   #      $headline($datum,$name)
+   #         d.h. alternativ:
+   #         self::kal_terminblatt_head($datum,$name)
+   #         kal_termine_menues::kal_terminblatt_head($datum,$name)
+   #
+   if(count($termin)>2):
+     $datum=$termin[COL_DATUM];
+     $name=$termin[COL_NAME];
+     $pid=$termin[COL_PID];
+     else:
+     $datum='';
+     $name='<small>... kein Termin vorhanden/angegeben ...</small>';
+     $pid=0;
+     endif;
+   #
+   $seite='<table class="kal_border">
+    <tr valign="top">';
+   #
+   # --- Ueberschrift-Zeile
+   $seite=$seite.call_user_func($headline,$datum,$name);
+   #
+   # --- return, falls kein Termin angegeben ist
+   if(count($termin)<=2):
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Termin:</td>
+        <td class="kal_termv kal_termval"></td></tr>
+</table>';
+     return $seite;
+     endif;
+   #
+   # --- Datum, Start- und Endzeit
+   $wt=kal_termine_kalender::kal_wotag($datum);
+   $str='';
+   if(!empty($termin[COL_BEGINN])) $str=$str.$termin[COL_BEGINN];
+   if(!empty($termin[COL_ENDE])) $str=$str.' - '.$termin[COL_ENDE];
+   if(!empty($str)) $str='<br/>
+            '.$str.' Uhr';
+   $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Termin:</td>
+        <td class="kal_termv kal_termval">
+            '.$wt.', '.$datum.$str;
+   #
+   # --- eventuelle bis zu 4 Zusatzzeiten
+   $z='';
+   if(!empty($termin[COL_ZEIT2]))
+     $z=$z.'<br/>
+            '.$termin[COL_ZEIT2].' Uhr: &nbsp; '.$termin[COL_TEXT2];
+   if(!empty($termin[COL_ZEIT3]))
+     $z=$z.'<br/>
+            '.$termin[COL_ZEIT3].' Uhr: &nbsp; '.$termin[COL_TEXT3];
+   if(!empty($termin[COL_ZEIT4]))
+     $z=$z.'<br/>
+            '.$termin[COL_ZEIT4].' Uhr: &nbsp; '.$termin[COL_TEXT4];
+   if(!empty($termin[COL_ZEIT5]))
+     $z=$z.'<br/>
+            '.$termin[COL_ZEIT5].' Uhr: &nbsp; '.$termin[COL_TEXT5];
+   if(!empty($z)) $seite=$seite.$z;
+   $seite=$seite.'</td></tr>';
+   #
+   # --- Ausrichter
+   $ausrichter=$termin[COL_AUSRICHTER];
+   if(!empty($ausrichter))
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Ausrichter:</td>
+        <td class="kal_termv kal_termval">
+            '.$ausrichter.'</td></tr>';
+   #
+   # --- Veranstaltungsort
+   $ort=$termin[COL_ORT];
+   if(!empty($ort))
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Ort:</td>
+        <td class="kal_termv kal_termval">
+            '.$ort.'</td></tr>';
+   #
+   # --- Link
+   $link=$termin[COL_LINK];
+   if(!empty($link)):
+     $tg='_blank';
+     if(!empty($_GET['page'])) $tg='_self';
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Link:</td>
+        <td class="kal_termv kal_termval">
+            <a href="'.$link.'" target="'.$tg.'">'.substr($link,0,50).' . . .</td></tr>';
+     endif;
+   #
+   # --- Hinweise
+   $komm=$termin[COL_KOMM];
+   if(!empty($komm))
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Hinweise:&nbsp;&nbsp;&nbsp;</td>
+        <td class="kal_termv">
+            '.$komm.'</td></tr>';
+   #
+   # --- Kategorie
+   $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2">
+            Kategorie:</td>
+        <td class="kal_termv">
+            '.$termin[COL_KATEGORIE].'</td></tr>';
+   $seite=$seite.'
+</table>';
+   return $seite;
+   }
+public static function kal_terminblatt_head($datum,$name) {
+   #   Rueckgabe des HTML-Codes fuer die Ueberschrift-Zeile eines Terminblatts
+   #   als 4-spaltige Tabellenzeile, die sich in die Tabelle des Terminblatts
+   #   einfuegt.
+   #   $datum          Datum des Termins (wird hier nicht benutzt)
+   #   $name           Name des Termins (Spalte COL_NAME)
+   #   Format der zurueck gegebenen Ueberschrift-Zeile:
+   #   1., 2., 3. Spalte: leer
+   #   4. Spalte: Ueberschrift-Text (= Termin-Name)
+   #
+   return '
+        <td class="kal_txtb1"></td>
+        <td class="kal_txtb1"></td>
+        <td width="50"></td>
+        <td class="kal_txt_titel">
+            '.$name.'</td></tr>';
+   }
+#
 #----------------------------------------- Terminliste
-static public function kal_terminliste($termin) {
+public static function kal_terminliste($termin) {
    #   Rueckgabe einer Liste von Terminen in Form eines HTML-Codes
    #   $termin         Array der auszugebenden Termine (Indizierung ab 1)
    #   Termine haben diese Parameter:
-   #      $termin[name] (als Link, falls [link] nicht leer)
-   #             [datum]
+   #      $termin[COL_NAME] (als Link, falls [link] nicht leer)
+   #             [COL_DATUM]
    #             . . .
    #      NICHT mit ausgegeben:
-   #             [kategorie]
-   #   benutzte functins:
+   #             [COL_KATEGORIE]
+   #   benutzte functions:
    #      self::kal_terminliste_merge($termin)
    #
    # --- Doppeltermine zusammenfassen
    $termin=self::kal_terminliste_merge($termin);
+   $string='';
    #
    # --- Formular
    for($i=1;$i<=count($termin);$i=$i+1):
       $term=$termin[$i];
       #
       # --- Datum
-      $arr=explode('.',$term[datum]);
+      $arr=explode('.',$term[COL_DATUM]);
       if(substr($arr[0],0,1)=='0') $arr[0]=substr($arr[0],1);
       if(substr($arr[1],0,1)=='0') $arr[1]=substr($arr[1],1);
       $dat1=$arr[0].'.'.$arr[1].'.';
-      $brr=explode('/',$term[datum]);
-      $dat2=$brr[1];
-      if(!empty($dat2)):
+      $brr=explode('/',$term[COL_DATUM]);
+      if(count($brr)>1):
         # --- Doppeltermin
-        $arr=explode('.',$dat2);
+        $arr=explode('.',$brr[1]);
         if(substr($arr[0],0,1)=='0') $arr[0]=substr($arr[0],1);
         if(substr($arr[1],0,1)=='0') $arr[1]=substr($arr[1],1);
         $dat2='/'.$arr[0].'.'.$arr[1].'.'.$arr[2];
@@ -949,25 +964,25 @@ static public function kal_terminliste($termin) {
       #
       # --- Uhrzeit
       $uhrz='';
-      $beginn=$term[beginn];
+      $beginn=$term[COL_BEGINN];
       if(substr($beginn,0,1)=='0') $beginn=substr($beginn,1);
       if(!empty($beginn)) $uhrz=$beginn;
-      $ende=$term[ende];
+      $ende=$term[COL_ENDE];
       if(substr($ende,0,1)=='0') $ende=substr($ende,1);
       if(!empty($ende)) $uhrz=$uhrz.' - '.$ende;
       if(!empty($uhrz)) $uhrz=$uhrz.' Uhr: &nbsp; ';
       $str=$str.$uhrz;
       #
       # --- Veranstaltungsbezeichnung (ggf. als Link)
-      $veran=$term[name];
+      $veran=$term[COL_NAME];
       #  -  Link
-      $link=$term[link];
+      $link=$term[COL_LINK];
       if(!empty($link)) $veran='<a href="'.$link.'" target="_blank">'.$veran.'</a>';
       $str=$str.'
             '.$veran;
       #
       # --- Ort
-      $ort=$term[ort];
+      $ort=$term[COL_ORT];
       if(!empty($ort)):
         $ort='('.$ort.')';
         $str=$str.'
@@ -975,7 +990,7 @@ static public function kal_terminliste($termin) {
         endif;
       #
       # --- Ausrichter
-      $ausrichter=$term[ausrichter];
+      $ausrichter=$term[COL_AUSRICHTER];
       if(!empty($ausrichter)):
         $ausrichter='Ausrichter: '.$ausrichter;
         $str=$str.',
@@ -984,34 +999,34 @@ static public function kal_terminliste($termin) {
       #
       # --- Zusatzzeiten
       $zusatz='';
-      if(!empty($term[zeit2])):
-        $zeit=$term[zeit2];
+      if(!empty($term[COL_ZEIT2])):
+        $zeit=$term[COL_ZEIT2];
         if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
         $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$term[text2];
+            '.$zeit.' Uhr: &nbsp; '.$term[COL_TEXT2];
         endif;
-      if(!empty($term[zeit3])):
-        $zeit=$term[zeit3];
+      if(!empty($term[COL_ZEIT3])):
+        $zeit=$term[COL_ZEIT3];
         if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
         $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$term[text3];
+            '.$zeit.' Uhr: &nbsp; '.$term[COL_TEXT3];
         endif;
-      if(!empty($term[zeit4])):
-        $zeit=$term[zeit4];
+      if(!empty($term[COL_ZEIT4])):
+        $zeit=$term[COL_ZEIT4];
         if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
         $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$term[text4];
+            '.$zeit.' Uhr: &nbsp; '.$term[COL_TEXT4];
         endif;
-      if(!empty($term[zeit5])):
-        $zeit=$term[zeit5];
+      if(!empty($term[COL_ZEIT5])):
+        $zeit=$term[COL_ZEIT5];
         if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
         $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$term[text5];
+            '.$zeit.' Uhr: &nbsp; '.$term[COL_TEXT5];
         endif;
       if(!empty($zusatz)) $str=$str.$zusatz;
       #
       # --- Hinweise zur Veranstaltung
-      $hinw=$term[komm];
+      $hinw=$term[COL_KOMM];
       if(!empty($hinw))
         $str=$str.'<br/>
           '.$hinw;
@@ -1028,10 +1043,10 @@ static public function kal_terminliste($termin) {
 </div>
 ';
    }
-static public function kal_terminliste_merge($termin) {
+public static function kal_terminliste_merge($termin) {
    #   Zusammenfuehren von Doppelterminen in einer Terminliste.
    #   Doppeltermine bestehen aus einen Paar von Terminen mit aufeinander
-   #   folgendem Datum und identischen Parametern (ausser [pid]).
+   #   folgendem Datum und identischen Parametern (ausser [COL_PID]).
    #   Rueckgabe der entsprechend komprimierten Terminliste.
    #   $termin         Array der Termine (Indizierung ab 1)
    #                   Rueckgabe des entsprechend verkuerzten Termin-Arrays
@@ -1039,48 +1054,49 @@ static public function kal_terminliste_merge($termin) {
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
    #      kal_termine_tabelle::kal_datum_standard_mysql($datum)
    #
-   # --- [$ter] Sortierung nach 'name' vorbereiten ('name' vor 'pid' kleben)
-   $key='name';
+   if(count($termin)<=0) return;
+   #
+   # --- [$ter] Sortierung nach 'name' vorbereiten ('name' vor COL_PID kleben)
    for($i=1;$i<=count($termin);$i=$i+1):
       $ter[$i]=$termin[$i];
-      $dat=$ter[$i][$key];
-      $datum=$ter[$i][datum];
-      $ter[$i][pid]=$dat.':'.$ter[$i][pid];
+      $dat=$ter[$i][COL_NAME];
+      $datum=$ter[$i][COL_DATUM];
+      $ter[$i][COL_PID]=$dat.':'.$ter[$i][COL_PID];
       endfor;
    #
    # --- [$term] Sortierung nach 'name' durchfuehren
    sort($ter);
-   #     umspeichern und pid wieder
+   #     umspeichern und COL_PID wieder wegnehmen
    for($i=0;$i<count($ter);$i=$i+1) $term[$i+1]=$ter[$i];
    unset($ter);
    #
    # --- [$date] (max. 2) identische Termine mit unterschiedlichem Datum finden
    $streichen='streichen';
    $termalt=$term[1];
-   $date[1][datum]='';
+   $date[1][COL_DATUM]='';
    $keys=array_keys($termalt);
    for($i=2;$i<=count($term);$i=$i+1):
      $termneu=$term[$i];
-      $date[$i][datum]='';
+      $date[$i][COL_DATUM]='';
       $gleich=TRUE;
       for($k=1;$k<=count($termneu);$k=$k+1):
          $key=$keys[$k-1];
-         if($key=='pid' or $key=='datum') continue;
+         if($key==COL_PID or $key=='datum') continue;
          if($termneu[$key]==$termalt[$key]) continue;
          $gleich=FALSE;
          break;
          endfor;
-      if($gleich and $termneu[datum]==kal_termine_kalender::kal_datum_vor_nach($termalt[datum],1)):
+      if($gleich and $termneu[COL_DATUM]==kal_termine_kalender::kal_datum_vor_nach($termalt[COL_DATUM],1)):
       # --- auch bei gleichen Daten: nur streichen bei aufeinander folgendem Datum
-        $arr=explode('.',$termalt[datum]);
+        $arr=explode('.',$termalt[COL_DATUM]);
         $tag1=$arr[0];
         $mon1=$arr[1];
-        $arr=explode('.',$termneu[datum]);
+        $arr=explode('.',$termneu[COL_DATUM]);
         $tag2=$arr[0];
         $mon2=$arr[1];
-        $date[$i][datum]=$tag1.'.'.$mon1.'./'.$tag2.'.'.$mon2.'.'.$arr[2];
-        $date[$i][name]=$termneu[name];
-        $date[$i-1][name]=$streichen;
+        $date[$i][COL_DATUM]=$tag1.'.'.$mon1.'./'.$tag2.'.'.$mon2.'.'.$arr[2];
+        $date[$i][COL_NAME]=$termneu[COL_NAME];
+        $date[$i-1][COL_NAME]=$streichen;
         endif;
       $termalt=$termneu;
       endfor;
@@ -1088,25 +1104,25 @@ static public function kal_terminliste_merge($termin) {
    # --- [$term] identische Termine mit unterschiedlichem Datum zusammenfassen
    $m=0;
    for($i=1;$i<=count($term);$i=$i+1):
-      if($date[$i][name]==$streichen) continue;
+      if(!empty($date[$i][COL_NAME])) if($date[$i][COL_NAME]==$streichen) continue;
       $m=$m+1;
       $ter[$m]=$term[$i];
-      if(!empty($date[$i][datum])) $ter[$m][datum]=$date[$i][datum];
+      if(!empty($date[$i][COL_DATUM])) $ter[$m][COL_DATUM]=$date[$i][COL_DATUM];
       endfor;
    unset($term);
    for($i=1;$i<=count($ter);$i=$i+1) $term[$i]=$ter[$i];
    unset($ter);
    #
-   # --- [$term] statt 'name' jetzt Datum in MySQL-Format vor 'pid' kleben
+   # --- [$term] statt 'name' jetzt Datum in MySQL-Format vor COL_PID kleben
    for($i=1;$i<=count($term);$i=$i+1):
-      $datumdopp=$term[$i][datum];
+      $datumdopp=$term[$i][COL_DATUM];
       if(strpos($datumdopp,'/')>0):
         $arr=explode('/',$datumdopp);
         $datumdopp=$arr[1];
         endif;
       $datum=kal_termine_tabelle::kal_datum_standard_mysql($datumdopp);
-      $arr=explode(':',$term[$i][pid]);
-      $term[$i][pid]=$datum.':'.$arr[1];
+      $arr=explode(':',$term[$i][COL_PID]);
+      $term[$i][COL_PID]=$datum.':'.$arr[1];
       endfor;
    #
    # --- [$ter] Sortierung nach Datum durchfuehren
@@ -1115,10 +1131,10 @@ static public function kal_terminliste_merge($termin) {
    for($i=0;$i<count($term);$i=$i+1) $ter[$i+1]=$term[$i];
    unset($term);
    #
-   # --- vor 'pid' geklebtes Datum wieder entfernen
+   # --- vor COL_PID geklebtes Datum wieder entfernen
    for($i=1;$i<=count($ter);$i=$i+1):
-      $arr=explode(':',$ter[$i][pid]);
-      $ter[$i][pid]=$arr[1];
+      $arr=explode(':',$ter[$i][COL_PID]);
+      $ter[$i][COL_PID]=$arr[1];
       endfor;
    #
    # --- Rueckgabe des bereinigten Termin-Arrays
