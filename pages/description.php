@@ -3,31 +3,31 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2019
+ * @version April 2019
  */
 #
 # --- Beschreibung
 $string='
 <div>Die Terminverwaltung beinhaltet diese Funktionen:</div>
 <ul>
-    <li>Eintragung eines Termins samt zugehörigen Daten in die Tabelle</li>
-    <li>Löschung eines Termins in der Tabelle</li>
+    <li>Eintragung eines Termins samt zugehÃ¶rigen Daten in die Tabelle</li>
+    <li>LÃ¶schung eines Termins in der Tabelle</li>
     <li>Aktualisierung der Daten eines Termins</li>
-    <li>Kopieren eines Termins auf den Folgetag oder als wöchentliche Wiederholung</li>
+    <li>Kopieren eines Termins auf den Folgetag oder als wÃ¶chentliche Wiederholung</li>
 </ul>
 
-<div>Als Terminmenüs stehen die folgenden Darstellungen zur Wahl:</div>
+<div>Als KalendermenÃ¼s stehen die folgenden Darstellungen zur Wahl:</div>
 <ul>
-    <li>Monatsmenü, Tage mit eingetragenen Termine sind schraffiert</li>
+    <li>MonatsmenÃ¼, Tage mit eingetragenen Termine sind schraffiert</li>
     <li>Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine</li>
     <li>Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen</li>
     <li>tabellarische Darstellung der Daten eines Termins</li>
 </ul>
 
-<div>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
-anderen wechseln kann. Das Monatsmenü gestattet das Blättern zum Vor- oder
+<div>Alle MenÃ¼s sind untereinander verlinkt, sodass man von einem zum
+anderen wechseln kann. Das MonatsmenÃ¼ gestattet das BlÃ¤ttern zum Vor- oder
 Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr. Gesetzliche und
 christliche Feiertage sind entsprechend markiert.</div>
 ';
-echo utf8_encode($string);
+echo $string;
 ?>
