@@ -2,31 +2,31 @@
 <h3>Terminkalender</h3>
 
 <div>Dieses AddOn bietet ein System zur Verwaltung und Darstellung von
-Veranstaltungsterminen für Websites. Termine werden dabei als Zeitabschnitte
-eines einzelnen Tages verstanden. Die Termine lassen sich in Kategorien
-gliedern.</div>
+Veranstaltungsterminen fÃ¼r Websites. Termine umfassen dabei Zeitabschnitte
+eines einzelnen Tages. Sie lassen sich in Kategorien gliedern.</div>
 
 <div><br/>Das AddOn umfasst<br/>
-- eine zusätzliche Redaxo-Datenbanktabelle für die Termine<br/>
-- eine Stylesheet-Datei für Farben und Formen der Terminmenüs<br/>
+- eine zusÃ¤tzliche Redaxo-Datenbanktabelle fÃ¼r die Termine<br/>
+- eine Stylesheet-Datei fÃ¼r Farben und Formen der KalendermenÃ¼s<br/>
+- Funktionen zu Kalenderberechnungen<br/>
 - Funktionen zur Darstellung von Terminlisten und Kalenderansichten<br/>
 - einen Modul zur Verwaltung der Termine (im Backend)<br/>
-- einen Modul zum Anlegen eines Start-Terminformulars (im Frontend)<br/>
+- einen Modul zum Anlegen eines Start-TerminmenÃ¼s (im Frontend)<br/>
 - einen Modul zur Ausgabe einer Standard-Terminliste (im Frontend)</div>
 
 <div><br/>Die Terminverwaltung beinhaltet diese Funktionen:</br/>
-- Eintragung eines Termins samt zugehörigen Daten in die Tabelle<br/>
-- Löschung eines Termins in der Tabelle<br/>
+- Eintragung eines Termins samt zugehÃ¶rigen Daten in die Tabelle<br/>
+- LÃ¶schung eines Termins in der Tabelle<br/>
 - Aktualisierung der Daten eines Termins<br/>
-- Kopieren eines Termins auf den Folgetag oder als wöchentliche Wiederholung</div>
+- Kopieren eines Termins auf den Folgetag oder als wÃ¶chentliche Wiederholung</div>
 
-<div><br/>Als Terminmenüs stehen die folgenden Darstellungen zur Wahl:<br/>
-- Monatsmenü, Tage mit eingetragenen Termine sind schraffiert<br/>
+<div><br/>Als KalendermenÃ¼s stehen die folgenden Darstellungen zur Wahl:<br/>
+- MonatsmenÃ¼, Tage mit eingetragenen Termine sind schraffiert<br/>
 - Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine<br/>
 - Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen<br/>
 - tabellarische Darstellung der Daten eines Termins</div>
 
-<div><br/>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
-anderen wechseln kann. Das Monatsmenü gestattet das Blättern zum Vor- oder
+<div><br/>Alle MenÃ¼s sind untereinander verlinkt, sodass man von einem zum
+anderen wechseln kann. Das MonatsmenÃ¼ gestattet das BlÃ¤ttern zum Vor- oder
 Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr. Gesetzliche und
 christliche Feiertage sind entsprechend markiert.</div>
