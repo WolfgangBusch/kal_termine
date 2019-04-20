@@ -8,10 +8,7 @@
 $arr=array(1=>'MONAT', 2=>'KW', 3=>'JAHR', 4=>'DATUM', 5=>'FEIERTAG',
    6=>'KATEGORIE', 7=>'SUCHEN', 8=>'VORHER', 9=>'MENUE', 10=>'PID',
    11=>'AKTION');
-for($i=1;$i<=count($arr);$i=$i+1):
-   define ('KAL_'.$arr[$i],      $arr[$i]);
-   define ('KAL_POST_'.$arr[$i], $_POST[$arr[$i]]);
-   endfor;
+for($i=1;$i<=count($arr);$i=$i+1) define ('KAL_'.$arr[$i], $arr[$i]);
 #
 class kal_termine_menues {
 #
@@ -1233,15 +1230,15 @@ public static function kal_menue($kategorie,$termtyp,$mennr) {
    $vorher='';
    $men   ='';
    $pid   ='';
-   if(!empty(KAL_POST_MONAT))     $monat =KAL_POST_MONAT;
-   if(!empty(KAL_POST_KW))        $kw    =KAL_POST_KW;
-   if(!empty(KAL_POST_JAHR))      $jahr  =KAL_POST_JAHR;
-   if(!empty(KAL_POST_DATUM))     $datum =KAL_POST_DATUM;
-   if(!empty(KAL_POST_KATEGORIE)) $kateg =KAL_POST_KATEGORIE;
-   if(!empty(KAL_POST_SUCHEN))    $suchen=KAL_POST_SUCHEN;
-   if(!empty(KAL_POST_VORHER))    $vorher=KAL_POST_VORHER;
-   if(!empty(KAL_POST_MENUE))     $men   =KAL_POST_MENUE;
-   if(!empty(KAL_POST_PID))       $pid   =KAL_POST_PID;
+   if(!empty($_POST[KAL_MONAT]))     $monat =$_POST[KAL_MONAT];
+   if(!empty($_POST[KAL_KW]))        $kw    =$_POST[KAL_KW];
+   if(!empty($_POST[KAL_JAHR]))      $jahr  =$_POST[KAL_JAHR];
+   if(!empty($_POST[KAL_DATUM]))     $datum =$_POST[KAL_DATUM];
+   if(!empty($_POST[KAL_KATEGORIE])) $kateg =$_POST[KAL_KATEGORIE];
+   if(!empty($_POST[KAL_SUCHEN]))    $suchen=$_POST[KAL_SUCHEN];
+   if(!empty($_POST[KAL_VORHER]))    $vorher=$_POST[KAL_VORHER];
+   if(!empty($_POST[KAL_MENUE]))     $men   =$_POST[KAL_MENUE];
+   if(!empty($_POST[KAL_PID]))       $pid   =$_POST[KAL_PID];
    #
    # --- ggf. Standard-Startmenue
    if(empty($men) and $mennr>0) $men=$mennr;
