@@ -5,7 +5,7 @@
  * @package redaxo5
  * @version Dezember 2019
  */
-define ('SPIELTERM',      'Spieldaten');
+define ('SPIELTERM', 'Spieldaten');
 #
 class kal_termine_tabelle {
 #
@@ -423,8 +423,8 @@ public static function kal_get_tagestermine($datum,$termtyp) {
    #   Auslesen der aller Termindaten eines Tages aus der
    #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
    #   $datum          Datum des Tages
-   #   $termtyp        ='Spieldaten': aus den Spieldaten auslesen
-   #                   ='':           aus der DB-Tabelle auslesen
+   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
+   #                   ='':        aus der DB-Tabelle auslesen
    #   benutzte functions:
    #      self::kal_get_spieldaten($datum)
    #      kal_termine_kalender::kal_standard_datum($datum)
@@ -446,8 +446,8 @@ public static function kal_get_wochentermine($von,$bis,$termtyp) {
    #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
    #   $von            Datum des 1. Tages der Woche
    #   $bis            Datum des 7. Tages der Woche
-   #   $termtyp        ='Spieldaten': aus den Spieldaten auslesen
-   #                   ='':           aus der DB-Tabelle auslesen
+   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
+   #                   ='':        aus der DB-Tabelle auslesen
    #   benutzte functions:
    #      self::kal_get_wochenspieldaten($datum)
    #      kal_termine_kalender::kal_standard_datum($datum)
@@ -470,8 +470,8 @@ public static function kal_get_monatstermine($von,$bis,$termtyp) {
    #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
    #   $von            Datum des ersten Tages des Monats
    #   $bis            Datum des letzten Tages des Monats
-   #   $termtyp        ='Spieldaten': aus den Spieldaten auslesen
-   #                   ='':           aus der DB-Tabelle auslesen
+   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
+   #                   ='':        aus der DB-Tabelle auslesen
    #   benutzte functions:
    #      self::kal_get_monatsspieldaten($datum)
    #      kal_termine_kalender::kal_standard_datum($datum)

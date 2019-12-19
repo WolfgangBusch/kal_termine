@@ -26,11 +26,13 @@ define ('COL_ZEIT4',      'zeit4');
 define ('COL_TEXT4',      'text4');
 define ('COL_ZEIT5',      'zeit5');
 define ('COL_TEXT5',      'text5');
-define ('COL_ANZAHL',     18);          // Anzahl der Konstanten mit Namen 'COL_...'
+define ('COL_ANZAHL',     18);            // Anzahl der Konstanten mit Namen 'COL_...'
 define ('STD_BEG_UHRZEIT',   'stauhrz');
 define ('STD_END_UHRZEIT',   'enduhrz');
 define ('STD_ANZ_PIXEL',     'pixel');
 define ('STD_ANZ_KATEG',     'anzkat');
+define ('KAL_COL',           'col');      // Namensstamm der Farbe-Keys ('col1', 'col2', ...)
+define ('KAL_KAT',           'kat');      // Namensstamm der Kategorie-Keys ('kat2', 'kat2', ...)
 #
 class kal_termine_config {
 #
@@ -176,11 +178,11 @@ public static function kal_default_terminkategorien() {
 public static function kal_default_stundenleiste() {
    #   Rueckgabe der Default-Werte zur Stundenleiste
    #
-   $daten=array();
-   $daten[1]=array('stl'=>  8, 'name'=>'Start-Uhrzeit (ganze Zahl)');
-   $daten[2]=array('stl'=> 24, 'name'=>'End-Uhrzeit (ganze Zahl)');
-   $daten[3]=array('stl'=>500, 'name'=>'Gesamtbreite Zeitleiste (Anzahl Pixel)');
-   return $daten;
+   $stl=array();
+   $stl[1]=array('stl'=>  8, 'name'=>'Start-Uhrzeit (ganze Zahl)');
+   $stl[2]=array('stl'=> 24, 'name'=>'End-Uhrzeit (ganze Zahl)');
+   $stl[3]=array('stl'=>500, 'name'=>'Gesamtbreite Zeitleiste (Anzahl Pixel)');
+   return $stl;
    }
 public static function kal_default_farben() {
    #   Rueckgabe der Default-Werte der RGB-Farben fuer die Kalendermenues
@@ -204,10 +206,12 @@ public static function kal_get_default_config() {
    #      self::kal_default_stundenleiste()
    #      self::kal_default_terminkategorien()
    #
+   #
+   $sett=array();
    # --- Farben
    $farben=self::kal_default_farben();
    for($i=1;$i<=count($farben);$i=$i+1):
-      $key='col'.$i;
+      $key=KAL_COL.$i;
       $sett[$key]=$farben[$i]['rgb'];
       endfor;
    #
@@ -221,7 +225,7 @@ public static function kal_get_default_config() {
    $kat=self::kal_default_terminkategorien();
    $sett[STD_ANZ_KATEG]=count($kat);
    for($i=1;$i<=count($kat);$i=$i+1):
-      $key='kat'.$i;
+      $key=KAL_KAT.$i;
       $sett[$key]=$kat[$i];
       endfor;
    return $sett;
@@ -232,7 +236,7 @@ public static function kal_set_config($settings) {
    #   Setzen der Konfigurationsparamter gemaess gegebenem Array
    #   $settings       assoziatives Array der Konfigurationsparameter
    #                   gemaess Funktion kal_get_default_config()
-   #
+   #                   (also die Keys auch in der richtigen Reihenfolge)
    #
    # --- Zunaechst alle Konfigurationsparameter loeschen
    rex_config::removeNamespace(PACKAGE);
@@ -243,7 +247,7 @@ public static function kal_set_config($settings) {
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
       $set=$settings[$key];
-      if(substr($key,0,3)!='col' and substr($key,0,3)!='kat') $set=intval($set);
+      if(substr($key,0,3)!=KAL_COL and substr($key,0,3)!=KAL_KAT) $set=intval($set);
       $bool=rex_config::set(PACKAGE,$key,$set);
       endfor;
    rex_config::save();
@@ -261,6 +265,28 @@ public static function kal_get_config() {
       endfor;
    return $settings;
    }
+public static function kal_config_keys() {
+   #   Rueckgabe der Keys der Konfigurationsparameter als nummeriertes Array
+   #   (Nummerierung ab 0)
+   #   benutzte functions:
+   #      self::kal_get_default_config()
+   #      self::kal_get_config()
+   #
+   $defsett=self::kal_get_default_config();
+   $confsett=self::kal_get_config();
+   $keys=array_keys($defsett);
+   $keyt=array_keys($confsett);
+   $keyw=array();
+   if(count($keyt)<=count($keys)):
+     #     hoechstens 4 (=Default) Kategorien
+     for($i=0;$i<count($keyt);$i=$i+1) $keyw[$i]=$keys[$i];
+     else:
+     #     mehr als 4 (=Default) Kategorien
+     for($i=0;$i<count($keys);$i=$i+1) $keyw[$i]=$keys[$i];
+     for($i=count($keys);$i<count($keyt);$i=$i+1) $keyw[$i]=$keyt[$i];
+     endif;
+   return $keyw;
+   }
 #
 #----------------------------------------- Einlesen der Konfigurationsdaten
 public static function kal_config() {
@@ -268,20 +294,19 @@ public static function kal_config() {
    #   benutzte functions:
    #      self::kal_get_default_config()
    #      self::kal_get_config()
+   #      self::kal_config_keys()
    #      self::kal_split_color($color)
    #      self::kal_read_conf_def($post,$config,$default)
    #      self::kal_set_config($settings)
    #      self::kal_write_css()
    #      self::kal_config_form($readsett)
    #
-   # --- Default-Konfigurationsdaten
+   # --- Konfigurationsdaten
    $defsett=self::kal_get_default_config();
    $confsett=self::kal_get_config();
-   if(count($confsett)<12):
-     $keys=array_keys($defsett);
-     else:
-     $keys=array_keys($confsett);
-     endif;
+   #
+   # --- Keys der Konfigurationsdaten
+   $keys=self::kal_config_keys();
    #
    # --- Nummer des key STD_ANZ_KATEG
    for($i=0;$i<count($keys);$i=$i+1) if($keys[$i]==STD_ANZ_KATEG) $ianzk=$i;
@@ -289,7 +314,7 @@ public static function kal_config() {
    # --- Auslesen der Daten, leere Werte werden durch die gegebenen Daten ersetzt
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      if(substr($key,0,3)=='col'):
+      if(substr($key,0,3)==KAL_COL):
         # --- Farben
         $kt=substr($key,3);
         $k=intval(substr($kt,0,strlen($kt)));
@@ -320,7 +345,7 @@ public static function kal_config() {
    # --- nicht mehr benoetigte Kategorien entfernen
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      if(substr($key,0,3)=='kat'):
+      if(substr($key,0,3)==KAL_KAT):
         if(intval(substr($key,3))>$anzkat) break;
         endif;
       $rs[$key]=$readsett[$key];
@@ -336,7 +361,7 @@ public static function kal_config() {
    if($anzkat>0 and $confanzkat>0):
      for($j=$confanzkat+1;$j<=$anzkat;$j=$j+1):
         $k=$ianzk+$j;
-        $ke='kat'.$j;
+        $ke=KAL_KAT.$j;
         $keys[$k]=$ke;
         $readsett[$ke]='('.$ke.')';
         endfor;
@@ -418,12 +443,11 @@ public static function kal_config_form($readsett) {
    #   $readsett         Array der Formulardaten
    #                     Format gemaess Funktion kal_get_default_config()
    #   benutzte functions:
-   #      self::kal_get_default_config()
+   #      self::kal_config_keys()
    #      self::kal_default_farben()
    #      self::kal_split_color($color)
    #
-   $defconf=self::kal_get_default_config();
-   $keys=array_keys($defconf);
+   $keys=self::kal_config_keys();
    #
    # --- Formular, Farben
    $string='
@@ -493,7 +517,7 @@ public static function kal_config_form($readsett) {
       $key=$keys[$m];
       # --- bei erhoehter Anzahl Kategorien
       if(empty($key)):
-        $key='kat'.$i;
+        $key=KAL_KAT.$i;
         $keys[$m]=$key;
         endif;
       $set=$readsett[$key];
@@ -549,6 +573,7 @@ public static function kal_define_css() {
    #   benutzte functions:
    #      self::kal_define_stundenleiste()
    #      self::kal_get_config()
+   #      self::kal_config_keys()
    #      self::kal_hatch_gen($dif,$bgcolor)
    #
    # --- Bemassung der Stundenleiste
@@ -558,9 +583,9 @@ public static function kal_define_css() {
    $size  =$daten[3];
    $stdsiz=$daten[4];
    #
-   # --- Konfigurationsdaten
+   # --- Konfigurations-Daten und -Keys
    $sett=self::kal_get_config();
-   $keys=array_keys($sett);
+   $keys=self::kal_config_keys();
    $k=0;
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
@@ -708,35 +733,40 @@ public static function kal_get_terminkategorien() {
    #   Rueckgabe der konfigurierten Terminkategorien
    #   als nummeriertes Array (Nummerierung ab 1)
    #   benutzte functions:
-   #      self::kal_get_config()
+   #      self::kal_config_keys()
+   #      self::kal_config_keys()
    #
    $settings=self::kal_get_config();
-   $keys=array_keys($settings);
+   $keys=self::kal_config_keys();
    $k=0;
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      if(substr($key,0,3)!='kat') continue;
+      if(substr($key,0,3)!=KAL_KAT) continue;
       $k=$k+1;
       $kat[$k]=$settings[$key];
       endfor;
    return $kat;
    }
 public static function kal_get_stundenleiste() {
-   #   Rueckgabe der konfigurierten Daten zur Stundenleiste als nummeriertes Array
-   #   (Nummerierung ab 1). Die Gesamtlaenge ist die Summe der Netto-Inhalte der
+   #   Rueckgabe der konfigurierten Daten zur Stundenleiste als assoziatives Array:
+   #      $stl[STD_BEG_UHRZEIT]    Start-Uhrzeit (integer)
+   #      $stl[STD_END_UHRZEIT]    End-Uhrzeit (integer)
+   #      $stl[STD_ANZ_PIXEL]      Laenge der Stundenleiste in Anzahl Pixel
+   #   Die Gesamtlaenge der Stundenleiste ist die Summe der Netto-Inhalte der
    #   Tabellenzellen ohne Border- und Padding-Breiten.
    #   benutzte functions:
+   #      self::kal_get_default_config()
    #      self::kal_get_config()
    #
+   $defconf=self::kal_get_default_config();
+   $keys=array_keys($defconf);
    $settings=self::kal_get_config();
-   $keys=array_keys($settings);
-   $k=0;
+   $stl=array();
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      if(substr($key,0,3)=='sta' or substr($key,0,3)=='end' or substr($key,0,3)=='pix'):
-        $k=$k+1;
-        $stl[$k]=$settings[$key];
-        endif;
+      if($key==STD_BEG_UHRZEIT) $stl[STD_BEG_UHRZEIT]=$settings[$key];
+      if($key==STD_END_UHRZEIT) $stl[STD_END_UHRZEIT]=$settings[$key];
+      if($key==STD_ANZ_PIXEL  ) $stl[STD_ANZ_PIXEL]  =$settings[$key];
       endfor;
    return $stl;
    }
@@ -764,16 +794,18 @@ public static function kal_define_stundenleiste() {
    #   benutzte functions:
    #      self::kal_get_stundenleiste()
    #
-   $daten=self::kal_get_stundenleiste();
+   $stl=self::kal_get_stundenleiste();
+   $stauhrz=$stl[STD_BEG_UHRZEIT];
+   $enduhrz=$stl[STD_END_UHRZEIT];
+   $pixel  =$stl[STD_ANZ_PIXEL];
    #
    # --- falls 1 Stunde einer gebrochenen Pixel-Anzahl entspricht, wird auf die
    #     naechst kleinere ganze Zahl reduziert; die Gesamtlaenge ergibt sich
    #     als ganzzahliges Vielfaches der Anzahl Pixel, die 1 Stunde entsprechen
-   $pixel=$daten[3];
-   $sizeuhr=$daten[2]-$daten[1];
+   $sizeuhr=intval($enduhrz-$stauhrz);
    $stdsize=intval($pixel/$sizeuhr);
    if($sizeuhr*$stdsize<$pixel) $pixel=$sizeuhr*$stdsize;
-   $daten=array(1=>$daten[1], 2=>$daten[2], 3=>$pixel, 4=>$stdsize);
+   $daten=array(1=>$stauhrz, 2=>$enduhrz, 3=>$pixel, 4=>$stdsize);
    return $daten;
    }
 }
