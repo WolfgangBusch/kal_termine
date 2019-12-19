@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 #
 define ('PACKAGE',     $this->getPackageId());
@@ -166,6 +166,7 @@ public static function kal_ausgabe_tabellenstruktur() {
 public static function kal_default_terminkategorien() {
    #   Rueckgabe der Default-Terminkategorien
    #
+   $kat=array();
    $kat[1]='Allgemein';
    $kat[2]='Verbandsvorstand';
    $kat[3]='Leistungsförderung';
@@ -175,6 +176,7 @@ public static function kal_default_terminkategorien() {
 public static function kal_default_stundenleiste() {
    #   Rueckgabe der Default-Werte zur Stundenleiste
    #
+   $daten=array();
    $daten[1]=array('stl'=>  8, 'name'=>'Start-Uhrzeit (ganze Zahl)');
    $daten[2]=array('stl'=> 24, 'name'=>'End-Uhrzeit (ganze Zahl)');
    $daten[3]=array('stl'=>500, 'name'=>'Gesamtbreite Zeitleiste (Anzahl Pixel)');
@@ -183,6 +185,7 @@ public static function kal_default_stundenleiste() {
 public static function kal_default_farben() {
    #   Rueckgabe der Default-Werte der RGB-Farben fuer die Kalendermenues
    #
+   $rgb=array();
    $rgb[1]=array('rgb'=>'rgb(5,90,28)',     'name'=>'dunkle Schriftfarbe');
    $rgb[2]=array('rgb'=>'rgb(70,130,110)',  'name'=>'helle Schriftfarbe, Rahmenfarbe');
    $rgb[3]=array('rgb'=>'rgb(100,160,140)', 'name'=>'dunkle Hintergrundfarbe (Termine)');
@@ -415,10 +418,12 @@ public static function kal_config_form($readsett) {
    #   $readsett         Array der Formulardaten
    #                     Format gemaess Funktion kal_get_default_config()
    #   benutzte functions:
+   #      self::kal_get_default_config()
    #      self::kal_default_farben()
    #      self::kal_split_color($color)
    #
-   $keys=array_keys($readsett);
+   $defconf=self::kal_get_default_config();
+   $keys=array_keys($defconf);
    #
    # --- Formular, Farben
    $string='
@@ -525,7 +530,7 @@ public static function kal_hatch_gen($dif,$bgcolor) {
    for($i=0;$i<100;$i=$i+$dif):
       $kk=$ii+$dif;
       if($n==0):
-        $col="transparent";
+        $col='transparent';
         $n=1;
         else:
         $col=$bgcolor;

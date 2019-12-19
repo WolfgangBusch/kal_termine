@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 $arr=array(1=>'MONAT', 2=>'KW', 3=>'JAHR', 4=>'DATUM', 5=>'FEIERTAG',
    6=>'KATEGORIE', 7=>'SUCHEN', 8=>'VORHER', 9=>'MENUE', 10=>'PID',
@@ -555,6 +555,7 @@ public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp
    $colspan=$daten[2]-$daten[1];  // Anzahl der Tabellen-(Stunden-)Spalten
    #
    # --- Datums-Array $dat[] und Auslesen der Termine  (Monat/Woche/Datum)
+   $dat=array();
    #     --- Kalendermonat
    if(!empty($mon) and !empty($jahr)):
      $mtage=kal_termine_kalender::kal_monatstage($strjahr);
@@ -584,6 +585,7 @@ public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp
    #
    # --- alle Feiertage
    $ft=kal_termine_kalender::kal_feiertage($strjahr);
+   $feiertag=array();
    for($i=1;$i<=count($dat);$i=$i+1):
       $feiertag[$i]='';
       for($k=1;$k<=count($ft);$k=$k+1):
@@ -659,6 +661,7 @@ public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp
    #
    # --- Zuordnen der Termine in tagesbezogene Arrays:
    #     $termin[$i][$k] ($k=1, 2, ...) Array der Termine pro Tag $i
+   $termin=array();
    for($i=1;$i<=count($dat);$i=$i+1):
       $m=0;
       $termin[$i][1][COL_DATUM]=$dat[$i];
@@ -672,6 +675,7 @@ public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp
    #
    # --- Zusammenstellen der Tageszeilen
    #     $content[$i][$k] ($k=1, 2, ...) Array der Zeileninhalte (Termine) pro Tag $i
+   $content=array();
    for($i=1;$i<=count($dat);$i=$i+1):
       for($k=1;$k<=count($termin[$i]);$k=$k+1):
          #  -  Pixel-Breite des Termins
@@ -983,6 +987,7 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
    if(strlen($strmon)<2) $strmon='0'.$strmon;
    $monate=kal_termine_kalender::kal_monate();
    $menues=self::kal_define_menues();
+   $termin=array();
    #
    # --- Auslesen der Termine eines Tages
    if(!empty($datum)):
@@ -1039,11 +1044,11 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
      endif;
    #
    # --- Anzahl der gefundenen Termine
-   $nztermin=0;
-   if(count($termin)>0) $nztermin=count($termin);
+   $nztermin=count($termin);
    #
    # --- Heraussuchen der Kategorien der Termine: $kat[]
    $kate=kal_termine_config::kal_get_terminkategorien();
+   $ind=array();
    for($i=1;$i<=count($kate);$i=$i+1) $ind[$i]=0;
    for($i=1;$i<=$nztermin;$i=$i+1):
       $kkk=$termin[$i][COL_KATEGORIE];
@@ -1055,6 +1060,7 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
          endfor;
       endfor;
    $k=0;
+   $kat=array();
    for($i=1;$i<=count($kate);$i=$i+1):
       if($ind[$i]>0):
         $k=$k+1;
@@ -1126,7 +1132,9 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
             </form></td></tr>
 </table>';
    #
-   # --- Herausfiltern der Termine, die zur gewaehlten Kategorie gehoeren
+   # --- Herausfiltern der Termine, die zur gewaehlten Kategorie gehoeren ($term)
+   #     $termin = $term
+   $term=array();
    if(!empty($kateg)):
      $m=0;
      for($i=1;$i<=$nztermin;$i=$i+1):
@@ -1135,13 +1143,12 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
           $term[$m]=$termin[$i];
           endif;
         endfor;
-     if($m<=0) $term=array();
-     unset($termin);
-     for($i=1;$i<=count($term);$i=$i+1) $termin[$i]=$term[$i];
-     unset($term);
+     $termin=$term;
      endif;
    #
-   # --- alle Termine heraussuchen, die das Stichwort enthalten
+   # --- alle Termine heraussuchen, die das Stichwort enthalten ($term)
+   #     $termin = $term
+   $term=array();
    if(!empty($suchen)):
      $m=0;
      for($i=1;$i<=$nztermin;$i=$i+1):
@@ -1157,14 +1164,12 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
           $term[$m]=$termin[$i];
           endif;
         endfor;
-     if($m<=0) $term=array();
-     unset($termin);
-     for($i=1;$i<=count($term);$i=$i+1) $termin[$i]=$term[$i];
-     unset($term);
-     if(empty($termin)) $termin=array();
+     $termin=$term;
      endif;
    #
-   # --- alle Termine heraussuchen, die nach dem heutigen Tage liegen
+   # --- alle Termine heraussuchen, die nach dem heutigen Tage liegen ($term)
+   #     $termin = $term
+   $term=array();
    if(empty($vorher)):
      $heutesql=kal_termine_tabelle::kal_datum_standard_mysql(kal_termine_kalender::kal_heute());
      $m=0;
@@ -1174,16 +1179,11 @@ public static function kal_search_menue($mon,$kw,$jahr,$datum,$kateg,$suchen,$vo
           $term[$m]=$termin[$i];
           endif;
         endfor;
-     if($m<=0) $term=array();
-     unset($termin);
-     $termin=array();
-     for($i=1;$i<=count($term);$i=$i+1) $termin[$i]=$term[$i];
-     unset($term);
-     $nztermin=0;
-     if(count($termin)>0) $nztermin=count($termin);
+     $termin=$term;
      endif;
    #
    # --- Ausgabe der gesuchten Termine
+   $nztermin=count($termin);
    $string=$string.'
 <div align="left"><br/>';
    if($nztermin<=0):

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 class kal_termine_kalender {
 #
@@ -593,6 +593,7 @@ public static function kal_monat_kw($datum) {
    $mon1=intval(substr($montag,3,2));
    $sonntag=self::kal_datum_vor_nach($montag,6);
    $mon2=intval(substr($sonntag,3,2));
+   $monat=array();
    if($mon1==$mon2):
      $monat['monat']=$mon1;
      $monat['jahr']=substr($montag,6);
@@ -686,6 +687,7 @@ public static function kal_unbewegliche_feiertage($jahr) {
    #   $jahr           vorgegebenes Jahr
    #   die Feiertage sind jedes Jahr an demselben Datum
    #
+   $tage=array();
    $tage[1]['datum']='01.01.'.$jahr;
    $tage[1]['name'] ='Neujahr';
    $tage[2]['datum']='01.05.'.$jahr;
@@ -717,6 +719,7 @@ public static function kal_bewegliche_feiertage($jahr) {
    $ostersonntag=self::kal_ostersonntag($jahr,0);
    #
    # --- Karfreitag, Ostersonntag, Ostermontag, Himmelfahrt, Pfingstsonntag, Pfingstmontag
+   $bew=array();
    $bew[1]['datum']=self::kal_datum_vor_nach($ostersonntag,-2);
    $bew[1]['name'] ='Karfreitag';
    $bew[2]['datum']=$ostersonntag;
@@ -752,11 +755,13 @@ public static function kal_feiertage($jahr) {
    $bf=self::kal_bewegliche_feiertage($jahr);
    #
    # --- alle zusammen
+   $ft=array();
+   for($i=1;$i<=$anz;$i=$i+1) $ft[$i]=$uf[$i];
    for($i=1;$i<=count($bf);$i=$i+1):
       $k=$anz+$i;
-      $uf[$k]=$bf[$i];
+      $ft[$k]=$bf[$i];
       endfor;
-   return $uf;
+   return $ft;
    }
 public static function kal_datum_feiertag($datum) {
    #   Falls ein vorgegebenes Datum ein Feiertag ist,

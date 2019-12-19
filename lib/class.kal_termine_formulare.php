@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 define ('ACTION_START',  'start');
 define ('ACTION_SEARCH', 'search');
@@ -670,6 +670,8 @@ public static function kal_kopieren($pid,$action,$kop,$anz) {
      $error='<span class="kal_form_fail">Kein zu kopierender Termin angegeben</span>';
    #
    # --- zusaetzliche Termintage $datneu[$i] (falls eine Kopie vorgenommen werden kann)
+   $datneu=array();
+   $datkop=array();
    if(empty($error) and $action!=ACTION_START):
      #  -  Datum moeglicher Kopierziele ($datum1 / $datkop[1], $datkop[2], ...)
      $datum1=kal_termine_kalender::kal_datum_vor_nach($datum,1);
@@ -1057,6 +1059,7 @@ public static function kal_terminliste_merge($termin) {
    if(count($termin)<=0) return;
    #
    # --- [$ter] Sortierung nach 'name' vorbereiten ('name' vor COL_PID kleben)
+   $ter=array();
    for($i=1;$i<=count($termin);$i=$i+1):
       $ter[$i]=$termin[$i];
       $dat=$ter[$i][COL_NAME];
@@ -1067,10 +1070,11 @@ public static function kal_terminliste_merge($termin) {
    # --- [$term] Sortierung nach 'name' durchfuehren
    sort($ter);
    #     umspeichern und COL_PID wieder wegnehmen
+   $term=array();
    for($i=0;$i<count($ter);$i=$i+1) $term[$i+1]=$ter[$i];
-   unset($ter);
    #
    # --- [$date] (max. 2) identische Termine mit unterschiedlichem Datum finden
+   $date=array();
    $streichen='streichen';
    $termalt=$term[1];
    $date[1][COL_DATUM]='';
@@ -1103,15 +1107,15 @@ public static function kal_terminliste_merge($termin) {
    #
    # --- [$term] identische Termine mit unterschiedlichem Datum zusammenfassen
    $m=0;
+   $ter=array();
    for($i=1;$i<=count($term);$i=$i+1):
       if(!empty($date[$i][COL_NAME])) if($date[$i][COL_NAME]==$streichen) continue;
       $m=$m+1;
       $ter[$m]=$term[$i];
       if(!empty($date[$i][COL_DATUM])) $ter[$m][COL_DATUM]=$date[$i][COL_DATUM];
       endfor;
-   unset($term);
+   $term=array();
    for($i=1;$i<=count($ter);$i=$i+1) $term[$i]=$ter[$i];
-   unset($ter);
    #
    # --- [$term] statt 'name' jetzt Datum in MySQL-Format vor COL_PID kleben
    for($i=1;$i<=count($term);$i=$i+1):
@@ -1128,8 +1132,8 @@ public static function kal_terminliste_merge($termin) {
    # --- [$ter] Sortierung nach Datum durchfuehren
    sort($term);
    #     umspeichern
+   $ter=array();
    for($i=0;$i<count($term);$i=$i+1) $ter[$i+1]=$term[$i];
-   unset($term);
    #
    # --- vor COL_PID geklebtes Datum wieder entfernen
    for($i=1;$i<=count($ter);$i=$i+1):

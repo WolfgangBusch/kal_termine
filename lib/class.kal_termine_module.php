@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 #
 class kal_termine_module {
@@ -12,7 +12,7 @@ class kal_termine_module {
 #         kal_select_menue($name,$men)
 #         kal_kalendermenue($menue,$kategorie)
 #         kal_std_terminliste($von,$tage,$kategorie)
-#         kal_find_termin()
+#         kal_find_termin($pid)
 #
 public static function kal_select_menue($name,$men) {
    #   Rueckgabe des HTML-Codes fuer die Auswahl der moeglichen Kalendermenues.
@@ -54,14 +54,16 @@ public static function kal_manage_termine($value) {
    #      kal_termine_formulare::kal_korrigieren($value,$pid,$action)
    #      kal_termine_formulare::kal_kopieren($pid,$action,$kop,$anz)
    #
-   $action="";
-   $pid="";
-   if(!empty($value[COL_ANZAHL])):
-     $arr=explode(":",$value[COL_ANZAHL]);
+   $val=$value;
+   #
+   $action='';
+   $pid='';
+   if(!empty($val[COL_ANZAHL])):
+     $arr=explode(':',$val[COL_ANZAHL]);
      $action=$arr[0];
      if(count($arr)>1) $pid=$arr[1];
      endif;
-   $ACT=$value[1];
+   $ACT=$val[1];
    #
    # --- Start-/Eingabe-/Suchformular
    if(empty($pid) or (empty($action) and empty($ACT))):
@@ -70,8 +72,8 @@ public static function kal_manage_termine($value) {
        echo kal_termine_formulare::kal_startauswahl();
      #  -  Eingabeformular
      if($action==ACTION_INSERT or $ACT==ACTION_INSERT):
-       if($ACT==ACTION_INSERT) $value[1]="";
-       echo kal_termine_formulare::kal_eingeben($value,$action);
+       if($ACT==ACTION_INSERT) $val[1]='';
+       echo kal_termine_formulare::kal_eingeben($val,$action);
        endif;
      #  -  Suchformular
      if(($pid>0 and empty($action) and empty($ACT)) or
@@ -88,18 +90,18 @@ public static function kal_manage_termine($value) {
        if($ACT==ACTION_UPDATE):
          $term=kal_termine_tabelle::kal_select_termin_by_pid($pid);
          $keys=array_keys($term);
-         for($i=1;$i<count($term);$i=$i+1) $value[$i]=$term[$keys[$i]];
+         for($i=1;$i<count($term);$i=$i+1) $val[$i]=$term[$keys[$i]];
          endif;
-       echo kal_termine_formulare::kal_korrigieren($value,$pid,$action);
+       echo kal_termine_formulare::kal_korrigieren($val,$pid,$action);
        endif;
      #  -  Kopierformular
      if($action==ACTION_COPY or $ACT==ACTION_COPY):
        if($ACT==ACTION_COPY):
          $kop=0;
-         $anz="";
+         $anz='';
          else:
-         $kop=$value[1];
-         $anz=$value[2];
+         $kop=$val[1];
+         $anz=$val[2];
          endif;
        echo kal_termine_formulare::kal_kopieren($pid,$action,$kop,$anz);
        endif;
@@ -168,7 +170,7 @@ public static function kal_std_terminliste($ab,$tage,$kategorie) {
    if(!empty($von)) $von=kal_termine_kalender::kal_standard_datum($von);
    #
    # --- Ueberschrift
-   $strtage="";
+   $strtage='';
    if($tage>0) $strtage='für die nächsten <u>'.$tage.' Tage</u>';
    $str='<h4 align="center">Liste aller Termine einer Kategorie über einen Zeitraum<br/>&nbsp;</h4>
    <table class="kal_table">';
@@ -222,27 +224,26 @@ public static function kal_find_termin($pidalt) {
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
    #      kal_termine_formulare::kal_formular_radiobutton($action,$pid)
    #      kal_termin_formulare::kal_terminblatt($termin,$headline)
-   #      kal_termine_menues::kal_terminblatt_head($datum,$name)
    #      kal_termine_menues::kal_menue($kategorie,$termtyp,$mennr)
    #
    # --- Ueberschrift
-   $abbruch='Abbruch erst nach erfolgter Auswahl eines Termins möglich';
+   $abbruch='Abbruch der Suche erst nach erfolgter Auswahl eines Termins möglich';
    $ueber='Auswahlmenü zum Suchen eines Termins';
    #
    # --- Einlesen der Termin-Id
-   $pid="";
-   if(!empty(KAL_POST_PID)) $pid=KAL_POST_PID;
+   $pid='';
+   if(!empty($_POST[KAL_PID])) $pid=$_POST[KAL_PID];
    if(empty($pid)) $pid=$pidalt;
    if($pid<=0):
      #
      # --- Oeffnen des Terminmenues
      $men='';
-     if(!empty(KAL_POST_MENUE)) $men=KAL_POST_MENUE;
+     if(!empty($_POST[KAL_MENUE])) $men=$_POST[KAL_MENUE];
      if(empty($men)) $men=1;
      return '<div align="center">
-<h4 title="'.$abbruch.'">'.$ueber.'</h4>'.
-kal_termine_menues::kal_menue('','',$men).
-'<p>('.$abbruch.')</p>
+<h4 title="'.$abbruch.'">'.$ueber.'</h4>
+<p><i>('.$abbruch.')</i></p>'.
+kal_termine_menues::kal_menue('','',$men).'
 </div>';
      else:
      #

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version April 2019
+ * @version Dezember 2019
  */
 define ('SPIELTERM',      'Spieldaten');
 #
@@ -85,7 +85,7 @@ public static function kal_datum_mysql_standard($datum) {
    #   Umformatieren eines MySQL-Datumsstrings 'yyyy-mm-tt'
    #   in einen Standard-Datumsstring 'tt.mm.yyyy'
    #
-   return substr($datum,8,2).".".substr($datum,5,2).".".substr($datum,0,4);
+   return substr($datum,8,2).'.'.substr($datum,5,2).'.'.substr($datum,0,4);
    }
 public static function kal_termin_mysql_standard($termin) {
    #   Standardisierung von Datums- und Zeitangaben eines Termin-Arrays
@@ -124,7 +124,7 @@ public static function kal_datum_standard_mysql($datum) {
    #      kal_termine_kalender::kal_standard_datum($datum)
    #
    $dat=kal_termine_kalender::kal_standard_datum($datum);
-   return substr($dat,6)."-".substr($dat,3,2)."-".substr($dat,0,2);
+   return substr($dat,6).'-'.substr($dat,3,2).'-'.substr($dat,0,2);
    }
 #
 #----------------------------------------- SQL-Grundfunktionen
@@ -191,7 +191,7 @@ public static function kal_insert_termin($termin) {
    #
    # --- Ueberpruefen, ob der Termin schon eingetragen ist
    $pid=self::kal_exist_termin($term);
-   if($pid>0) return intval("-".$pid);
+   if($pid>0) return intval('-'.$pid);
    #
    # --- Terminparameter einzeln in einer Schleife einfuegen
    $cols=kal_termine_config::kal_define_tabellenspalten();
@@ -412,6 +412,7 @@ public static function kal_select_termine($von,$bis,$kategorie,$stichwort) {
    $term=$sql->getArray($query);
    #
    # --- Wandeln der Datums- und Zeitformate
+   $termin=array();
    for($i=0;$i<count($term);$i=$i+1):
       $term[$i]=self::kal_termin_mysql_standard($term[$i]);
       $termin[$i+1]=$term[$i];
@@ -500,6 +501,7 @@ public static function kal_filter_termine_kategorie($termin,$kategorie) {
      $m=count($term);
      else:
      $m=0;
+     $term=array();
      for($i=1;$i<=count($termin);$i=$i+1):
         if($termin[$i][COL_KATEGORIE]==$kategorie):
           $m=$m+1;
@@ -523,6 +525,7 @@ public static function kal_get_spieldaten($datum) {
    #
    # --- alle Wochentage um das Datum herum bestimmen
    $montag=kal_termine_kalender::kal_montag_vor($datum);
+   $datumall=array();
    $datumall[1]=$montag;
    for($i=1;$i<=6;$i=$i+1)
       $datumall[$i+1]=kal_termine_kalender::kal_datum_vor_nach($montag,$i);
@@ -547,6 +550,7 @@ public static function kal_get_spieldaten($datum) {
      endif;
    #
    # --- Setzen der (Wochen-)Termine
+   $term=array();
    $term[1]=array(
       COL_PID=>117,
       COL_NAME=>'Abendtermin',
@@ -686,6 +690,7 @@ public static function kal_get_spieldaten($datum) {
    #
    # --- Auswahl der gewuenschten Termine
    $m=0;
+   $termin=array();
    for($i=1;$i<=count($term);$i=$i+1):
       if($term[$i][COL_DATUM]==$datum):
         $m=$m+1;
@@ -703,18 +708,19 @@ public static function kal_get_wochenspieldaten($montag) {
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$nzahl)
    #
    # --- Erstellen des Datums-Arrays der Woche
+   $dat=array();
    $dat[1]=kal_termine_kalender::kal_standard_datum($montag);
    for($i=2;$i<=7;$i=$i+1) $dat[$i]=kal_termine_kalender::kal_datum_vor_nach($dat[1],$i-1);
    #
    # --- Tagestermine aller Tage der Woche
    $m=0;
+   $termin=array();
    for($i=1;$i<=count($dat);$i=$i+1):
       $term=self::kal_get_spieldaten($dat[$i]);
       for($k=1;$k<=count($term);$k=$k+1):
          $m=$m+1;
          $termin[$m]=$term[$k];
          endfor;
-      unset($term);
       endfor;
    return $termin;
    }
@@ -742,7 +748,6 @@ public static function kal_get_monatsspieldaten($erster) {
          $m=$m+1;
          $termin[$m]=$term[$i];
          endfor;
-      unset($term);
       $datum=kal_termine_kalender::kal_datum_vor_nach($datum,1);
       endfor;
    return $termin;
