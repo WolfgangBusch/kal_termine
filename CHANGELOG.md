@@ -1,11 +1,13 @@
 # kal_termine
 <h4>Version 2.2.0</h4>
 <ul>
-    <li>Leider war die Version 2.1.0 an zwei Stellen fehlerhaft und i.w. unbrauchbar.</li>
+    <li>Leider war die Version 2.1.0 fehlerhaft und i.w. unbrauchbar.</li>
 	 <li>Die Konfiguration war nur in der Default-Version nutzbar. Eine Änderung
         führte in einigen Fällen auf eine fehlerhafte Verschiebung der Parameter.
         Der Fehler ist behoben.</li>
 	 <li>Die Suchfunktion im Modul der Terminverwaltung führte nicht zum Ziel.
+        Der Fehler ist behoben.</li>
+    <li>Die halbgrafische Darstellung der Stundenleiste war evtl. fehlerhaft.
         Der Fehler ist behoben.</li>
 </ul>
 <h4>Version 2.1.0</h4>
