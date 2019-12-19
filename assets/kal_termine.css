@@ -94,7 +94,7 @@
 .kal_form_input_time { width:60px; padding-left:2px; padding-right:2px; }
 .kal_form_th { vertical-align:top; text-decoration:underline; font-weight:bold; white-space:nowrap; width:110px; }
 .kal_form_pad { padding-left:10px; }
-.kal_form_nowrap { white-space:nowrap; }
+.kal_form_nowrap { white-space:nowrap; }     
 .kal_form_td450 { padding-left:5px; width:450px; white-space:nowrap; }
 .kal_form_prom { white-space:nowrap; color:blue; }
 .kal_form_msg { white-space:nowrap; color:blue; background-color:yellow; }
