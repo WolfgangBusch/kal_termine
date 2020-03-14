@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Dezember 2019
+ * @version März 2020
  */
 #
 define ('PACKAGE',     $this->getPackageId());
@@ -739,6 +739,7 @@ public static function kal_get_terminkategorien() {
    $settings=self::kal_get_config();
    $keys=self::kal_config_keys();
    $k=0;
+   $kat=array();
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
       if(substr($key,0,3)!=KAL_KAT) continue;

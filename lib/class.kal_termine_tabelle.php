@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Dezember 2019
+ * @version März 2020
  */
 define ('SPIELTERM', 'Spieldaten');
 #
@@ -49,8 +49,10 @@ public static function kal_standard_termin($termin) {
    $keys=array_keys($cols);
    #
    # --- Datums- und Zeitangaben des eingegebenen Termins standardisieren
+   $value=array();
    for($i=0;$i<count($cols);$i=$i+1) $value[$i]=$termin[$keys[$i]];
    $val=self::kal_standard_termin_intern($value,$cols);
+   $term=array();
    for($i=0;$i<count($cols);$i=$i+1) $term[$keys[$i]]=$val[$i];
    return $term;
    }
@@ -68,6 +70,7 @@ public static function kal_standard_termin_intern($value,$cols) {
    $keys=array_keys($cols);
    #
    # --- Datums- und Zeitangaben des eingegebenen Arrays standardisieren
+   $val=array();
    for($i=0;$i<count($cols);$i=$i+1):
       $key=$keys[$i];
       $tk='';
@@ -103,6 +106,7 @@ public static function kal_termin_mysql_standard($termin) {
    $keys=array_keys($cols);
    #
    # --- Standardisierung der date- und time-Werte des gefundenen Termins
+   $term=array();
    for($i=0;$i<count($termin);$i=$i+1):
       $key=$keys[$i];
       $val=$termin[$key];
@@ -355,6 +359,7 @@ public static function kal_select_termin_by_pid($pid) {
    #
    # --- Wandeln der Datums- und Zeitformate
    if(!empty($term)) return self::kal_termin_mysql_standard($term[0]);
+   return $term;
    }
 public static function kal_select_termine($von,$bis,$kategorie,$stichwort) {
    #   Auslesen von Terminen aus der Datenbanktabelle,
@@ -417,7 +422,7 @@ public static function kal_select_termine($von,$bis,$kategorie,$stichwort) {
       $term[$i]=self::kal_termin_mysql_standard($term[$i]);
       $termin[$i+1]=$term[$i];
       endfor;
-   if(count($term)>0) return $termin;
+   return $termin;
    }
 public static function kal_get_tagestermine($datum,$termtyp) {
    #   Auslesen der aller Termindaten eines Tages aus der
@@ -498,7 +503,6 @@ public static function kal_filter_termine_kategorie($termin,$kategorie) {
    #
    if(empty($kategorie)):
      $term=$termin;
-     $m=count($term);
      else:
      $m=0;
      $term=array();
@@ -509,7 +513,7 @@ public static function kal_filter_termine_kategorie($termin,$kategorie) {
           endif;
         endfor;
      endif;
-   if($m>0) return $term;
+   return $term;
    }
 #
 #----------------------------------------- Erzeugen von Spiel-Termindaten
@@ -697,7 +701,7 @@ public static function kal_get_spieldaten($datum) {
         $termin[$m]=$term[$i];
         endif;
       endfor;
-   if($m>0) return $termin;
+   return $termin;
    }
 public static function kal_get_wochenspieldaten($montag) {
    #   Erzeugen von kuenstlichen Termindaten einer Woche
@@ -742,6 +746,7 @@ public static function kal_get_monatsspieldaten($erster) {
    $mtage=kal_termine_kalender::kal_monatstage($jahr);
    $datum='01.'.$mon.'.'.$jahr;
    $m=0;
+   $termin=array();
    for($k=1;$k<=$mtage[intval($mon)];$k=$k+1):
       $term=self::kal_get_spieldaten($datum);
       for($i=1;$i<=count($term);$i=$i+1):

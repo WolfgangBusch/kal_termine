@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Dezember 2019
+ * @version März 2020
  */
 #
 class kal_termine_install {
@@ -83,6 +83,10 @@ public static function define_modules($mypackage) {
    #   $mypackage          package name
    #
    # --- first module
+   $name  =array();
+   $in    =array();
+   $out   =array();
+   $indent=array();
    $name[1]='Termine verwalten ('.$mypackage.')';
    $in[1]='<?php
 $value[ 1]=REX_VALUE[ 1];
@@ -177,6 +181,7 @@ if(!rex::isBackend()):
    $ident[3]='kal_std_terminliste';
    #
    # --- returning the modules codes
+   $modules=array();
    for($i=1;$i<=count($name);$i=$i+1)
       $modules[$i]=array(
          'name'=>$name[$i],

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Dezember 2019
+ * @version März 2020
  */
 $arr=array(1=>'MONAT', 2=>'KW', 3=>'JAHR', 4=>'DATUM', 5=>'FEIERTAG',
    6=>'KATEGORIE', 7=>'SUCHEN', 8=>'VORHER', 9=>'MENUE', 10=>'PID',
@@ -234,6 +234,7 @@ public static function kal_monatsmenue_modus($kategorie,$mon,$jahr,$modus,$termt
    $anztage=$tage[intval($strmon)];
    #
    # --- Tage markieren (Schraffur)
+   $daterm=array();
    for($i=1;$i<=$anztage;$i=$i+1) $daterm[$i]=0;
    #
    # --- Termine in diesem Monat auslesen
@@ -435,6 +436,7 @@ public static function kal_tagesblatt($kategorie,$datum,$termtyp) {
    }
 public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp) {
    #   Rueckgabe des HTML-Codes zur Ausgabe eines Kalenderblatts fuer entweder
+   #   - einen Kalendermonat (nicht leer: $mon, $jahr, leer: $kw, $datum) oder
    #   - einen Kalendermonat (nicht leer: $mon, $jahr, leer: $kw, $datum) oder
    #   - eine Kalenderwoche  (nicht leer: $kw, $jahr,  leer: $mon, $datum ) oder
    #   - einen einzelnen Tag (nicht leer: $datum,      leer: $mon, $kw, $jahr)
@@ -667,7 +669,7 @@ public static function kal_mowotablatt($kategorie,$mon,$kw,$jahr,$datum,$termtyp
       $termin[$i][1][COL_DATUM]=$dat[$i];
       for($k=1;$k<=count($term);$k=$k+1):
          if($term[$k][COL_DATUM]==$dat[$i]):
-          $m=$m+1;
+           $m=$m+1;
            $termin[$i][$m]=$term[$k];
            endif;
          endfor;
@@ -811,12 +813,7 @@ public static function kal_terminpixel($termin) {
    #      self::kal_eval_start_ende($termin)
    #      kal_termine_config::kal_define_stundenleiste()
    #
-   #
-   if(empty($termin[COL_NAME])):
-     $pixel['vor']=0;
-     $pixel['dauer']=0;
-     return;
-     endif;
+   if(empty($termin[COL_NAME])) return array('vor'=>0, 'dauer'=>0);
    #
    # --- Bemassung der Stundenleiste
    $daten=kal_termine_config::kal_define_stundenleiste();
@@ -834,7 +831,6 @@ public static function kal_terminpixel($termin) {
    $ende  =$sez[COL_ENDE];
    #
    # --- Laenge vor dem Termin in Anzahl Pixel
-   $pixel['vor']=0;
    $arr=explode(':',$beginn);
    $voruhr=intval($arr[0])+intval($arr[1])/60;
    $vor=$voruhr-$stauhr;
@@ -842,7 +838,6 @@ public static function kal_terminpixel($termin) {
    $vor=$vor-2;     // Feinkorrektur
    #
    # --- Laenge des Termins in Anzahl Pixel
-   $pixel['dauer']=0;
    $arr=explode(':',$ende);
    $nachuhr=intval($arr[0])+intval($arr[1])/60;
    $dau=$nachuhr-$voruhr;

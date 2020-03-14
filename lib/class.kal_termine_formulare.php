@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Dezember 2019
+ * @version März 2020
  */
 define ('ACTION_START',  'start');
 define ('ACTION_SEARCH', 'search');
@@ -385,6 +385,7 @@ public static function kal_eingeben($value,$action) {
    $nzcols=count($cols);
    #
    # --- Uebertragen der Eingabedaten in ein Termin-Array
+   $termin=array();
    $termin[$keys[0]]=0;
    for($i=1;$i<$nzcols;$i=$i+1) $termin[$keys[$i]]=$value[$i];
    #
