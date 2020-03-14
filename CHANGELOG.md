@@ -1,4 +1,8 @@
 # kal_termine
+<h4>Version 2.2.1</h4>
+<ul>
+    <li>Kleinere Korrekturen am Programmcode zur Vermeidung von PHP-Warnungen.</li>
+</ul>
 <h4>Version 2.2.0</h4>
 <ul>
     <li>Leider war die Version 2.1.0 fehlerhaft und i.w. unbrauchbar.</li>

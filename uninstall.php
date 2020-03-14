@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo4.6
- * @version Dezember 2019
+ * @version März 2020
  */
 #
 # --- Konfigurationsdaten loeschen
