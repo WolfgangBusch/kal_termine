@@ -3,47 +3,146 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2020
- */
+ * @version August 2020
+*/
 #
 class kal_termine_install {
 #
-public static function kal_create_table() {
-   #   Erzeugen der Termintabelle (falls noch nicht vorhanden)
-   #   benutzte functions:
+public static function kal_generate_katids($term) {
+   #   Generating of category ids to event categories defined in previous add-on versions.
+   #   A numbered array (numbering from 1) of replacement data is returned to each event,
+   #   structured as associative arrays:
+   #     [COL_PID]     Event Id
+   #     ['kategorie'] Name of category, according to previous add-on versions (<=2.2.1)
+   #     [COL_KATID]   generated Id of that category
+   #   $term           numbered array (numbering from 0) of stored events
+   #   
+   $kats=array();
+   $m=0;
+   for($i=0;$i<count($term);$i=$i+1):
+      $j=$i+1;
+      $kats[$j][COL_PID]=$term[$i][COL_PID];
+      $kats[$j]['kategorie']=$term[$i]['kategorie'];
+      $kats[$j][COL_KATID]=0;
+      $neu=TRUE;
+      for($k=1;$k<=$i;$k=$k+1)
+         if($kats[$k]['kategorie']==$kats[$j]['kategorie']):
+           $neu=FALSE;
+           $kats[$j][COL_KATID]=$kats[$k][COL_KATID];
+           endif;
+      if($neu):
+        $m=$m+1;
+        $kats[$j][COL_KATID]=$m;
+        endif;
+      endfor;
+   return $kats;
+   }
+public static function kal_generated_katids($kats) {
+   #   Returns the currently defined event categories (according to previous add-on
+   #   version) and the generated category ids in the form of a numbered array
+   #   (numbering from 1). Each array element consists of an associative array
+   #   with these parameters:
+   #     ['kategorie'] Name of category, according to previous add-on versions (<=2.2.1)
+   #     [COL_KATID]   generated Id of that category
+   #   $kats           numbered array (numbering from 1) of stored events
+   #                   as generated in kal_generate_katids
+   #
+   $kid=array();
+   $m=0;
+   for($i=1;$i<=count($kats);$i=$i+1):
+      $id=$kats[$i][COL_KATID];
+      $neu=TRUE;
+      for($k=1;$k<=count($kid);$k=$k+1)
+         if($kid[$k][COL_KATID]==$id):
+           $neu=FALSE;
+           break;
+           endif;
+      if($neu):
+        $m=$m+1;
+        $kid[$m][COL_KATID]=$id;
+        $kid[$m]['kategorie']=$kats[$i]['kategorie'];
+        endif;
+      endfor;
+   return $kid;
+}
+public static function kal_create_tables() {
+   #   creating the add-on tables if they do not already exist
+   #   used functions:
+   #      self::kal_generate_katids($term)
+   #      self::kal_generated_katids($kats)
    #      kal_termine_config::kal_define_tabellenspalten()
    #
-   $table='rex_kal_termine';
    $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
+   #
+   # --- create the table of events if it does not already exist
    $columns='';
    for($i=0;$i<count($cols);$i=$i+1)
       $columns=$columns.$keys[$i].' '.$cols[$keys[$i]][0].', ';
    $columns=substr($columns,0,strlen($columns)-2).', PRIMARY KEY ('.$keys[0].')';
-   $query='CREATE TABLE IF NOT EXISTS '.$table.' ('.$columns.') CHARSET=utf8;';
+   $query='CREATE TABLE IF NOT EXISTS '.TAB_NAME.' ('.$columns.') CHARSET=utf8;';
    $sql=rex_sql::factory();
    $sql->setQuery($query);
-   }
-public static function sql_action($sql,$query) {
-   #   performing an SQL action using setQuery()
-   #   including error message if fails
-   #   $sql               SQL handle
-   #   $query             SQL action
    #
-   try {
-        $sql->setQuery($query);
-        $error='';
-         } catch(rex_sql_exception $e) {
-        $error=$e->getMessage();
-        }
-   if(!empty($error)) echo rex_view::error($error);
+   # --- add columns COL_TAGE, COL_WOCHEN and COL_KATID if they do not already exist
+   #     (in case of upgrade from version 2.2.1 or older)
+   $coln=$sql->getArray('SHOW COLUMNS FROM '.TAB_NAME);
+   $ex=FALSE;
+   for($i=0;$i<count($coln);$i=$i+1) if($coln[$i]['Field']==COL_TAGE) $ex=TRUE;
+   if(!$ex):
+     $query='ALTER TABLE '.TAB_NAME.' ADD '.COL_TAGE.' int(11) NOT NULL DEFAULT 1 AFTER '.COL_ENDE;
+     $sql->setQuery($query);
+     endif;
+   $ex=FALSE;
+   for($i=0;$i<count($coln);$i=$i+1) if($coln[$i]['Field']==COL_WOCHEN) $ex=TRUE;
+   if(!$ex):
+     $query='ALTER TABLE '.TAB_NAME.' ADD '.COL_WOCHEN.' int(11) NOT NULL DEFAULT 0 AFTER '.COL_TAGE;
+     $sql->setQuery($query);
+     endif;
+   $ex=FALSE;
+   for($i=0;$i<count($coln);$i=$i+1) if($coln[$i]['Field']==COL_KATID) $ex=TRUE;
+   if(!$ex):
+     $query='ALTER TABLE '.TAB_NAME.' ADD '.COL_KATID.' int(11) NOT NULL DEFAULT 1 AFTER '.COL_KOMM;
+     $sql->setQuery($query);
+     endif;
+   #
+   # ---------- upgrade from version 2.2.1 or older ----------
+   #
+   $coln=$sql->getArray('SHOW COLUMNS FROM '.TAB_NAME);
+   $ex=FALSE;
+   for($i=0;$i<count($coln);$i=$i+1) if($coln[$i]['Field']=='kategorie') $ex=TRUE;
+   if(!$ex) return;   // already Version >= 3.0
+   #
+   # --- table TAB_NAME: insert category Ids generated from category names
+   $term=$sql->getArray('SELECT * FROM '.TAB_NAME);
+   $kats=self::kal_generate_katids($term);
+   for($i=1;$i<=count($kats);$i=$i+1):
+      $pid=$kats[$i][COL_PID];
+      $kat_id=$kats[$i][COL_KATID];
+      $update='UPDATE '.TAB_NAME.' SET '.COL_KATID.'='.$kat_id.' WHERE '.COL_PID.'='.$pid;
+      $sql->setQuery('UPDATE '.TAB_NAME.' SET '.COL_KATID.'='.$kat_id.' WHERE '.COL_PID.'='.$pid);
+      endfor;
+   #
+   # --- take the transferred categories as additional configuration data
+   #     default settings
+   $settings=kal_termine_config::kal_default_config();
+   #     category ids
+   $kid=self::kal_generated_katids($kats);
+   for($i=1;$i<=count($kid);$i=$i+1):   
+      $key=KAL_KAT.$kid[$i][COL_KATID];
+      $val=$kid[$i]['kategorie'];
+      $settings[$key]=$val;
+      endfor;
+   kal_termine_config::kal_set_config($settings);
+   #
+   # --- at least: delete column 'kategorie'
+   $sql->setQuery('ALTER TABLE '.TAB_NAME.' DROP COLUMN kategorie');
    }
 public static function build_modules($mypackage) {
    #   creating / updating a number of modules in table rex_module
    #   $mypackage          package name
    #   functions used:
    #      self::define_modules($mypackage)
-   #      self::sql_action($sql,$query)
    #
    $table='rex_module';
    $modules=self::define_modules($mypackage);
@@ -64,16 +163,15 @@ public static function build_modules($mypackage) {
       if(!empty($mod)):
         #     existing:         update (name unchanged)
         $id=$mod[0]['id'];
-        self::sql_action($sql,'UPDATE '.$table.' SET  input=\''.$input.'\'  WHERE id='.$id);
-        self::sql_action($sql,'UPDATE '.$table.' SET output=\''.$output.'\' WHERE id='.$id);
+        $sql->setQuery('UPDATE '.$table.' SET  input=\''.$input.'\'  WHERE id='.$id);
+        $sql->setQuery('UPDATE '.$table.' SET output=\''.$output.'\' WHERE id='.$id);
         else:
         #     not yet existing: insert
-        self::sql_action($sql,'INSERT INTO '.$table.' (name,input,output) '.
-           'VALUES (\''.$name.'\',\''.$input.'\',\''.$output.'\')');
+        $sql->setQuery('INSERT INTO '.$table.' (name,input,output) '.
+              'VALUES (\''.$name.'\',\''.$input.'\',\''.$output.'\')');
         endif;
       endfor;
    }
-
 public static function define_modules($mypackage) {
    #   defining some module sources and returning them as array:
    #      $mod[$i]['name']    the module's name
@@ -107,17 +205,9 @@ $value[15]=REX_VALUE[15];
 $value[16]=REX_VALUE[16];
 $value[17]=REX_VALUE[17];
 $value[18]=REX_VALUE[18];
-#
-# --- Verwaltung der Termine
-kal_termine_module::kal_manage_termine($value);
-#
-# --- Loeschen aller REX-Variablen
-$sql=rex_sql::factory();
-$upd="UPDATE rex_article_slice SET ";
-for($i=1;$i<=COL_ANZAHL;$i=$i+1) $upd=$upd."value".$i."=\"\", ";
-$upd=substr($upd,0,strlen($upd)-2);
-$upd=$upd." WHERE id=".strval(REX_SLICE_ID);
-$sql->setQuery($upd);
+$value[19]=REX_VALUE[19];
+$value[20]=REX_VALUE[20];
+kal_termine_module::kal_manage_termine($value,REX_SLICE_ID);
 ?>';
    $out[1]='<?php
 if(rex::isBackend())
@@ -129,54 +219,30 @@ if(rex::isBackend())
    # --- second module
    $name[2]='Auswahl eines Start-Kalendermenüs ('.$mypackage.')';
    $in[2]='<?php
-$men="REX_VALUE[1]";
-$kategorie="REX_VALUE[2]";
-echo kal_termine_module::kal_kalendermenue($men,$kategorie);
+$menue="REX_VALUE[1]";
+$katid="REX_VALUE[2]";
+echo kal_termine_module::kal_kalendermenue($menue,$katid);
 ?>';
    $out[2]='<?php
-$men="REX_VALUE[1]";
-$kategorie="REX_VALUE[2]";
-if(empty($men)) $men=1;
-$menues=kal_termine_menues::kal_define_menues();
-$menue=$menues[$men][1];
-if(rex::isBackend()):
-  $str="<u>aller</u> Kategorien";
-  if(!empty($kategorie)) $str="der Kategorie <u>$kategorie</u>";
-  echo "<div><span class=\"kal_form_msg\"><u>$menue:</u> ".
-     "Termine ".$str."</div>\n";
-  else:
-  echo kal_termine_menues::kal_menue($kategorie,"",$men);
-  endif;
+$menue="REX_VALUE[1]";
+$katid="REX_VALUE[2]";
+echo kal_termine_module::kal_out_kalendermenue($menue,$katid);
 ?>';
    $ident[2]='kal_kalendermenue';
    #
    # --- third module
    $name[3]='Ausgabe einer Standard-Terminliste ('.$mypackage.')';
    $in[3]='<?php
-$ab=REX_VALUE[1];
-$tage=REX_VALUE[2];
-$kateg=REX_VALUE[3];
-echo kal_termine_module::kal_std_terminliste($ab,$tage,$kateg);
+$von=REX_VALUE[1];
+$anztage=REX_VALUE[2];
+$katid=REX_VALUE[3];
+echo kal_termine_module::kal_std_terminliste($von,$anztage,$katid);
 ?>';
    $out[3]='<?php
-$ab=REX_VALUE[1];
-if(empty($ab)) $ab=kal_termine_kalender::kal_heute();
-$tage=REX_VALUE[2];
-$kateg=REX_VALUE[3];
-#
-$bis=kal_termine_kalender::kal_datum_vor_nach($ab,$tage);
-$term=kal_termine_tabelle::kal_select_termine($ab,$bis,$kateg,"");
-if(!rex::isBackend()):
-  echo kal_termine_formulare::kal_terminliste($term);
-  else:
-  $sta=$ab." - ".$bis;
-  $stb="alle Kategorien";
-  if(!empty($kateg)) $stb="Kategorie \"".$kateg."\"";
-  $stc=count($term)." Termine";
-  echo "<div><span class=\"kal_form_msg\">".
-     $sta." &nbsp; (".$stb."): &nbsp; ".$stc."</span> &nbsp; ".
-     "<small>(Terminliste nur im Frontend)</small></div>\n";
-  endif;
+$von=REX_VALUE[1];
+$anztage=REX_VALUE[2];
+$katid=REX_VALUE[3];
+echo kal_termine_module::kal_mod_terminliste($von,$anztage,$katid);
 ?>';
    $ident[3]='kal_std_terminliste';
    #

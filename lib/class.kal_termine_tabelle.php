@@ -3,99 +3,61 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2020
- */
-define ('SPIELTERM', 'Spieldaten');
+ * @version August 2020
+*/
+define ('SPIEL_KATID', 99990);   // Kategorie-Ids der Spieldaten beginnen bei 99991
 #
 class kal_termine_tabelle {
 #
 #----------------------------------------- Inhaltsuebersicht
 #   Basis-Funktionen
+#         kal_datum_mysql_standard($datum)
+#         kal_datum_standard_mysql($datum)
 #         kal_standard_termin($termin)
 #         kal_standard_termin_intern($value,$cols)
-#         kal_datum_mysql_standard($datum)
 #         kal_termin_mysql_standard($termin)
-#         kal_datum_standard_mysql($datum)
 #   SQL-Grundfunktionen
+#         kal_select_termin_by_pid($pid)
 #         kal_exist_termin($termin)
 #         kal_insert_termin($termin)
 #         kal_delete_termin($pid)
 #         kal_update_termin($pid,$termkor)
-#         kal_copy_termin($pid,$datumneu)
 #   Auslesen von Termindaten
-#         kal_select_termin_by_pid($pid)
-#         kal_select_termine($von,$bis,$kategorie,$stichwort)
-#         kal_get_tagestermine($datum,$termtyp)
-#         kal_get_wochentermine($von,$bis,$termtyp)
-#         kal_get_monatstermine($von,$bis,$termtyp)
-#         kal_filter_termine_kategorie($termin,$kategorie)
-#   Erzeugen von Spiel-Termindaten
-#         kal_get_spieldaten($datum)
-#         kal_get_wochenspieldaten($montag)
-#         kal_get_monatsspieldaten($erster)
+#         kal_kategorie_name($katid)
+#         kal_select_termine($von,$bis,$katid)
+#         kal_vorherige_wiederholungstermine($von,$bis,$katid)
+#         kal_vorherige_folgetermine($von,$bis,$katid)
+#         kal_interne_wiederholungstermine($termin,$von,$bis,$katid)
+#         kal_interne_folgetermine($termin,$von,$bis,$katid)
+#         kal_get_termine($von,$bis,$katid,$kontif)
+#   Erzeugen/Zusammenstellen von Spiel-Termindaten
+#         kal_get_spielkategorien()
+#         kal_set_spieldaten($datum)
+#         kal_get_spieltermine($von,$bis,$katid)
 #
 #----------------------------------------- Basis-Funktionen
-public static function kal_standard_termin($termin) {
-   #   Standardisierung von Datums- und Zeitangaben eines Termin-Arrays:
-   #   - Datumsangaben nach 'tt.mm.yyyy'
-   #   - Zeitangaben nach 'hh:mm'
-   #   $termin         eingegebenes Termin-Array
-   #                   das standardisierte Array wird zurueck gegeben
-   #   benutzte functions:
-   #      self::kal_standard_termin_intern($value)
-   #      kal_termine_config::kal_define_tabellenspalten()
-   #
-   $cols=kal_termine_config::kal_define_tabellenspalten();
-   $keys=array_keys($cols);
-   #
-   # --- Datums- und Zeitangaben des eingegebenen Termins standardisieren
-   $value=array();
-   for($i=0;$i<count($cols);$i=$i+1) $value[$i]=$termin[$keys[$i]];
-   $val=self::kal_standard_termin_intern($value,$cols);
-   $term=array();
-   for($i=0;$i<count($cols);$i=$i+1) $term[$keys[$i]]=$val[$i];
-   return $term;
-   }
-public static function kal_standard_termin_intern($value,$cols) {
-   #   Standardisierung von Datums- und Zeitangaben eines Arrays:
-   #   - Datumsangaben nach 'tt.mm.yyyy'
-   #   - Zeitangaben nach 'hh:mm'
-   #   $value          eingegebenes Array
-   #                   das standardisierte Array wird zurueck gegeben
-   #   $cols           Array der Tabellenspalten-Definition
-   #   benutzte functions:
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #      kal_termine_kalender::kal_standard_uhrzeit($uhrz)
-   #
-   $keys=array_keys($cols);
-   #
-   # --- Datums- und Zeitangaben des eingegebenen Arrays standardisieren
-   $val=array();
-   for($i=0;$i<count($cols);$i=$i+1):
-      $key=$keys[$i];
-      $tk='';
-      if(!empty($value[$i])) $tk=$value[$i];
-      $type=$cols[$key][0];
-      $arr=explode(' ',$type);
-      $type=$arr[0];
-      if($type=='date' and !empty($tk)) $tk=kal_termine_kalender::kal_standard_datum($tk);
-      if($type=='time' and !empty($tk)) $tk=kal_termine_kalender::kal_standard_uhrzeit($tk);
-      $val[$i]=$tk;
-      endfor;
-   return $val;
-   }
 public static function kal_datum_mysql_standard($datum) {
    #   Umformatieren eines MySQL-Datumsstrings 'yyyy-mm-tt'
    #   in einen Standard-Datumsstring 'tt.mm.yyyy'
    #
    return substr($datum,8,2).'.'.substr($datum,5,2).'.'.substr($datum,0,4);
    }
+public static function kal_datum_standard_mysql($datum) {
+   #   Umformatieren eines Standard-Datumsstrings 'tt.mm.yyyy'
+   #   in einen MySQL-Datumsstring 'yyyy-mm-tt'
+   #   benutzte functions:
+   #      kal_termine_kalender::kal_standard_datum($datum)
+   #
+   $dat=kal_termine_kalender::kal_standard_datum($datum);
+   return substr($dat,6).'-'.substr($dat,3,2).'-'.substr($dat,0,2);
+   }
 public static function kal_termin_mysql_standard($termin) {
-   #   Standardisierung von Datums- und Zeitangaben eines Termin-Arrays
-   #   dabei wird so gewandelt:
+   #   Standardisierung von Datums- und Zeitangaben sowie Integer eines Termin-Arrays.
+   #   Dabei wird so gewandelt:
    #   - Datumsangaben: 'yyyy-mm-tt' nach 'tt.mm.yyyy'
-   #   - Zeitangaben: 'hh:mm:ss' nach 'hh:mm'
-   #   - Zeitangaben: '00:00:00' nach '' (leer)
+   #   - Zeitangaben: 'hh:mm:ss'     nach 'hh:mm'
+   #   - Zeitangaben: '00:00:00'     nach '' (leer)
+   #   - Integer:     '' (leer)      nach 0
    #   $termin         ausgelesenes Termin-Array
    #                   das standardisierte Array wird zurueck gegeben
    #   benutzte functions:
@@ -117,21 +79,80 @@ public static function kal_termin_mysql_standard($termin) {
       if($type=='date') $val=self::kal_datum_mysql_standard($val);
       if($type=='time') $val=substr($val,0,5);
       if($type=='time' and $val=='00:00') $val='';
+      if(substr($type,0,3)=='int' and empty($val)) $val=intval($val);
       $term[$key]=$val;
       endfor;
    return $term;
    }
-public static function kal_datum_standard_mysql($datum) {
-   #   Umformatieren eines Standard-Datumsstrings 'tt.mm.yyyy'
-   #   in einen MySQL-Datumsstring 'yyyy-mm-tt'
+public static function kal_standard_termin($termin) {
+   #   Standardisierung von Datums- und Zeitangaben eines Termin-Arrays:
+   #   - Datumsangaben nach 'tt.mm.yyyy'
+   #   - Zeitangaben nach 'hh:mm'
+   #   - Integer '' nach 0
+   #   $termin         eingegebenes Termin-Array
+   #                   das standardisierte Array wird zurueck gegeben
+   #   benutzte functions:
+   #      self::kal_standard_termin_intern($value,$cols)
+   #      kal_termine_config::kal_define_tabellenspalten()
+   #
+   $cols=kal_termine_config::kal_define_tabellenspalten();
+   $keys=array_keys($cols);
+   #
+   # --- Datums- und Zeitangaben sowie leere Integer des eingegebenen Termins standardisieren
+   $value=array();
+   for($i=0;$i<count($cols);$i=$i+1) $value[$i]=$termin[$keys[$i]];
+   $val=self::kal_standard_termin_intern($value,$cols);
+   $term=array();
+   for($i=0;$i<count($cols);$i=$i+1) $term[$keys[$i]]=$val[$i];
+   return $term;
+   }
+public static function kal_standard_termin_intern($value,$cols) {
+   #   Standardisierung von Datums- und Zeitangaben eines Arrays:
+   #   - Datumsangaben nach 'tt.mm.yyyy'
+   #   - Zeitangaben nach 'hh:mm'
+   #   - Integer '' nach 0
+   #   $value          eingegebenes Array
+   #                   das standardisierte Array wird zurueck gegeben
+   #   $cols           Array der Daten zu den Kalender-Tabellenspalten
    #   benutzte functions:
    #      kal_termine_kalender::kal_standard_datum($datum)
+   #      kal_termine_kalender::kal_standard_uhrzeit($uhrz)
    #
-   $dat=kal_termine_kalender::kal_standard_datum($datum);
-   return substr($dat,6).'-'.substr($dat,3,2).'-'.substr($dat,0,2);
+   $keys=array_keys($cols);
+   #
+   # --- Datums- und Zeitangaben sowie leere Integer des eingegebenen Arrays standardisieren
+   $val=array();
+   for($i=0;$i<count($keys);$i=$i+1):
+      $key=$keys[$i];
+      $tk='';
+      if(!empty($value[$i])) $tk=$value[$i];
+      $type=$cols[$key][0];
+      $arr=explode(' ',$type);
+      $type=$arr[0];
+      if($type=='date' and !empty($tk)) $tk=kal_termine_kalender::kal_standard_datum($tk);
+      if($type=='time' and !empty($tk)) $tk=kal_termine_kalender::kal_standard_uhrzeit($tk);
+      if(substr($type,0,3)=='int' and empty($tk)) $tk=intval($tk);
+      $val[$i]=$tk;
+      endfor;
+   return $val;
    }
 #
 #----------------------------------------- SQL-Grundfunktionen
+public static function kal_select_termin_by_pid($pid) {
+   #   Auslesen und Rueckgabe eines Termins aus der Datenbanktabelle
+   #   $pid            Id des Termins
+   #   benutzte functions:
+   #      self::kal_termin_mysql_standard($termin)
+   #
+   # --- aus der Datenbanktabelle auslesen
+   $sql=rex_sql::factory();
+   $sql->setTable(TAB_NAME);
+   $term=$sql->getArray('SELECT * FROM '.TAB_NAME.' WHERE '.COL_PID.'='.$pid);
+   #
+   # --- Wandeln der Datums- und Zeitformate
+   if(count($term)>0) return self::kal_termin_mysql_standard($term[0]);
+   return array();
+   }
 public static function kal_exist_termin($termin) {
    #   Suchen eines Termins in der Datenbanktabelle, falls der Termin
    #   gefunden wird, wird dessen Id ($termin[COL_PID]) zurueckgegeben
@@ -139,8 +160,8 @@ public static function kal_exist_termin($termin) {
    #   $termin         gegebenes Termin-Array
    #   benutzte functions
    #      self::kal_standard_termin($termin)
-   #      self::kal_termin_mysql_standard($termin)
    #      self::kal_datum_standard_mysql($datum)
+   #      self::kal_termin_mysql_standard($termin)
    #
    $keys=array_keys($termin);
    #
@@ -175,10 +196,8 @@ public static function kal_exist_termin($termin) {
 public static function kal_insert_termin($termin) {
    #   Eintragen eines neuen Termins in die Datenbanktabelle
    #   $termin         Array des Termins
-   #   Rueckgabe:      Eintragung erfolgreich:   Id des neuen Termins (COL_PID)
-   #                   Termin schon vorhanden:   (-1)*Id des schon vorhandenen
-   #                                             Termins mit denselben Daten
-   #                   Eintragung nicht erfolgt: Fehlermeldung '... konnte nicht ...'
+   #   Rueckgabe:      Eintragung erfolgreich:   Id des neuen Termins (COL_PID>0)
+   #                   andernfalls:              Fehlermeldung
    #   #################################################################
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
@@ -195,11 +214,11 @@ public static function kal_insert_termin($termin) {
    #
    # --- Ueberpruefen, ob der Termin schon eingetragen ist
    $pid=self::kal_exist_termin($term);
-   if($pid>0) return intval('-'.$pid);
+   if($pid>0)
+     return '<span class="kal_fail">Dieser Termin ist schon vorhanden: pid='.$pid.'</span>';
    #
    # --- Terminparameter einzeln in einer Schleife einfuegen
    $cols=kal_termine_config::kal_define_tabellenspalten();
-   $keys=array_keys($cols);
    $keys=array_keys($termin);
    $sql=rex_sql::factory();
    $sql->setTable(TAB_NAME);
@@ -235,22 +254,21 @@ public static function kal_delete_termin($pid) {
    if($pid<=0)
      return '<span class="kal_fail">Bitte einen Termin zum Löschen benennen (Termin-Id>0)</span>';
    #
-   $table=TAB_NAME;
    $sql=rex_sql::factory();
    #
    # --- Pruefen, ob der Termin da ist
-   $row=$sql->getArray('SELECT * FROM '.$table.' WHERE '.COL_PID.'='.$pid);
-   if(empty($row))
+   $arr=$sql->getArray('SELECT * FROM '.TAB_NAME.' WHERE '.COL_PID.'='.$pid);
+   if(count($arr)<=0)
      return '<span class="kal_fail">Termin nicht vorhanden</span>';
    #
    # --- Durchfuehrung
-   $sql->setTable($table);
+   $sql->setTable(TAB_NAME);
    $sql->setWhere(array(COL_PID=>$pid));
    $sql->delete();
    #
    # --- Pruefen, ob der Termin wirklich weg ist
-   $row=$sql->getArray('SELECT * FROM '.$table.' WHERE '.COL_PID.'='.$pid);
-   if(!empty($row))
+   $arr=$sql->getArray('SELECT * FROM '.TAB_NAME.' WHERE '.COL_PID.'='.$pid);
+   if(count($arr)>0)
      return '<span class="kal_fail">Termin konnte nicht gelöscht werden</span>';
    }
 public static function kal_update_termin($pid,$termkor) {
@@ -265,14 +283,15 @@ public static function kal_update_termin($pid,$termkor) {
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
    #   #################################################################
    #   benutzte functions:
+   #      self::kal_select_termin_by_pid($pid)
+   #      self::kal_standard_termin($termin)
    #      self::kal_datum_standard_mysql($datum)
    #      kal_termine_config::kal_define_tabellenspalten()
-   #   die Datenbank nutzende functions:
-   #      self::kal_select_termin_by_pid($pid)
    #
    # --- Auslesen des Termins mit der vorgegebenen Id
    $termin=self::kal_select_termin_by_pid($pid);
-   if(count($termin)<=0) return '<span class="kal_fail">Der Termin ist nicht vorhanden</span>';
+   if(count($termin)<=0)
+     return '<span class="kal_fail">Der Termin ist nicht vorhanden</span>';
    #
    $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
@@ -298,122 +317,64 @@ public static function kal_update_termin($pid,$termkor) {
    #
    # --- erneutes Auslesen des Termins und Vergleich mit eingegebener Korrektur
    $termsel=self::kal_select_termin_by_pid($pid);
-   $error='';
    for($i=1;$i<count($termkor);$i=$i+1):
       $key=$keys[$i];
       if($key==COL_PID) continue;
       if($termsel[$key]==$korterm[$key]) continue;
-      $error='<span class="kal_fail">Termin "'.$termin[COL_NAME].'" ('.$termin[COL_DATUM].
+      return '<span class="kal_fail">Termin "'.$termin[COL_NAME].'" ('.$termin[COL_DATUM].
          ') konnte nicht korrigiert werden</span>';
       break;
       endfor;
-   return $error;
-   }
-public static function kal_copy_termin($pid,$datumneu) {
-   #   Kopieren eines Termins an ein neues Datum in der Datenbanktabelle,
-   #   bis auf das Datum werden alle Termindaten uebernommen
-   #   $pid            Id des zu kopierenden Termins
-   #   $datumneu       Datum des zu kopierenden Termins
-   #   Rueckgabe:      Id des kopierten Termins,
-   #                   falls das Kopieren fehlschlug:
-   #                   - Termin nicht vorhanden (falsche Id):  Fehlerstring (in rot)
-   #                   - zu kopierender Termin schon vorhanden: -$pidneu
-   #                     ($pidneu = Id des schon vorhandenen Termins)
-   #   #################################################################
-   #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
-   #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
-   #   benutzte functions:
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #   die Datenbank nutzende functions:
-   #      self::kal_select_termin_by_pid($pid)
-   #      self::kal_insert_termin($termin)
-   #
-   # --- Auslesen des Termins mit der vorgegebenen Id
-   $termin=self::kal_select_termin_by_pid($pid);
-   $count=count($termin);
-   if($count<=0)
-     return '<span class="kal_fail">Der Termin ('.COL_PID.'='.$pid.') ist nicht vorhanden</span>';
-   #
-   # --- neues Termin-Array durch Kopie und das Datum aendern
-   $termneu=$termin;
-   $termneu[COL_DATUM]=kal_termine_kalender::kal_standard_datum($datumneu);
-   #
-   # --- den neuen Termin eintragen
-   $pidneu=self::kal_insert_termin($termneu);
-   return $pidneu;
    }
 #
 #----------------------------------------- Auslesen von Termindaten
-public static function kal_select_termin_by_pid($pid) {
-   #   Auslesen und Rueckgabe eines Termins aus der Datenbanktabelle
-   #   $pid            Id des Termins
+public static function kal_kategorie_name($katid) {
+   #   Ermitteln der Kategoriebezeichnung aus der Kategorie-Id. Leere Rueckgabe,
+   #   falls die eingegebene Id keiner definierten Kategorie entspricht.
+   #   $katid          Kategorie-Id
    #   benutzte functions:
-   #      self::kal_termin_mysql_standard($termin)
-   #
-   # --- aus der Datenbanktabelle auslesen
-   $table=TAB_NAME;
-   $sql=rex_sql::factory();
-   $sql->setTable($table);
-   $term=$sql->getArray('SELECT * FROM '.$table.' WHERE '.COL_PID.'='.$pid);
-   #
-   # --- Wandeln der Datums- und Zeitformate
-   if(!empty($term)) return self::kal_termin_mysql_standard($term[0]);
-   return $term;
-   }
-public static function kal_select_termine($von,$bis,$kategorie,$stichwort) {
-   #   Auslesen von Terminen aus der Datenbanktabelle,
-   #   gefiltert durch Datumsbereich, Kategorie und Stichwort
-   #   Rueckgabe als Array von Terminen (Indizierung bei 1 beginnend)
-   #   $von            Datum des ersten Tages (Standardformat)
-   #   $bis            Datum des letzten Tages (Standardformat)
-   #   $kategorie      falls nicht leer: nur Termine der vorgegebenen Kategorie
-   #   $stichwort      falls nicht leer: nur Termine, die das vorgegebene Stichwort
-   #                   in einem folgenden Parameter enthalten:
-   #                   [COL_NAME], [COL_AUSRICHTER], [COL_ORT], [COL_KOMM],
-   #                   [COL_TEXT2], [COL_TEXT3], [COL_TEXT4], [COL_TEXT5]
-   #   benutzte functions:
-   #      self::kal_termin_mysql_standard($termin)
-   #      self::kal_datum_standard_mysql($datum)
+   #      self::kal_get_spielkategorien()
    #      kal_termine_config::kal_get_terminkategorien()
+   #
+   if($katid<=0) return;
+   #
+   # --- Kategorien der Spieltermine / konfigurierte Kategorien
+   if($katid<=SPIEL_KATID):
+     $kat=kal_termine_config::kal_get_terminkategorien();
+     else:
+     $kat=self::kal_get_spielkategorien();
+     endif;
+   for($i=0;$i<count($kat);$i=$i+1) if($kat[$i]['id']==$katid) return $kat[$i]['name'];
+   }
+public static function kal_select_termine($von,$bis,$katid) {
+   #   Auslesen von Terminen aus der Datenbanktabelle,
+   #   gefiltert durch Datumsbereich und Kategorie
+   #   Rueckgabe als Array von Terminen (Indizierung bei 1 beginnend)
+   #   $von            Datum des ersten Tages (ggf. verkuerztes Standardformat)
+   #                   falls leer: vom ersten eingetragenen Termin an
+   #   $bis            Datum des letzten Tages (ggf. verkuerztes Standardformat)
+   #                   falls leer: bis inkl. dem letzten eingetragenen Termin
+   #   $katid          falls >0: nur Termine mit dieser Kategorie-Id
+   #   benutzte functions:
+   #      self::kal_datum_standard_mysql($datum)
+   #      self::kal_termin_mysql_standard($termin)
    #      kal_termine_kalender::kal_standard_datum($datum)
    #
+   $stdvon=kal_termine_kalender::kal_standard_datum($von);
+   $stdbis=kal_termine_kalender::kal_standard_datum($bis);
+   #
    # --- Datumsbereich
-   $vonsql=kal_termine_kalender::kal_standard_datum($von);
-   $bissql=kal_termine_kalender::kal_standard_datum($bis);
-   $vonsql=self::kal_datum_standard_mysql($vonsql);
-   $bissql=self::kal_datum_standard_mysql($bissql);
-   $wheredat=COL_DATUM.'>=\''.$vonsql.'\' and '.COL_DATUM.'<=\''.$bissql.'\'';
+   $vonsql=self::kal_datum_standard_mysql($stdvon);
+   $bissql=self::kal_datum_standard_mysql($stdbis);
+   $where=COL_DATUM.'>=\''.$vonsql.'\'';
+   if(!empty($bis) and $bissql!='0000-00-00') $where=$where.' AND '.COL_DATUM.'<=\''.$bissql.'\'';
    #
    # --- Restriktion Kategorie
-   if(!empty($kategorie)):
-     $kat=kal_termine_config::kal_get_terminkategorien();
-     for($i=1;$i<=count($kat);$i=$i+1):
-        if($kategorie==$kat[$i]) $wherekat=COL_KATEGORIE.'=\''.$kategorie.'\'';
-        endfor;
-     endif;
-   #
-   # --- Restriktion Stichwort
-   if(!empty($stichwort)):
-     $wherestw='('.
-        COL_NAME.      ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_AUSRICHTER.' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_ORT.       ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_KOMM.      ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_TEXT2.     ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_TEXT3.     ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_TEXT4.     ' LIKE \'%'.$stichwort.'%\' OR '.
-        COL_TEXT5.     ' LIKE \'%'.$stichwort.'%\'   )';
-     endif;
+   if($katid>0) $where=$where.' AND '.COL_KATID.'='.$katid;
    #
    # --- alle Termine mit den vorgegebenen Restriktionen auslesen
-   $where=$wheredat;
-   if(!empty($wherekat)) $where=$where.' AND '.$wherekat;
-   if(!empty($wherestw)) $where=$where.' AND '.$wherestw;
-   $table=TAB_NAME;
    $sql=rex_sql::factory();
-   $sql->setTable($table);
-   $query='SELECT * FROM '.$table.' WHERE '.$where.' ORDER BY '.COL_DATUM;
+   $query='SELECT * FROM '.TAB_NAME.' WHERE '.$where.' ORDER BY '.COL_DATUM;
    $term=$sql->getArray($query);
    #
    # --- Wandeln der Datums- und Zeitformate
@@ -424,108 +385,351 @@ public static function kal_select_termine($von,$bis,$kategorie,$stichwort) {
       endfor;
    return $termin;
    }
-public static function kal_get_tagestermine($datum,$termtyp) {
-   #   Auslesen der aller Termindaten eines Tages aus der
-   #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
-   #   $datum          Datum des Tages
-   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
-   #                   ='':        aus der DB-Tabelle auslesen
+public static function kal_vorherige_wiederholungstermine($von,$bis,$katid) {
+   #   Rueckgabe von woechentlich wiederkehrenden Terminen (Wiederholungstermine,
+   #   $term[$i][COL_WOCHEN]>0) einer Kategorie oder aller Kategorien, deren Basistermine
+   #   vor einem vorgegebenen Datumsbereich liegen, die aber in den Datumsbereich
+   #   hineinfallen. Diese Termine sind als einfache, nicht wiederkehrende Termine
+   #   definiert ($term[$i][COL_WOCHEN]=0) und nicht nach Datum sortiert. - Es wird
+   #   beruecksichtigt, dass zu Spieldaten keine Wiederholungstermine definiert sind.
+   #   $von            Datum des ersten Tages im Standardformat
+   #   $bis            Datum des letzten Tages im Standardformat
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =0/=SPIEL_KATID Termine aller Kategorien (Datenbank-/Spieldaten)
    #   benutzte functions:
-   #      self::kal_get_spieldaten($datum)
+   #      self::kal_select_termine($von,$bis,$katid)
    #      kal_termine_kalender::kal_standard_datum($datum)
-   #   die Datenbank nutzende functions:
-   #      self::kal_select_termine($von,$bis,$kategorie,$stichwort)
+   #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
+   #      kal_termine_kalender::kal_datumsdifferenz($datum1,$datum2)
    #
-   $stdatum=kal_termine_kalender::kal_standard_datum($datum);
+   if($katid>=SPIEL_KATID) return array();   // Spieldaten ohne Wiederholungstermine
    #
-   # --- Datenbankdaten / Spieldaten
-   if($termtyp==SPIELTERM):
-     $termin=self::kal_get_spieldaten($stdatum);
-     else:
-     $termin=self::kal_select_termine($stdatum,$stdatum,'','');
-     endif;
+   $stdvon=kal_termine_kalender::kal_standard_datum($von);
+   $stdbis=kal_termine_kalender::kal_standard_datum($bis);
+   #
+   # --- Datenbanktermine (ALLE vor $von)
+   $vorbis=kal_termine_kalender::kal_datum_vor_nach($stdvon,-1);
+   $ter=self::kal_select_termine('',$vorbis,$katid);
+   $m=0;
+   $vorterm=array();
+   for($i=1;$i<=count($ter);$i=$i+1):
+      if($ter[$i][COL_WOCHEN]<=0) continue;   // kein Wiederholungstermin
+      $m=$m+1;
+      $vorterm[$m]=$ter[$i];
+      endfor;
+   #
+   # --- die Termine heraussuchen, die in den Datumsbereich hineinfallen
+   $termin=array();
+   $m=0;
+   for($i=1;$i<=count($vorterm);$i=$i+1):
+      $term=$vorterm[$i];
+      $datum=$term[COL_DATUM];
+      for($k=1;$k<=$term[COL_WOCHEN];$k=$k+1):
+         $datneu=kal_termine_kalender::kal_datum_vor_nach($datum,$k*7);
+         if(kal_termine_kalender::kal_datumsdifferenz($datneu,$stdvon)>0) continue; // zu frueh
+         if(kal_termine_kalender::kal_datumsdifferenz($stdbis,$datneu)>0) continue; // zu spaet
+         $m=$m+1;
+         $termin[$m]=$term;
+         $termin[$m][COL_DATUM]=$datneu;
+         $termin[$m][COL_WOCHEN]=0;   // diese Termine haben keine Wiederholungstermine mehr
+         endfor;
+      endfor;
    return $termin;
    }
-public static function kal_get_wochentermine($von,$bis,$termtyp) {
-   #   Auslesen der aller Termine einer Kalenderwoche aus der
-   #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
-   #   $von            Datum des 1. Tages der Woche
-   #   $bis            Datum des 7. Tages der Woche
-   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
-   #                   ='':        aus der DB-Tabelle auslesen
+public static function kal_vorherige_folgetermine($von,$bis,$katid) {
+   #   Rueckgabe von Terminen ueber mehrere Tage einer Kategorie oder aller Kategorien
+   #   (Folgetermine, $term[$i][COL_TAGE]>1), deren Basistermine vor einem vorgegebenen
+   #   Datumsbereich liegen, die aber in den Datumsbereich hineinfallen. Diese Termine
+   #   sind als einfache Termine ohne Folgetermine definiert ($term[$i][COL_TAGE]=1)
+   #   und nicht nach Datum sortiert.
+   #   $von            Datum des ersten Tages im Standardformat
+   #   $bis            Datum des letzten Tages im Standardformat
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =0/=SPIEL_KATID Termine aller Kategorien (Datenbank-/Spieldaten)
    #   benutzte functions:
-   #      self::kal_get_wochenspieldaten($datum)
+   #      self::kal_set_spieldaten($datum)
+   #      self::kal_select_termine($von,$bis,$katid)
    #      kal_termine_kalender::kal_standard_datum($datum)
-   #   die Datenbank nutzende functions:
-   #      self::kal_select_termine($von,$bis,$kategorie,$stichwort)
+   #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
+   #      kal_termine_kalender::kal_datumsdifferenz($datum1,$datum2)
    #
-   $stvon=kal_termine_kalender::kal_standard_datum($von);
-   $stbis=kal_termine_kalender::kal_standard_datum($bis);
+   $stdvon=kal_termine_kalender::kal_standard_datum($von);
+   $stdbis=kal_termine_kalender::kal_standard_datum($bis);
    #
-   # --- Datenbankdaten / Spieldaten
-   if($termtyp==SPIELTERM):
-     $termin=self::kal_get_wochenspieldaten($stvon);
-     else:
-     $termin=self::kal_select_termine($stvon,$stbis,'','');
-     endif;
-   return $termin;
-   }
-public static function kal_get_monatstermine($von,$bis,$termtyp) {
-   #   Auslesen der Termine eines Monats aus der
-   #   zugehoerigen Datenbanktabelle bzw. aus den Spieldaten
-   #   $von            Datum des ersten Tages des Monats
-   #   $bis            Datum des letzten Tages des Monats
-   #   $termtyp        =SPIELTERM: aus den Spieldaten auslesen
-   #                   ='':        aus der DB-Tabelle auslesen
-   #   benutzte functions:
-   #      self::kal_get_monatsspieldaten($datum)
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #   die Datenbank nutzende functions:
-   #      self::kal_select_termine($von,$bis,$kategorie,$stichwort)
-   #
-   $stvon=kal_termine_kalender::kal_standard_datum($von);
-   $stbis=kal_termine_kalender::kal_standard_datum($bis);
-   #
-   # --- Datenbankdaten / Spieldaten
-   if($termtyp==SPIELTERM):
-     $termin=self::kal_get_monatsspieldaten($stvon);
-     else:
-     $termin=self::kal_select_termine($stvon,$stbis,'','');
-     endif;
-   return $termin;
-   }
-public static function kal_filter_termine_kategorie($termin,$kategorie) {
-   #   Herausfiltern der Termine aus einem Termin-Array, die zu einer
-   #   vorgegebenen Kategorie gehoeren
-   #   $termin         Array der Termine
-   #   $kategorie      vorgegebene Kategorie
-   #                   (falls leer, werden keine Termine herausgenommen)
-   #
-   if(empty($kategorie)):
-     $term=$termin;
-     else:
+   # --- zunaechst alle Termine ueber mehrere Tage vor $von
+   if($katid>=SPIEL_KATID):
+     #     Spieltermine (ab 7 Tage vor $von)
+     $mtage=7;
+     $datum=kal_termine_kalender::kal_datum_vor_nach($stdvon,-$mtage);
      $m=0;
-     $term=array();
-     for($i=1;$i<=count($termin);$i=$i+1):
-        if($termin[$i][COL_KATEGORIE]==$kategorie):
-          $m=$m+1;
-          $term[$m]=$termin[$i];
-          endif;
+     $vorterm=array();
+     for($k=1;$k<=$mtage;$k=$k+1):
+        $ter=self::kal_set_spieldaten($datum);
+        for($i=1;$i<=count($ter);$i=$i+1):
+           if($ter[$i][COL_TAGE]<=1) continue;   // kein Termin mit Folgeterminen
+           if($ter[$i][COL_KATID]!=$katid and $katid>SPIEL_KATID) continue;   // falsche Kategorie
+           $m=$m+1;
+           $vorterm[$m]=$ter[$i];
+           endfor;
+        $datum=kal_termine_kalender::kal_datum_vor_nach($datum,1);
+        endfor;
+     else:
+     #     Datenbanktermine (alle vor $von)
+     $vorbis=kal_termine_kalender::kal_datum_vor_nach($stdvon,-1);
+     $ter=self::kal_select_termine('',$vorbis,$katid);
+     $m=0;
+     $vorterm=array();
+     for($i=1;$i<=count($ter);$i=$i+1):
+        if($ter[$i][COL_TAGE]<=1) continue;   // kein Termin mit Folgeterminen
+        $m=$m+1;
+        $vorterm[$m]=$ter[$i];
         endfor;
      endif;
+   #
+   # --- die Termine heraussuchen, die in den Datumsbereich hineinfallen
+   $termin=array();
+   $m=0;
+   for($i=1;$i<=count($vorterm);$i=$i+1):
+      $term=$vorterm[$i];
+      $datum=$term[COL_DATUM];
+      for($k=2;$k<=$term[COL_TAGE];$k=$k+1):
+         $datneu=kal_termine_kalender::kal_datum_vor_nach($datum,$k-1);
+         if(kal_termine_kalender::kal_datumsdifferenz($datneu,$stdvon)>0) continue; // zu frueh
+         if(kal_termine_kalender::kal_datumsdifferenz($stdbis,$datneu)>0) continue; // zu spaet
+         $m=$m+1;
+         $termin[$m]=$term;
+         #     Termin als Einzeltermin umwandeln
+         $termin[$m][COL_TAGE]=1;
+         $termin[$m][COL_DATUM]=$datneu;
+         #     Beginn und Ende des jetzigen einfachen Termins anpassen
+         $termin[$m][COL_BEGINN]='';
+         $termin[$m][COL_ENDE]='';
+         if($k==$term[COL_TAGE]) $termin[$m][COL_ENDE]=$term[COL_ENDE];
+         endfor;
+      endfor;
+   return $termin;
+   }
+public static function kal_interne_wiederholungstermine($termin,$von,$bis,$katid) {
+   #   Rueckgabe aller woechentlich wiederkehrenden Termine (Wiederholungstermine,
+   #   $term[$i][COL_WOCHEN]>0) einer Kategorie oder aller Kategorien, die in einem
+   #   Termin-Array enthalten sind und innerhalb eines vorgegebenen Datumsbereichs
+   #   liegen. Der jeweiligen Basistermine fuer die Wiederholungstermine gehoeren
+   #   nicht dazu. Diese Termine sind als nicht wiederkehrende Termine definiert
+   #   ($term[$i][COL_WOCHEN]=0) und nicht nach Datum sortiert. - Es wird berueck-
+   #   sichtigt, dass zu Spieldaten keine Wiederholungstermine definiert sind.
+   #   $termin         Array der Termine
+   #   $von            Datum des ersten Tages im Standardformat
+   #   $bis            Datum des letzten Tages im Standardformat
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =0/=SPIEL_KATID Termine aller Kategorien (Datenbank-/Spieldaten)
+   #   benutzte functions:
+   #      kal_termine_kalender::kal_standard_datum($datum)
+   #      kal_termine_kalender::kal_datum_vor_nach($datum1,$anztage)
+   #      kal_termine_kalender::kal_datumsdifferenz($datum1,$datum2)
+   #
+   if(count($termin)<=0) return $termin;
+   if($termin[1][COL_KATID]>=SPIEL_KATID) return array();   // keine Wiederholungstermine bei Spieldaten
+   #
+   $stdbis=kal_termine_kalender::kal_standard_datum($bis);
+   #
+   # --- Auswahl der wiederkehrenden Termine
+   $term=array();
+   $m=0;
+   for($i=1;$i<=count($termin);$i=$i+1):
+      $ter=$termin[$i];
+      if($ter[COL_WOCHEN]<=0) continue;   // kein Wiederholungstermin
+      if($ter[COL_KATID]!=$katid and $katid>0) continue;   // falsche Kategorie
+      $datum=$ter[COL_DATUM];
+      for($k=1;$k<=$ter[COL_WOCHEN];$k=$k+1):
+         $datneu=kal_termine_kalender::kal_datum_vor_nach($datum,$k*7);
+         if(kal_termine_kalender::kal_datumsdifferenz($datneu,$stdbis)<0) continue; // zu spaet
+         $m=$m+1;
+         $term[$m]=$ter;
+         $term[$m][COL_DATUM]=$datneu;
+         $term[$m][COL_WOCHEN]=0;   // diese Termine haben keine Wiederholungstermine mehr
+         endfor;
+      endfor;
+   return $term;
+   }
+public static function kal_interne_folgetermine($termin,$von,$bis,$katid) {
+   #   Rueckgabe von Terminen einer Kategorie oder aller Kategorien ueber mehrere
+   #   Tage (Folgetermine, $term[$i][COL_TAGE]>1), die in einem Termin-Array enthalten
+   #   sind und innerhalb eines vorgegebenen Datumsbereichs liegen. Die jeweiligen
+   #   Basistermine fuer die Folgetermine gehoeren nicht dazu. Diese Termine sind als
+   #   einfache Termine ohne Folgetermine definiert ($term[$i][COL_TAGE]=1) und nicht
+   #   nach Datum sortiert.
+   #   $termin         Array der Termine
+   #   $von            Datum des ersten Tages im Standardformat
+   #   $bis            Datum des letzten Tages im Standardformat
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =0/=SPIEL_KATID Termine aller Kategorien (Datenbank-/Spieldaten)
+   #   benutzte functions:
+   #      kal_termine_kalender::kal_standard_datum($datum)
+   #      kal_termine_kalender::kal_datum_vor_nach($datum1,$anztage)
+   #      kal_termine_kalender::kal_datumsdifferenz($datum1,$datum2)
+   #
+   $stdbis=kal_termine_kalender::kal_standard_datum($bis);
+   $m=0;
+   $term=array();
+   for($i=1;$i<=count($termin);$i=$i+1):
+      $ter=$termin[$i];
+      if($ter[COL_TAGE]<=1) continue;   // kein Termin ueber mehrere Tage
+      #     falsche Kategorie
+      if($katid<SPIEL_KATID):
+        if($ter[COL_KATID]!=$katid and $katid>0) continue;   // DB-Daten
+        ;else:
+        if($ter[COL_KATID]!=$katid and $katid>SPIEL_KATID) continue;   // Spieldaten
+        endif;
+      $datum=$ter[COL_DATUM];
+      for($k=2;$k<=$ter[COL_TAGE];$k=$k+1):
+         $datneu=kal_termine_kalender::kal_datum_vor_nach($datum,$k-1);
+         if(kal_termine_kalender::kal_datumsdifferenz($datneu,$stdbis)<0) continue; // zu spaet
+         $m=$m+1;
+         $term[$m]=$ter;
+         #     Termin als Einzeltermin umwandeln
+         $term[$m][COL_TAGE]=1;
+         $term[$m][COL_DATUM]=$datneu;
+         #     Beginn und Ende des jetzigen einfachen Termins anpassen
+         $term[$m][COL_BEGINN]='';
+         $term[$m][COL_ENDE]='';
+         if($k==$ter[COL_TAGE]) $term[$m][COL_ENDE]=$ter[COL_ENDE];
+         endfor;
+      endfor;
+   return $term;
+   }
+public static function kal_get_termine($von,$bis,$katid,$kontif) {
+   #   Rueckgabe der Termine einer Kategorie oder aller Kategorien eines Datumsbereichs:
+   #   - Wiederholungstermine aus (Basis-)Terminen vor dem vorgegebenen Datumsbereich
+   #   - Folgetermine aus (Basis-)Terminen vor dem vorgegebenen Datumsbereich
+   #   - 'einfache' Termine und Basistermine fuer Wiederholungen und Folgetermine
+   #     im vorgegebenen Datumsbereich
+   #   - interne Wiederholungstermine im vorgegebenen Datumsbereich
+   #   - interne Folgetermine im vorgegebenen Datumsbereich
+   #   Alle zurueck gegebenen Termine sind einfache Termine, d.h. ohne Wiederholungen
+   #   und ohne Folgetermine.
+   #   $von            Datum des ersten Tages
+   #   $bis            Datum des letzten Tages
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =0/=SPIEL_KATID Termine aller Kategorien (Datenbank-/Spieldaten)
+   #   $kontif         >0:  Termine mit internen Folgeterminen werden aufgeloest zu mehreren
+   #                        Einzelterminen (gebraucht in den Kalendermenues)
+   #                   <=0: entsprechende Termine werden NICHT aufgeloest
+   #                        (gebraucht nur in der Terminliste)
+   #   benutzte functions:
+   #      self::kal_vorherige_wiederholungstermine($von,$bis,$katid)
+   #      self::kal_vorherige_folgetermine($von,$bis,$katid)
+   #      self::kal_get_spieltermine($stvon,$stbis,$katid)
+   #      self::kal_select_termine($von,$bis,$katid)
+   #      self::kal_interne_wiederholungstermine($termin,$von,$bis,$katid)
+   #      self::kal_interne_folgetermine($termin,$von,$bis,$katid)
+   #      self::kal_datum_standard_mysql($datum)
+   #      self::kal_datum_mysql_standard($datum)
+   #      kal_termine_kalender::kal_standard_datum($datum)
+   #
+   # --- Standardisierung der Eingangs-Datumsangaben
+   $stvon=kal_termine_kalender::kal_standard_datum($von);
+   $stbis=kal_termine_kalender::kal_standard_datum($bis);
+   #
+   # --- vorherige Wiederholungstermine
+   $term1=self::kal_vorherige_wiederholungstermine($stvon,$stbis,$katid);
+   #
+   # --- vorherige Wiederholungstermine
+   $term2=self::kal_vorherige_folgetermine($stvon,$stbis,$katid);
+   #
+   # --- 'einfache' Termine und Basistermine fuer Wiederholungen und Folgetermine
+   if($katid>=SPIEL_KATID):
+     $term3=self::kal_get_spieltermine($stvon,$stbis,$katid);   // Spieldaten
+     else:
+     $term3=self::kal_select_termine($stvon,$stbis,$katid);   // Datenbankdaten
+     endif;
+   #
+   # --- interne Wiederholungstermine
+   $term4=self::kal_interne_wiederholungstermine($term3,$stvon,$stbis,$katid);
+   #
+   # --- interne Folgetermine
+   if($kontif>0) $term5=self::kal_interne_folgetermine($term3,$stvon,$stbis,$katid);
+   #
+   # --- Korrekturen der 'einfache' Termine und Basistermine
+   #     Endzeit des ersten Tages von Folgeterminen anpassen
+   for($i=1;$i<=count($term3);$i=$i+1)
+      if($kontif>0 and $term3[$i][COL_TAGE]>=2) $term3[$i][COL_ENDE]='';
+   #     Wiederholungen und Folgetermine entfernen
+   for($i=1;$i<=count($term3);$i=$i+1):
+      if($kontif>0) $term3[$i][COL_TAGE]=1;
+      $term3[$i][COL_WOCHEN]=0;
+      endfor;
+   #
+   # --- Zusammensetzen der Arrays
+   $m=0;
+   $termin=array();
+   for($i=1;$i<=count($term1);$i=$i+1):
+      $m=$m+1;
+      $termin[$m]=$term1[$i];
+      endfor;
+   for($i=1;$i<=count($term2);$i=$i+1):
+      $m=$m+1;
+      $termin[$m]=$term2[$i];
+      endfor;
+   for($i=1;$i<=count($term3);$i=$i+1):
+      $m=$m+1;
+      $termin[$m]=$term3[$i];
+      endfor;
+   for($i=1;$i<=count($term4);$i=$i+1):
+      $m=$m+1;
+      $termin[$m]=$term4[$i];
+      endfor;
+   if($kontif>0)
+     for($i=1;$i<=count($term5);$i=$i+1):
+        $m=$m+1;
+        $termin[$m]=$term5[$i];
+        endfor;
+   #
+   # --- Termin-Array fuer Sortierung nach Datum aufbereiten: $termin --> $dat
+   $dat=array();
+   for($i=1;$i<=count($termin);$i=$i+1):
+      $datum=$termin[$i][COL_DATUM];
+      $datsql=self::kal_datum_standard_mysql($datum);
+      $dat1=array($datsql.':'.$i=>$termin[$i]);
+      $dat=array_merge($dat,$dat1);
+      endfor;
+   #
+   # --- Sortierung nach Datum
+   ksort($dat);
+   #
+   # --- sortiertes Array wieder in ein Termin-Array umwandeln: $dat --> $term
+   if(count($dat)<=0) return array();
+   $keys=array_keys($dat);
+   $term=array();
+   for($i=0;$i<count($keys);$i=$i+1):
+      $key=$keys[$i];
+      $arr=explode(':',$key);
+      $datsql=$arr[0];
+      $k=$i+1;
+      $term[$k]=$dat[$key];
+      $term[$k][COL_DATUM]=self::kal_datum_mysql_standard($datsql);
+      endfor;
    return $term;
    }
 #
 #----------------------------------------- Erzeugen von Spiel-Termindaten
-public static function kal_get_spieldaten($datum) {
+public static function kal_get_spielkategorien() {
+   #   Rueckgabe der zu den kuenstlichen Termindaten passenden Terminkategorien
+   #   in Form eines nummerierten Arrays
+   #
+   return array(
+      array('id'=>SPIEL_KATID+1, 'name'=>'Gemeinde'),
+      array('id'=>SPIEL_KATID+2, 'name'=>'Tischtennisverband'),
+      array('id'=>SPIEL_KATID+3, 'name'=>'Kulturkreis'));
+   }
+public static function kal_set_spieldaten($datum) {
    #   Rueckgabe von kuenstlichen Termindaten eines Tages in Form eines
    #   assoziativen Termin-Arrays (leere Rueckgabe, falls an dem Tage keine
    #   Termine vorliegen)
    #   $datum          Datum des Tages (standardisiertes Datum)
    #   benutzte functions:
+   #      self::kal_get_spielkategorien()
    #      kal_termine_kalender::kal_montag_vor($datum)
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$nzahl)
-   #      kal_termine_config::kal_get_terminkategorien()
    #
    # --- alle Wochentage um das Datum herum bestimmen
    $montag=kal_termine_kalender::kal_montag_vor($datum);
@@ -534,12 +738,9 @@ public static function kal_get_spieldaten($datum) {
    for($i=1;$i<=6;$i=$i+1)
       $datumall[$i+1]=kal_termine_kalender::kal_datum_vor_nach($montag,$i);
    #
-   # --- Kategorien:
-   $kat=kal_termine_config::kal_get_terminkategorien();
-   #
    # --- Standard-Hinweissaetze
-   $bl='            ';
-   $stc='<tt>(Reine Spieldaten mit festen wöchentlich wiederkehrenden Terminen)</tt>';
+   $stc='<tt>Spieldaten, wöchentlich wiederkehrender Termin</tt>';
+   $std='<tt>Spieldaten, wöchentlich wiederkehrender Termin über 2 Tage</tt>';
    #
    # --- Link-URL
    if(empty($_GET['page'])):
@@ -553,75 +754,92 @@ public static function kal_get_spieldaten($datum) {
      $linkurl=$url.'?page='.$_GET['page'];
      endif;
    #
+   # --- Ids der Spielkategorien
+   $kats=self::kal_get_spielkategorien();
+   for($i=0;$i<count($kats);$i=$i+1):
+      $k=$i+1;
+      $katid[$k]=$kats[$i]['id'];
+      endfor;
+   #
    # --- Setzen der (Wochen-)Termine
    $term=array();
    $term[1]=array(
       COL_PID=>117,
-      COL_NAME=>'Abendtermin',
+      COL_NAME=>'Katharina Luther - Filmvorführung und Diskussion',
       COL_DATUM=>$datumall[1],
       COL_BEGINN=>'19:30',
       COL_ENDE=>'22:00',
-      COL_AUSRICHTER=>'MTV Quadertal, Thomas Hörlinger, Tel. 05996 65432',
-      COL_ORT=>'Landkreis-Sporthalle, Wallstraße, 38900 Quade',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
+      COL_AUSRICHTER=>'Kulturkreis Quadertal, Thomas Hörlinger, Tel. 05996 65432',
+      COL_ORT=>'Dorfgemeinschaftshaus, Wallstraße, 38900 Quade',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[4],
+      COL_KATID=>$katid[3],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
    $term[2]=array(
       COL_PID=>205,
-      COL_NAME=>'Kadertraining',
+      COL_NAME=>'Tischtennistraining 1 Kreiskader',
       COL_DATUM=>$datumall[2],
       COL_BEGINN=>'10:30',
       COL_ENDE=>'12:00',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
       COL_AUSRICHTER=>'Volker Meister, Tel. 0123 4567890',
-      COL_ORT=>'Stützpunkt 1',
+      COL_ORT=>'Halle am Sportpark, 38985 Quaderberg',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[3],
+      COL_KATID=>$katid[2],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
    $term[3]=array(
       COL_PID=>226,
-      COL_NAME=>'Hauptausschusssitzung',
+      COL_NAME=>'Gemeinderatsssitzung',
       COL_DATUM=>$datumall[2],
       COL_BEGINN=>'19:30',
       COL_ENDE=>'',
-      COL_AUSRICHTER=>'TT-Regionsverband Quaderland, Jochen Krause,Tel. 0124 3302456',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
+      COL_AUSRICHTER=>'Rat der Gemeinde Quaderland, Jochen Krause, Tel. 0124 3302456',
       COL_ORT=>'Gaststätte \'Grüne Wiese\', Wiesenstr. 79, 38990 Quadertal, Tel. 05996 88776655',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[2],
+      COL_KATID=>$katid[1],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
    $term[4]=array(
       COL_PID=>183,
-      COL_NAME=>'Kadertraining',
+      COL_NAME=>'Tischtennistraining 2 Kreiskader',
       COL_DATUM=>$datumall[4],
       COL_BEGINN=>'15:00',
       COL_ENDE=>'17:00',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
       COL_AUSRICHTER=>'Volker Meister, Tel. 0123 4567890',
-      COL_ORT=>'Stützpunkt 2',
+      COL_ORT=>'Halle am Sportpark, 38985 Quaderberg',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[3],
+      COL_KATID=>$katid[2],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
    $term[5]=array(
       COL_PID=>77,
-      COL_NAME=>'Staffelsitzungen, Spielbereich Quaderberg',
+      COL_NAME=>'Staffelsitzungen, TT-Kreisverband Quaderberg',
       COL_DATUM=>$datumall[4],
       COL_BEGINN=>'',
       COL_ENDE=>'',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
       COL_AUSRICHTER=>'Manfred Berger, Tel. 05992 1234567',
       COL_ORT=>'Sportheim Groß Brakel',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[1],
+      COL_KATID=>$katid[2],
       COL_ZEIT2=>'18:00', COL_TEXT2=>'Damen: 1. Kreisklasse',
       COL_ZEIT3=>'18:30', COL_TEXT3=>'Herren: 1. Kreisklasse, 2. Kreisklasse',
       COL_ZEIT4=>'19:00', COL_TEXT4=>'Herren: 3. Kreisklasse, 4. Kreisklasse',
@@ -629,66 +847,49 @@ public static function kal_get_spieldaten($datum) {
    #
    $term[6]=array(
       COL_PID=>238,
-      COL_NAME=>'Regionsmeisterschaften Seniorinnen/Senioren',
+      COL_NAME=>'Busfahrt in den Harz',
       COL_DATUM=>$datumall[5],
-      COL_BEGINN=>'18:00',
-      COL_ENDE=>'',
-      COL_AUSRICHTER=>'TSV Quaderberg',
-      COL_ORT=>'Halle am Sportpark, 38985 Quaderberg',
+      COL_BEGINN=>'10:00',
+      COL_ENDE=>'19:00',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
+      COL_AUSRICHTER=>'Seniorenkreis Quaderberg',
+      COL_ORT=>'Start um 10:00 Uhr ab Kirche Quaderberg',
       COL_LINK=>'',
       COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[1],
+      COL_KATID=>$katid[1],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
    $term[7]=array(
+      COL_PID=>54,
+      COL_NAME=>'Die Maler der \'Brücke\' - Die Werke von Karl Schmidt-Rottluff',
+      COL_DATUM=>$datumall[6],
+      COL_BEGINN=>'16:00',
+      COL_ENDE=>'18:30',
+      COL_TAGE=>1,
+      COL_WOCHEN=>0,
+      COL_AUSRICHTER=>'Kulturkreis Quaderland, Ulf Schneider, Tel. 05996 356702',
+      COL_ORT=>'Brunsviga-Kulturzentrum, Quader Ring 35, 38900 Quade',
+      COL_LINK=>$linkurl,
+      COL_KOMM=>$stc,
+      COL_KATID=>$katid[3],
+      COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
+      COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
+   #
+   $term[8]=array(
       COL_PID=>239,
       COL_NAME=>'Regionsmeisterschaften Jugend und Schüler',
       COL_DATUM=>$datumall[6],
       COL_BEGINN=>'',
       COL_ENDE=>'',
+      COL_TAGE=>2,
+      COL_WOCHEN=>0,
       COL_AUSRICHTER=>'TSV Quaderberg',
       COL_ORT=>'Halle am Sportpark, 38985 Quaderberg',
       COL_LINK=>'',
-      COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[1],
-      COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
-      COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
-   #
-   $term[8]=array(
-      COL_PID=>54,
-      COL_NAME=>'Wochenendseminar',
-      COL_DATUM=>$datumall[6],
-      COL_BEGINN=>'16:00',
-      COL_ENDE=>'18:30',
-      COL_AUSRICHTER=>'TT-Regionsverband Quaderland, Jochen Krause, Tel. 05996 44001155',
-      COL_ORT=>'Brunsviga-Kulturzentrum, Quader Ring 35, 38900 Quade',
-      COL_LINK=>$linkurl,
-      COL_KOMM=>$stc.'<br/>'.
-         $bl.'Die Veranstaltung wendet sich an die Vereine in der Region. Es '.
-         'werden Hinweise zur Gewinnung von Jugendlichen und Kindern für den Tischtennissport '.
-         'gegeben, basierend auf der Kampagne \'Tischtennis: Spiel mit!\' des DTTB.<br/>'.
-         $bl.'Diese Kampagne des DTTB und seiner Landesverbände fördert die '.
-         'Kooperationen zwischen Vereinen und Schulen. Nutznießer sind in erster Linie die '.
-         'Kinder und Jugendlichen. Diese haben durch die Kooperation die Möglichkeit, die '.
-         'Sportart Tischtennis kennenzulernen und als ihre Sportart zu entdecken. Oberstes Ziel '.
-         'von \'Tischtennis: Spiel mit!\' ist die Gewinnung und langfristige Bindung neuer '.
-         'Mitglieder für die rund 10.000 Vereine in Deutschland.',
-      COL_KATEGORIE=>$kat[4],
-      COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
-      COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
-   #
-   $term[9]=array(
-      COL_PID=>240,
-      COL_NAME=>'Regionsmeisterschaften Jugend und Schüler',
-      COL_DATUM=>$datumall[7],
-      COL_BEGINN=>'',
-      COL_ENDE=>'',
-      COL_AUSRICHTER=>'TSV Quaderberg',
-      COL_ORT=>'Halle am Sportpark, 38985 Quaderberg',
-      COL_LINK=>'',
-      COL_KOMM=>$stc,
-      COL_KATEGORIE=>$kat[1],
+      COL_KOMM=>$std,
+      COL_KATID=>$katid[2],
       COL_ZEIT2=>'', COL_TEXT2=>'',      COL_ZEIT3=>'', COL_TEXT3=>'',
       COL_ZEIT4=>'', COL_TEXT4=>'',      COL_ZEIT5=>'', COL_TEXT5=>'');
    #
@@ -703,59 +904,37 @@ public static function kal_get_spieldaten($datum) {
       endfor;
    return $termin;
    }
-public static function kal_get_wochenspieldaten($montag) {
-   #   Erzeugen von kuenstlichen Termindaten einer Woche
-   #   $montag         Datum des ersten Tages (Montag)
+public static function kal_get_spieltermine($von,$bis,$katid) {
+   #   Rueckgabe von Spielterminen einer Kategorie bzw. aller Kategorien in einem
+   #   Datumsbereich ohne Beruecksichtigung von Folgeterminen als Array von
+   #   Terminen (Indizierung bei 1 beginnend).
+   #   $von            Datum des ersten Tages (ggf. verkuerztes Standardformat)
+   #   $bis            Datum des letzten Tages (ggf. verkuerztes Standardformat)
+   #   $katid          nur Termine mit dieser Kategorie-Id
+   #                   falls =SPIEL_KATID: Termine aller Kategorien
    #   benutzte functions:
-   #      self::kal_get_spieldaten($datum)
+   #      self::kal_set_spieldaten($datum)
    #      kal_termine_kalender::kal_standard_datum($datum)
-   #      kal_termine_kalender::kal_datum_vor_nach($datum,$nzahl)
+   #      kal_termine_kalender::kal_datumsdifferenz($datum1,$datum2)
+   #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
    #
-   # --- Erstellen des Datums-Arrays der Woche
-   $dat=array();
-   $dat[1]=kal_termine_kalender::kal_standard_datum($montag);
-   for($i=2;$i<=7;$i=$i+1) $dat[$i]=kal_termine_kalender::kal_datum_vor_nach($dat[1],$i-1);
-   #
-   # --- Tagestermine aller Tage der Woche
+   $stvon=kal_termine_kalender::kal_standard_datum($von);
+   $stbis=kal_termine_kalender::kal_standard_datum($bis);
+   $term=array();
    $m=0;
-   $termin=array();
-   for($i=1;$i<=count($dat);$i=$i+1):
-      $term=self::kal_get_spieldaten($dat[$i]);
-      for($k=1;$k<=count($term);$k=$k+1):
+   $datum=$stvon;
+   $mtage=kal_termine_kalender::kal_datumsdifferenz($stvon,$stbis)+1;
+   for($k=1;$k<=$mtage;$k=$k+1):
+      $ter=self::kal_set_spieldaten($datum);
+      for($i=1;$i<=count($ter);$i=$i+1):
+         if($ter[$i][COL_KATID]!=$katid and $katid>SPIEL_KATID) continue;
          $m=$m+1;
-         $termin[$m]=$term[$k];
-         endfor;
-      endfor;
-   return $termin;
-   }
-public static function kal_get_monatsspieldaten($erster) {
-   #   Erzeugen von kuenstlichen Termindaten eines Monats
-   #   $erster         Datum des ersten Tages des Monats
-   #   benutzte functions:
-   #      self::kal_get_spieldaten($datum)
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #      kal_termine_kalender::kal_datum_vor_nach($datum,$nzahl)
-   #      kal_termine_kalender::kal_monatstage($jahr)
-   #
-   # --- Monats- und Jahresstring
-   $strvon=kal_termine_kalender::kal_standard_datum($erster);
-   $mon=substr($strvon,3,2);
-   $jahr=substr($strvon,6);
-   #
-   # --- Tagestermine aller Tage im Monat
-   $mtage=kal_termine_kalender::kal_monatstage($jahr);
-   $datum='01.'.$mon.'.'.$jahr;
-   $m=0;
-   $termin=array();
-   for($k=1;$k<=$mtage[intval($mon)];$k=$k+1):
-      $term=self::kal_get_spieldaten($datum);
-      for($i=1;$i<=count($term);$i=$i+1):
-         $m=$m+1;
-         $termin[$m]=$term[$i];
+         $term[$m]=$ter[$i];
          endfor;
       $datum=kal_termine_kalender::kal_datum_vor_nach($datum,1);
+      if(kal_termine_kalender::kal_datumsdifferenz($datum,$stbis)<0) break;
       endfor;
-   return $termin;
+   return $term;
    }
 }
 ?>

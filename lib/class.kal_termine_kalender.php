@@ -3,8 +3,8 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2020
- */
+ * @version August 2020
+*/
 class kal_termine_kalender {
 #
 #----------------------------------------- Inhaltsuebersicht
@@ -134,7 +134,11 @@ public static function kal_standard_datum($datum) {
    $arr=explode('.',$datum);
    #   Tag
    $ta=$arr[0];
-   if(strlen($ta)<2) $ta='0'.$ta;
+   if(empty($ta)):
+     $ta='00';
+     else:
+     if(strlen($ta)<2) $ta='0'.$ta;
+     endif;
    #   Monat
    if(count($arr)<=1):
      $mo='00';
@@ -355,8 +359,8 @@ public static function kal_datum_vor_nach($datum,$anztage) {
    #                   <0: Anzahl Tage vor    dem Datum
    #                   =0: Es wird das Datum $datum zurueck gegeben
    #   benutzte functions:
-   #      self::kal_monatstage($jahr)
    #      self::kal_standard_datum($datum)
+   #      self::kal_monatstage($jahr)
    #
    if($anztage==0) return $datum;
    #
@@ -479,8 +483,8 @@ public static function kal_montag_kw($montag) {
    #   Rueckgabe 0, falls das vorgegebene Datum kein Montag ist
    #   benutzte functions:
    #      self::kal_standard_datum($datum)
-   #      self::kal_wotag($datum),
    #      self::kal_schon_tage($datum)
+   #      self::kal_wotag($datum),
    #      self::kal_jahrestage($jahr1,$jah2)
    #
    # --- Formatierung des Datums
