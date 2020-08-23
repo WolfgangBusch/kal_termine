@@ -2,8 +2,13 @@
 <h3>Terminkalender</h3>
 
 <div>Dieses AddOn bietet ein System zur Verwaltung und Darstellung von
-Veranstaltungsterminen für Websites. Termine umfassen dabei Zeitabschnitte
-eines einzelnen Tages. Sie lassen sich in Kategorien gliedern.</div>
+Veranstaltungsterminen. Die Termine lassen sich in getrennt verwaltete
+Kategorien gliedern.</div>
+
+<div><br/>Ein Termin ist normalerweise ein Zeitabschnitt an einem
+einzelnen Tag. Er kann aber auch als Zeitbereich vereinbart werden,
+der sich über mehrere Tage erstreckt, oder als Zeitabschnitt eines Tages,
+der sich wöchentlich wiederholt.</div>
 
 <div><br/>Das AddOn umfasst<br/>
 - eine zusätzliche Redaxo-Datenbanktabelle für die Termine<br/>
@@ -11,17 +16,17 @@ eines einzelnen Tages. Sie lassen sich in Kategorien gliedern.</div>
 - Funktionen zu Kalenderberechnungen<br/>
 - Funktionen zur Darstellung von Terminlisten und Kalenderansichten<br/>
 - einen Modul zur Verwaltung der Termine (im Backend)<br/>
-- einen Modul zum Anlegen eines Start-Terminmenüs (im Frontend)<br/>
+- einen Modul zum Anlegen eines Start-Kalendermenüs (im Frontend)<br/>
 - einen Modul zur Ausgabe einer Standard-Terminliste (im Frontend)</div>
 
 <div><br/>Die Terminverwaltung beinhaltet diese Funktionen:</br/>
-- Eintragung eines Termins samt zugehörigen Daten in die Tabelle<br/>
-- Löschung eines Termins in der Tabelle<br/>
+- Eintragung eines Termins samt zugehörigen Daten in die Datenbanktabelle<br/>
+- Löschung eines Termins<br/>
 - Aktualisierung der Daten eines Termins<br/>
-- Kopieren eines Termins auf den Folgetag oder als wöchentliche Wiederholung</div>
+- Suche eines Termins mittels Kalendermenüs</div>
 
 <div><br/>Als Kalendermenüs stehen die folgenden Darstellungen zur Wahl:<br/>
-- Monatsmenü, Tage mit eingetragenen Termine sind schraffiert<br/>
+- Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert<br/>
 - Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine<br/>
 - Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen<br/>
 - tabellarische Darstellung der Daten eines Termins</div>

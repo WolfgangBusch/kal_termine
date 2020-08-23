@@ -3,8 +3,8 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo4.6
- * @version März 2020
- */
+ * @version August 2020
+*/
 #
 # --- Konfigurationsdaten loeschen
 rex_config::removeNamespace($this->getPackageId());
