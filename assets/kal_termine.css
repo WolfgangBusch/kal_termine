@@ -8,62 +8,62 @@
 /*   Tag im Monatsmenue   */
 .kal_tag { width:20px; line-height:1.5em; padding:2px; text-align:right;
    border-radius:0.25em; }
-.kal_wotag { background-color:rgb(200,255,220); border:solid 1px rgb(5,90,28);
+.kal_wotag { background-color:rgb(155,240,178); border:solid 1px rgb(5,90,28);
    color:rgb(5,90,28); }
-.kal_sotag { background-color:rgb(130,190,170); border:solid 1px rgb(5,90,28);
+.kal_sotag { background-color:rgb(105,190,128); border:solid 1px rgb(5,90,28);
    color:rgb(5,90,28); }
-.kal_hetag { background-color:rgb(255,200,220); border:solid 1px rgb(130,70,110);
-   color:rgb(130,70,110); }
+.kal_hetag { background-color:rgb(250,165,227); border:solid 1px rgb(100,15,77);
+   color:rgb(100,15,77); }
 .kal_vntag { background-color:transparent;    border:solid 1px rgb(150,150,150);
    color:rgb(150,150,150); }
 #hatch { background-image:linear-gradient(-45deg,
    transparent 0%, transparent 10%,
-   rgb(160,220,190) 10%, rgb(160,220,190) 20%,
+   rgb(130,215,153) 10%, rgb(130,215,153) 20%,
    transparent 20%, transparent 30%,
-   rgb(160,220,190) 30%, rgb(160,220,190) 40%,
+   rgb(130,215,153) 30%, rgb(130,215,153) 40%,
    transparent 40%, transparent 50%,
-   rgb(160,220,190) 50%, rgb(160,220,190) 60%,
+   rgb(130,215,153) 50%, rgb(130,215,153) 60%,
    transparent 60%, transparent 70%,
-   rgb(160,220,190) 70%, rgb(160,220,190) 80%,
+   rgb(130,215,153) 70%, rgb(130,215,153) 80%,
    transparent 80%, transparent 90%,
-   rgb(160,220,190) 90%, rgb(160,220,190) 100%); }
+   rgb(130,215,153) 90%, rgb(130,215,153) 100%); }
 
 /*   Tagesstreifen im Monats-/Wochen-/Tagesblatt   */
 .kal_pix { max-width:31px; min-width:31px; line-height:0.2em;
    padding-left:1px; padding-right:1px; border-spacing:2px; border-width:1px; }
-.kal_pixn { border-left:solid 1px rgb(70,130,110); }
-.kal_pixr { border-left:solid 1px rgb(70,130,110); border-right:solid 1px rgb(70,130,110); }
+.kal_pixn { border-left:solid 1px rgb(55,140,78); }
+.kal_pixr { border-left:solid 1px rgb(55,140,78); border-right:solid 1px rgb(55,140,78); }
 .kal_std1 { max-width:31px; min-width:31px; padding:2px;
-   text-align:right;  color:rgb(70,130,110); }
+   text-align:right;  color:rgb(55,140,78); }
 .kal_std2 { max-width:62px; min-width:62px; padding:2px;
-   text-align:center; color:rgb(70,130,110); }
+   text-align:center; color:rgb(55,140,78); }
 .kal_strtag { line-height:1.5em; padding-left:1px; padding-right:1px;
    border-spacing:2px; border-width:1px; border-radius:0.25em; }
-.kal_womtag { background-color:rgb(200,255,220); border:solid 1px rgb(5,90,28); }
-.kal_somtag { background-color:rgb(130,190,170); border:solid 1px rgb(5,90,28); }
-.kal_hemtag { background-color:rgb(255,200,220); border:solid 1px rgb(130,70,110); }
+.kal_womtag { background-color:rgb(155,240,178); border:solid 1px rgb(5,90,28); }
+.kal_somtag { background-color:rgb(105,190,128); border:solid 1px rgb(5,90,28); }
+.kal_hemtag { background-color:rgb(250,165,227); border:solid 1px rgb(100,15,77); }
 .kal_termintag { white-space:nowrap; font-size:smaller; overflow-x:hidden;
-   background-color:rgb(100,160,140); color:rgb(5,90,28); }
+   background-color:rgb(80,165,103); color:rgb(5,90,28); }
 
 /*   Termin-Parameter im Terminblatt   */
 .kal_termv { max-width:400px; line-height:1.5em; padding-left:5px; padding-right:5px;
    color:rgb(5,90,28); }
-.kal_termval { background-color:rgb(200,255,220); border:solid 1px rgb(5,90,28);
+.kal_termval { background-color:rgb(155,240,178); border:solid 1px rgb(5,90,28);
    border-radius:0.25em; }
 
 /*   Kopf des Suchmenues   */
 .kal_search { line-height:1.5em; padding:1px 5px 1px 5px; font-size:smaller;
    white-space:nowrap; text-align:center; color:rgb(5,90,28);
    border-radius:0.25em; border:solid 1px rgb(5,90,28); }
-.kal_search_td { width:100px; background-color:rgb(200,255,220); }
-.kal_search_th { width:10px; font-weight:bold; background-color:rgb(160,220,190); }
+.kal_search_td { width:100px; background-color:rgb(155,240,178); }
+.kal_search_th { width:10px; font-weight:bold; background-color:rgb(130,215,153); }
 .kal_option { padding:1px; font-size:1.0em; color:rgb(5,90,28);
-   background-color:rgb(160,220,190); }
+   background-color:rgb(130,215,153); }
 .kal_select { border-radius:0.25em; border:solid 1px rgb(5,90,28); }
 .kal_form { font-size:1.0em; color:rgb(5,90,28);
    border-radius:0.25em; border:solid 1px rgb(5,90,28); }
-.kal_input { padding:2px 5px 3px 5px; background-color:rgb(160,220,190); }
-.kal_submit { padding:0px 5px 0px 5px; font-weight:bold; background-color:rgb(130,190,170); }
+.kal_input { padding:2px 5px 3px 5px; background-color:rgb(130,215,153); }
+.kal_submit { padding:0px 5px 0px 5px; font-weight:bold; background-color:rgb(105,190,128); }
 .kal_transparent { margin:0px; padding:0px; border:none; font-size:inherit;
    font-weight:inherit; color:inherit; background-color:transparent; }
 .kal_linkbutton { cursor:pointer; }
@@ -73,8 +73,8 @@
    font-size:1.2em; text-align:center; color:rgb(5,90,28); }
 .kal_txt1 { padding:2px; color:rgb(5,90,28); }
 .kal_txtb1 { padding:2px; font-weight:bold; color:rgb(5,90,28); }
-.kal_txt2 { padding:2px; color:rgb(70,130,110); }
-.kal_txtb2 { padding:2px; font-weight:bold; color:rgb(70,130,110); }
+.kal_txt2 { padding:2px; color:rgb(55,140,78); }
+.kal_txtb2 { padding:2px; font-weight:bold; color:rgb(55,140,78); }
 .kal_success { color:blue; }
 .kal_fail { color:red; }
 
@@ -88,11 +88,14 @@
 .kal_config_th { height:2.5em; font-weight:bold; }
 .kal_config_kat { width:100%; padding-left:5px; }
 .kal_config_number { width:50px; padding-right:5px; text-align:right; }
+.kal_config_small { font-size:smaller; }
 .kal_config_bgcol { width:400px; padding-left:5px; white-space:nowrap; }
 .kal_form_input_text { width:450px; padding-left:2px; padding-right:2px; }
 .kal_form_input_date { width:80px; padding-left:2px; padding-right:2px; }
 .kal_form_input_time { width:60px; padding-left:2px; padding-right:2px; }
-.kal_form_th { vertical-align:top; text-decoration:underline; font-weight:bold; white-space:nowrap; width:110px; }
+.kal_form_input_int  { width:40px; padding-left:2px; padding-right:2px; text-align:right; }
+.kal_form_th { vertical-align:top; text-decoration:underline; font-weight:bold;
+    white-space:nowrap; width:110px; }
 .kal_form_pad { padding-left:10px; }
 .kal_form_nowrap { white-space:nowrap; }     
 .kal_form_td450 { padding-left:5px; width:450px; white-space:nowrap; }
