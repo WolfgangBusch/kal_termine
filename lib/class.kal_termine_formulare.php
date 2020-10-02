@@ -3,13 +3,13 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
-define ('ACTION_START',  'start');
-define ('ACTION_SEARCH', 'search');
-define ('ACTION_INSERT', 'insert');
-define ('ACTION_DELETE', 'delete');
-define ('ACTION_UPDATE', 'update');
+define ('ACTION_START',  'START');
+define ('ACTION_SEARCH', 'SEARCH');
+define ('ACTION_INSERT', 'INSERT');
+define ('ACTION_DELETE', 'DELETE');
+define ('ACTION_UPDATE', 'UPDATE');
 #
 class kal_termine_formulare {
 #

@@ -3,11 +3,13 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 #
 define ('PACKAGE',         $this->getPackageId());
-define ('TAB_NAME',        'rex_'.$this->getPackageId());
+define ('TAB_NAME',        'rex_'.PACKAGE);
+define ('MODUL_MANAGE',    'Termine verwalten ('.PACKAGE.')');  // Modulbezeichnung 
+define ('MODUL_DISPLAY',   'Termine anzeigen ('.PACKAGE.')');   // Modulbezeichnung 
 define ('FIRST_CATEGORY',  'Allgemein');        // einzige Kategorie der Default-Konfiguration
 define ('COL_PID',         'pid');
 define ('COL_NAME',        'name');
@@ -151,11 +153,11 @@ public static function kal_ausgabe_tabellenstruktur() {
     <tr valign="top">
         <td class="kal_config_pad">(1)</td>
         <td class="kal_config_pad">Datumsformat: <tt>tt.mm.yyyy</tt>
-            (wird für MySQL in <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
+            (wird für MySQL in das Format <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
     <tr valign="top">
         <td class="kal_config_pad">(2)</td>
         <td class="kal_config_pad">Zeitformat: <tt>hh:mm</tt>
-            (wird ins MySQL-Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
+            (wird für MySQL in das Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
     <tr valign="top">
         <td class="kal_config_pad">(3)</td>
         <td class="kal_config_pad"><tt>'.COL_KATID.'</tt> ist der Schlüssel für die

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 define ('SPIEL_KATID', 99990);   // Kategorie-Ids der Spieldaten beginnen bei 99991
 #
@@ -772,7 +772,7 @@ public static function kal_set_spieldaten($datum) {
       COL_TAGE=>1,
       COL_WOCHEN=>0,
       COL_AUSRICHTER=>'Kulturkreis Quadertal, Thomas Hörlinger, Tel. 05996 65432',
-      COL_ORT=>'Dorfgemeinschaftshaus, Wallstraße, 38900 Quade',
+      COL_ORT=>'Dorfgemeinschaftshaus, Wallstraße, 38990 Quadertal',
       COL_LINK=>'',
       COL_KOMM=>$stc,
       COL_KATID=>$katid[3],
@@ -803,7 +803,7 @@ public static function kal_set_spieldaten($datum) {
       COL_ENDE=>'',
       COL_TAGE=>1,
       COL_WOCHEN=>0,
-      COL_AUSRICHTER=>'Rat der Gemeinde Quaderland, Jochen Krause, Tel. 0124 3302456',
+      COL_AUSRICHTER=>'Rat der Gemeinde Quadertal, Jochen Krause, Tel. 0124 3302456',
       COL_ORT=>'Gaststätte \'Grüne Wiese\', Wiesenstr. 79, 38990 Quadertal, Tel. 05996 88776655',
       COL_LINK=>'',
       COL_KOMM=>$stc,
@@ -836,7 +836,7 @@ public static function kal_set_spieldaten($datum) {
       COL_TAGE=>1,
       COL_WOCHEN=>0,
       COL_AUSRICHTER=>'Manfred Berger, Tel. 05992 1234567',
-      COL_ORT=>'Sportheim Groß Brakel',
+      COL_ORT=>'Sportheim Quaderberg',
       COL_LINK=>'',
       COL_KOMM=>$stc,
       COL_KATID=>$katid[2],
@@ -869,8 +869,8 @@ public static function kal_set_spieldaten($datum) {
       COL_ENDE=>'18:30',
       COL_TAGE=>1,
       COL_WOCHEN=>0,
-      COL_AUSRICHTER=>'Kulturkreis Quaderland, Ulf Schneider, Tel. 05996 356702',
-      COL_ORT=>'Brunsviga-Kulturzentrum, Quader Ring 35, 38900 Quade',
+      COL_AUSRICHTER=>'Kulturkreis Quadertal, Ulf Schneider, Tel. 05996 356702',
+      COL_ORT=>'Brunsviga-Kulturzentrum, Quader Ring 35, 38990 Quadertal',
       COL_LINK=>$linkurl,
       COL_KOMM=>$stc,
       COL_KATID=>$katid[3],

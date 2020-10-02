@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 #
 class kal_termine_install {
@@ -138,14 +138,13 @@ public static function kal_create_tables() {
    # --- at least: delete column 'kategorie'
    $sql->setQuery('ALTER TABLE '.TAB_NAME.' DROP COLUMN kategorie');
    }
-public static function build_modules($mypackage) {
+public static function build_modules() {
    #   creating / updating a number of modules in table rex_module
-   #   $mypackage          package name
    #   functions used:
-   #      self::define_modules($mypackage)
+   #      self::define_modules()
    #
    $table='rex_module';
-   $modules=self::define_modules($mypackage);
+   $modules=self::define_modules();
    for($i=1;$i<=count($modules);$i=$i+1):
       #
       # --- module sources: name input, output 
@@ -157,7 +156,7 @@ public static function build_modules($mypackage) {
       #
       # --- module exists already?
       $sql=rex_sql::factory();
-      $where='name LIKE \'%'.$mypackage.'%\' AND input LIKE \'%'.$ident.'%\'';
+      $where='name LIKE \'%'.PACKAGE.'%\' AND input LIKE \'%'.$ident.'%\'';
       $query='SELECT * FROM '.$table.' WHERE '.$where;
       $mod=$sql->getArray($query);
       if(!empty($mod)):
@@ -172,20 +171,20 @@ public static function build_modules($mypackage) {
         endif;
       endfor;
    }
-public static function define_modules($mypackage) {
+public static function define_modules() {
    #   defining some module sources and returning them as array:
    #      $mod[$i]['name']    the module's name
    #      $mod[$i]['input']   source of the module's input part
    #      $mod[$i]['output']  source of the module's output part
    #                          ($i = 1, 2, ...)
-   #   $mypackage          package name
    #
-   # --- first module
    $name  =array();
    $in    =array();
    $out   =array();
    $indent=array();
-   $name[1]='Termine verwalten ('.$mypackage.')';
+   #
+   # --- first module
+   $name[1]=MODUL_MANAGE;
    $in[1]='<?php
 $value[ 1]=REX_VALUE[ 1];
 $value[ 2]=REX_VALUE[ 2];
@@ -207,44 +206,70 @@ $value[17]=REX_VALUE[17];
 $value[18]=REX_VALUE[18];
 $value[19]=REX_VALUE[19];
 $value[20]=REX_VALUE[20];
-kal_termine_module::kal_manage_termine($value,REX_SLICE_ID);
+$katid=0;
+kal_termine_module::kal_manage_termine($value,REX_SLICE_ID,$katid);
 ?>';
    $out[1]='<?php
 if(rex::isBackend())
   echo "<div><span class=\"kal_form_msg\">".
      "Für die Terminverwaltung den Modul editieren!</span></div>";
 ?>';
-   $ident[1]='kal_manage_termine';
+   $ident[1]='kal_termine_module::kal_manage_termine';
    #
    # --- second module
-   $name[2]='Auswahl eines Start-Kalendermenüs ('.$mypackage.')';
+   $name[2]=MODUL_DISPLAY;
    $in[2]='<?php
-$menue="REX_VALUE[1]";
-$katid="REX_VALUE[2]";
-echo kal_termine_module::kal_kalendermenue($menue,$katid);
+$men=REX_VALUE[1];
+$von=REX_VALUE[2];
+$anztage=REX_VALUE[3];
+$katid=REX_VALUE[4];
+echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage,$katid)
 ?>';
    $out[2]='<?php
-$menue="REX_VALUE[1]";
-$katid="REX_VALUE[2]";
-echo kal_termine_module::kal_out_kalendermenue($menue,$katid);
+$men=REX_VALUE[1];
+$von=REX_VALUE[2];
+$anztage=REX_VALUE[3];
+$katid=REX_VALUE[4];
+echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$katid);
 ?>';
-   $ident[2]='kal_kalendermenue';
+   $ident[2]='kal_termine_module::kal_terminmenue_in';
+   #
+   ################# the next 2 modules are obsolet from version 3.1 on ###########
    #
    # --- third module
-   $name[3]='Ausgabe einer Standard-Terminliste ('.$mypackage.')';
+   $name[3]='Start-Kalendermenü ('.PACKAGE.')';
    $in[3]='<?php
+$katid="REX_VALUE[1]";
+$menue="REX_VALUE[2]";
+echo kal_termine_module::kal_kalendermenue($katid,$menue);
+?>';
+   $out[3]='<?php
+$katid="REX_VALUE[1]";
+$menue="REX_VALUE[2]";
+if(rex::isBackend()) 
+  echo "<div class=\"kal_fail\"><b>Modul obsolet!</b> Bitte durch Modul &quot;".MODUL_DISPLAY."&quot; ersetzen!</div>\n";
+echo kal_termine_module::kal_out_kalendermenue($katid,$menue);
+?>';
+   $ident[3]='kal_kalendermenue';
+   #
+   # --- fourth module
+   $name[4]='Standard-Terminliste ('.PACKAGE.')';
+   $in[4]='<?php
 $von=REX_VALUE[1];
 $anztage=REX_VALUE[2];
 $katid=REX_VALUE[3];
 echo kal_termine_module::kal_std_terminliste($von,$anztage,$katid);
 ?>';
-   $out[3]='<?php
+   $out[4]='<?php
 $von=REX_VALUE[1];
 $anztage=REX_VALUE[2];
 $katid=REX_VALUE[3];
+if(rex::isBackend()) 
+  echo "<div class=\"kal_fail\"><b>Modul obsolet!</b> Bitte durch Modul &quot;".MODUL_DISPLAY."&quot; ersetzen!</div>\n";
 echo kal_termine_module::kal_mod_terminliste($von,$anztage,$katid);
 ?>';
-   $ident[3]='kal_std_terminliste';
+   $ident[4]='kal_std_terminliste';
+   ################################################################################
    #
    # --- returning the modules codes
    $modules=array();
