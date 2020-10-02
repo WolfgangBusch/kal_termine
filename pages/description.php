@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 #
 # --- Beschreibung
@@ -20,6 +20,7 @@ $string='
 <ul>
     <li>Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert</li>
     <li>Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine</li>
+    <li>Liste der Termine eines beliebigen Zeitraums mit/ohne Filterfunktionen</li>
     <li>Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen</li>
     <li>tabellarische Darstellung der Daten eines Termins</li>
 </ul>
