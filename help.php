@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 echo '
 <div>Dieses AddOn bietet ein System zur Verwaltung und Darstellung von
@@ -21,7 +21,6 @@ der sich wöchentlich wiederholt.</div>
 - Funktionen zu Kalenderberechnungen<br/>
 - Funktionen zur Darstellung von Terminlisten und Kalenderansichten<br/>
 - einen Modul zur Verwaltung der Termine (im Backend)<br/>
-- einen Modul zum Anlegen eines Start-Kalendermenüs (im Frontend)<br/>
-- einen Modul zur Ausgabe einer Standard-Terminliste (im Frontend)</div>
+- einen Modul zur Ausgabe eines Kalendermenüs oder einer Terminliste (im Frontend)</div>
 ';
 ?>

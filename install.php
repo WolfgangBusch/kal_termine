@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version August 2020
+ * @version Oktober 2020
 */
 $my_package=$this->getPackageId();
 $basedir=rex_path::addon($my_package);
@@ -14,7 +14,7 @@ require_once $basedir.'lib/class.kal_termine_config.php';
 kal_termine_install::kal_create_tables();
 #
 # --- Erzeugen/Aktualisieren der Module
-kal_termine_install::build_modules($my_package);
+kal_termine_install::build_modules();
 #
 # --- ggf. zu Anfang eine Default-Konfiguration einrichten
 $settings=kal_termine_config::kal_get_config();

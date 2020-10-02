@@ -1,11 +1,12 @@
-package: kal_termine
-version: '3.0'
-author: 'Wolfgang Busch'
+package:  kal_termine
+version:  '3.1'
+author:   Wolfgang Busch
 supportpage: redaxo.org/forum/
 
 page:
     title: 'translate:kal_termine'
-    perm: kal_termine[]
+    perm:  kal_termine[]
+    icon:  rex-icon fa-calendar
     subpages:
         introduction:    { title: 'translate:introduction' }
         description:     { title: 'translate:description' }

@@ -16,8 +16,7 @@ der sich wöchentlich wiederholt.</div>
 - Funktionen zu Kalenderberechnungen<br/>
 - Funktionen zur Darstellung von Terminlisten und Kalenderansichten<br/>
 - einen Modul zur Verwaltung der Termine (im Backend)<br/>
-- einen Modul zum Anlegen eines Start-Kalendermenüs (im Frontend)<br/>
-- einen Modul zur Ausgabe einer Standard-Terminliste (im Frontend)</div>
+- einen Modul zur Ausgabe eines Kalendermenüs oder einer Terminliste (im Frontend)</div>
 
 <div><br/>Die Terminverwaltung beinhaltet diese Funktionen:</br/>
 - Eintragung eines Termins samt zugehörigen Daten in die Datenbanktabelle<br/>
@@ -28,6 +27,7 @@ der sich wöchentlich wiederholt.</div>
 <div><br/>Als Kalendermenüs stehen die folgenden Darstellungen zur Wahl:<br/>
 - Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert<br/>
 - Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine<br/>
+- Liste der Termine eines beliebigen Zeitraums mit/ohne Filterfunktionen<br/>
 - Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen<br/>
 - tabellarische Darstellung der Daten eines Termins</div>
 

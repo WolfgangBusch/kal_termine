@@ -1,4 +1,27 @@
 # kal_termine
+<h4>Version 3.1</h4>
+<ul>
+    <li>Es wird ein zusätzliches Such- und Filtermenü für Termine in einem
+        beliebigen Zeitraum angeboten. Es ist mit allen bisherigen Menüs
+        verlinkt.</li>
+    <li>Die Ausgabe einer Standard-Terminliste lässt sich organisatorisch
+        wie die Ausgabe eines Kalendermenüs behandeln. Die entsprechenden
+        Funktionen sind jetzt zusammen in einem neuen Modul integriert,
+        sodass die bisherigen Module für das Frontend obsolet sind.
+        Sobald Letztere durch den neuen Modul ersetzt sind, können sie
+        gelöscht werden.</li>
+    <li>Die per Modul ausgebbaren Kalendermenüs sind jetzt eingeschränkt
+        auf Monatsmenü, Monats-, Wochen-, Tagesblatt sowie auf das neue
+        Zeitraumfiltermenü und zusätzlich auf die einfache Terminliste.</li>
+    <li>Der Modul zur Terminverwaltung gestattet in der installierten
+        Form den Zugriff auf die Termine aller Kategorien ($katid=0 im
+        Input-Teil). Er lässt sich aber leicht kopieren und die Kopie mit
+        der Einschränkung auf eine spezifische Terminkategorie versehen
+        ($katid=1 oder $katid=2 oder ...). Auf diese Weise können Termine
+        einzelner Kategorien von unterschiedlichen Redakteuren verwaltet
+        werden.</li>
+</ul>
+    
 <h4>Version 3.0</h4>
 <ul>
     <li>Ein Termin wird nicht mehr ausschließlich als eintägig aufgefasst.
@@ -36,10 +59,12 @@
         sollte diese de-installiert werden. Ein re-install reicht nicht, um
         eine korrekte neue Konfiguration zu bekommen.</li>
 </ul>
+
 <h4>Version 2.2.1</h4>
 <ul>
     <li>Kleinere Korrekturen am Programmcode zur Vermeidung von PHP-Warnungen.</li>
 </ul>
+
 <h4>Version 2.2.0</h4>
 <ul>
     <li>Leider war die Version 2.1.0 fehlerhaft und i.w. unbrauchbar.</li>
@@ -51,6 +76,7 @@
     <li>Die halbgrafische Darstellung der Stundenleiste war evtl. fehlerhaft.
         Der Fehler ist behoben.</li>
 </ul>
+
 <h4>Version 2.1.0</h4>
 <ul>
     <li>Der Code ist mit 'error_reporting(E_ALL);' überprüft.</li>
@@ -58,6 +84,7 @@
         der zu löschen, zu korrigieren oder zu kopieren ist, wird nun mittels
         Durchklicken durch die (ja schon vorhandenen) Kalendermenüs gesucht.</li>
 </ul>
+
 <h4>Version 2.0.0</h4>
 <ul>
     <li>Diese Version ist komplett überarbeitet und auf Redaxo 5 angepasst.</li>
