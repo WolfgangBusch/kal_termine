@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Oktober 2020
+ * @version Januar 2021
 */
 #
 class kal_termine_module {
@@ -213,7 +213,6 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$katid) {
    if(strpos($menues[$men]['name'],'raumfilter')>0 or
       strpos($menues[$men]['name'],'minliste')>0     ):
      #     Defaultdaten
-     $von=kal_termine_kalender::kal_heute();
      $anztage=365;
      $butxt='<br/>
             Mit <span class="kal_form_block">(&laquo;Block speichern&raquo;)</span> wird ein individueller Zeitraum übernommen.';

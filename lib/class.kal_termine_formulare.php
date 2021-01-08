@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Oktober 2020
+ * @version Januar 2021
 */
 define ('ACTION_START',  'START');
 define ('ACTION_SEARCH', 'SEARCH');

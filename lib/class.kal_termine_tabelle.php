@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Oktober 2020
+ * @version Januar 2021
 */
 define ('SPIEL_KATID', 99990);   // Kategorie-Ids der Spieldaten beginnen bei 99991
 #
