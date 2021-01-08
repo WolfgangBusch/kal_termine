@@ -1,4 +1,10 @@
 # kal_termine
+<h4>Version 3.1.1</h4>
+<ul>
+    <li>Eine function im Eingabeteil des Moduls zur Ausgabe eines Kalendermenüs
+        oder einer Terminliste wurde korrigiert. Jetzt kann der Startzeitpunkt
+        wirklich der jeweils aktuelle Termin sein.</li>
+</ul>
 <h4>Version 3.1</h4>
 <ul>
     <li>Es wird ein zusätzliches Such- und Filtermenü für Termine in einem
