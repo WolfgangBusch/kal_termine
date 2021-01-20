@@ -439,9 +439,7 @@ public static function kal_vorherige_wiederholungstermine($von,$bis,$katid) {
 public static function kal_vorherige_folgetermine($von,$bis,$katid) {
    #   Rueckgabe von Terminen ueber mehrere Tage einer Kategorie oder aller Kategorien
    #   (Folgetermine, $term[$i][COL_TAGE]>1), deren Basistermine vor einem vorgegebenen
-   #   Datumsbereich liegen, die aber in den Datumsbereich hineinfallen. Diese Termine
-   #   sind als einfache Termine ohne Folgetermine definiert ($term[$i][COL_TAGE]=1)
-   #   und nicht nach Datum sortiert.
+   #   Datumsbereich liegen, die aber in den Datumsbereich hineinfallen.
    #   $von            Datum des ersten Tages im Standardformat
    #   $bis            Datum des letzten Tages im Standardformat
    #   $katid          nur Termine mit dieser Kategorie-Id
@@ -498,13 +496,7 @@ public static function kal_vorherige_folgetermine($von,$bis,$katid) {
          if(kal_termine_kalender::kal_datumsdifferenz($stdbis,$datneu)>0) continue; // zu spaet
          $m=$m+1;
          $termin[$m]=$term;
-         #     Termin als Einzeltermin umwandeln
-         $termin[$m][COL_TAGE]=1;
-         $termin[$m][COL_DATUM]=$datneu;
-         #     Beginn und Ende des jetzigen einfachen Termins anpassen
-         $termin[$m][COL_BEGINN]='';
-         $termin[$m][COL_ENDE]='';
-         if($k==$term[COL_TAGE]) $termin[$m][COL_ENDE]=$term[COL_ENDE];
+         break;
          endfor;
       endfor;
    return $termin;
