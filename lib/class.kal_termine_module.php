@@ -84,12 +84,14 @@ public static function kal_manage_termine($value,$slice_id,$katid=0) {
      endif;
    #
    # --- Loeschen aller Redaxo-Variablen
-   $sql=rex_sql::factory();
-   $upd='UPDATE rex_article_slice SET ';
-   for($i=1;$i<=COL_ANZAHL;$i=$i+1) $upd=$upd.'value'.$i.'="", ';
-   $upd=substr($upd,0,strlen($upd)-2);
-   $upd=$upd.' WHERE id='.strval($slice_id);
-   $sql->setQuery($upd);
+   if(!empty($slice_id)):
+     $sql=rex_sql::factory();
+     $upd='UPDATE rex_article_slice SET ';
+     for($i=1;$i<=COL_ANZAHL;$i=$i+1) $upd=$upd.'value'.$i.'="", ';
+     $upd=substr($upd,0,strlen($upd)-2);
+     $upd=$upd.' WHERE id='.strval($slice_id);
+     $sql->setQuery($upd);
+     endif;
    }
 public static function kal_find_termin($pidalt,$katid=0) {
    #   Suche eines Termins in einer bzw. in allen Kategorien, beginnend mit dem
