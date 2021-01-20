@@ -7,6 +7,10 @@
         in den Datumsbereich hineinragt, wird jetzt vollständig mit
         aufgelistet. Bisher wurde der Termin in Einzeltermine aufgelöst
         und nur die wirklich im Datumsbereich liegenden Tage aufgeführt.</li>
+    <li>Beim Anlegen eines Blocks mit dem Modul 'Termine verwalten'
+        konnte es auf einigen Systemen zu einem Syntaxfehler kommen,
+        weil die Variable REX_SLICE_ID noch nicht definiert ist. Der
+        Fehler ist behoben.</li>
 </ul>
 <h4>Version 3.1.1</h4>
 <ul>
