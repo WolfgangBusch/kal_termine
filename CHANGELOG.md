@@ -1,4 +1,13 @@
 # kal_termine
+<h4>Version 3.1.2</h4>
+<ul>
+    <li>Ein kleines Detail bei der Ausgabe einer Terminliste in einem
+        gegebenen Datumsbereich ist geändert. Ein Termin über mehrere
+        Tage ('Folgetermin'), der vorher beginnt, aber noch teilweise
+        in den Datumsbereich hineinragt, wird jetzt vollständig mit
+        aufgelistet. Bisher wurde der Termin in Einzeltermine aufgelöst
+        und nur die wirklich im Datumsbereich liegenden Tage aufgeführt.</li>
+</ul>
 <h4>Version 3.1.1</h4>
 <ul>
     <li>Eine function im Eingabeteil des Moduls zur Ausgabe eines Kalendermenüs
