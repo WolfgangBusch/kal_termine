@@ -8,7 +8,7 @@
 #
 # --- Beschreibung
 $string='
-<div>Die Terminverwaltung beinhaltet diese Funktionen:</div>
+<div><br/>Die Terminverwaltung beinhaltet diese Funktionen:</div>
 <ul>
     <li>Eintragung eines Termins samt zugehörigen Daten in die Datenbanktabelle</li>
     <li>Löschung eines Termins</li>
