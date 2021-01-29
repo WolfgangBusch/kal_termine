@@ -184,7 +184,7 @@ public static function define_modules() {
    $indent=array();
    #
    # --- first module
-   $name[1]=MODUL_MANAGE;
+   $name[1]='Termine verwalten ('.PACKAGE.')';
    $in[1]='<?php
 $value[ 1]=REX_VALUE[ 1];
 $value[ 2]=REX_VALUE[ 2];
@@ -207,17 +207,18 @@ $value[18]=REX_VALUE[18];
 $value[19]=REX_VALUE[19];
 $value[20]=REX_VALUE[20];
 $katid=0;
-kal_termine_module::kal_manage_termine($value,REX_SLICE_ID,$katid);
+$sid="REX_SLICE_ID";
+kal_termine_module::kal_manage_termine($value,$sid,$katid);
 ?>';
    $out[1]='<?php
 if(rex::isBackend())
   echo "<div><span class=\"kal_form_msg\">".
-     "Für die Terminverwaltung den Modul editieren!</span></div>";
+     "Für die Terminverwaltung den Block editieren!</span></div>";
 ?>';
    $ident[1]='kal_termine_module::kal_manage_termine';
    #
    # --- second module
-   $name[2]=MODUL_DISPLAY;
+   $name[2]='Termine anzeigen ('.PACKAGE.')';
    $in[2]='<?php
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
@@ -233,43 +234,6 @@ $katid=REX_VALUE[4];
 echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$katid);
 ?>';
    $ident[2]='kal_termine_module::kal_terminmenue_in';
-   #
-   ################# the next 2 modules are obsolet from version 3.1 on ###########
-   #
-   # --- third module
-   $name[3]='Start-Kalendermenü ('.PACKAGE.')';
-   $in[3]='<?php
-$katid="REX_VALUE[1]";
-$menue="REX_VALUE[2]";
-echo kal_termine_module::kal_kalendermenue($katid,$menue);
-?>';
-   $out[3]='<?php
-$katid="REX_VALUE[1]";
-$menue="REX_VALUE[2]";
-if(rex::isBackend()) 
-  echo "<div class=\"kal_fail\"><b>Modul obsolet!</b> Bitte durch Modul &quot;".MODUL_DISPLAY."&quot; ersetzen!</div>\n";
-echo kal_termine_module::kal_out_kalendermenue($katid,$menue);
-?>';
-   $ident[3]='kal_kalendermenue';
-   #
-   # --- fourth module
-   $name[4]='Standard-Terminliste ('.PACKAGE.')';
-   $in[4]='<?php
-$von=REX_VALUE[1];
-$anztage=REX_VALUE[2];
-$katid=REX_VALUE[3];
-echo kal_termine_module::kal_std_terminliste($von,$anztage,$katid);
-?>';
-   $out[4]='<?php
-$von=REX_VALUE[1];
-$anztage=REX_VALUE[2];
-$katid=REX_VALUE[3];
-if(rex::isBackend()) 
-  echo "<div class=\"kal_fail\"><b>Modul obsolet!</b> Bitte durch Modul &quot;".MODUL_DISPLAY."&quot; ersetzen!</div>\n";
-echo kal_termine_module::kal_mod_terminliste($von,$anztage,$katid);
-?>';
-   $ident[4]='kal_std_terminliste';
-   ################################################################################
    #
    # --- returning the modules codes
    $modules=array();

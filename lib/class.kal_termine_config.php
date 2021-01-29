@@ -5,11 +5,8 @@
  * @package redaxo5
  * @version Januar 2021
 */
-#
 define ('PACKAGE',         $this->getPackageId());
 define ('TAB_NAME',        'rex_'.PACKAGE);
-define ('MODUL_MANAGE',    'Termine verwalten ('.PACKAGE.')');  // Modulbezeichnung 
-define ('MODUL_DISPLAY',   'Termine anzeigen ('.PACKAGE.')');   // Modulbezeichnung 
 define ('FIRST_CATEGORY',  'Allgemein');        // einzige Kategorie der Default-Konfiguration
 define ('COL_PID',         'pid');
 define ('COL_NAME',        'name');
@@ -44,6 +41,7 @@ define ('RGB_GREY',        'rgb(150,150,150)'); // Farbe fuer Tage ausserhalb de
 define ('RGB_DIFF',        25);                 // RGB-Werte-Differenz 
 define ('RGB_MAX',         255-6*RGB_DIFF);
 define ('RGB_BLACK_WHITE', 128);                // Schwellwert fuer schwarze/weisse Beschriftung
+define ('SPIEL_KATID',     99990);              // Kategorie-Ids der Spieldaten beginnen bei 99991
 #
 class kal_termine_config {
 #
@@ -113,7 +111,7 @@ public static function kal_ausgabe_tabellenstruktur() {
    $string='
 <table class="kal_table">
     <tr><td colspan="5" align="center">
-            <h3>Tabelle \''.TAB_NAME.'\'</h3></td></tr>
+            <p><b>Tabelle \''.TAB_NAME.'\'</b></p></td></tr>
     <tr><th class="kal_config_pad kal_config_border">Spaltenname</th>
         <th class="kal_config_pad kal_config_border">Spalteninhalt</th>
         <th class="kal_config_pad kal_config_border">Format</th>
@@ -763,14 +761,14 @@ public static function kal_get_terminkategorien() {
    #
    $settings=self::kal_get_config();
    $keys=array_keys($settings);
-   $k=0;
    $kat=array();
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
       if(substr($key,0,3)!=KAL_KAT) continue;
-      $kat[$k]['id']  =substr($key,3);
+      $id=substr($key,3);
+      $k=$id-1;
+      $kat[$k]['id']  =$id;
       $kat[$k]['name']=$settings[$key];
-      $k=$k+1;
       endfor;
    return $kat;
    }

@@ -802,7 +802,7 @@ public static function kal_mowotablatt($katid,$mon,$kw,$jahr,$datum) {
             '.self::kal_link($param,$menteb,$termin[$i][$k][COL_NAME],1);
            else:
            $str=$str.'
-            &nbsp;';
+            <div>&nbsp;';
            endif;
          $str=$str.'</div>';
          $content[$i][$k]=$str;
@@ -1380,7 +1380,7 @@ public static function kal_such($katid,$param,$kid,$suchen,$vorher) {
             <td title="'.$startit.'">
             '.self::kal_link(KAL_MONAT.'='.$startmonat.'&'.KAL_JAHR.'='.$startjahr,$menmom,'&laquo;&nbsp;&nbsp;',1).'</td>
             <td title="Festlegung eines anderen Zeitraums">
-            '.self::kal_link($linkpar,$menzrm,'&nbsp;<small>&lt;</small>',1).'</td></tr>
+            '.self::kal_link($linkpar,$menzrm,'&nbsp;<small>&lt;</small>',1).'</td>
             </tr></table>
             </td>';
      else:
@@ -1563,9 +1563,9 @@ public static function kal_menue($katid,$mennr) {
       if(strpos($menues[$i]['name'],'natsfilter')>0) $menmfi=$i;  // Monatsfiltermenue
       if(strpos($menues[$i]['name'],'chenfilter')>0) $menwfi=$i;  // Wochenfiltermenue
       if(strpos($menues[$i]['name'],'gesfilter')>0)  $mentfi=$i;  // Tagesfiltermenue
+      if(strpos($menues[$i]['name'],'raumfilter')>0) $menzfi=$i;  // Zeitraumfiltermenue
       if(strpos($menues[$i]['name'],'erminblatt')>0)  $menteb=$i; // Terminblatt
       if(strpos($menues[$i]['name'],'raummenü')>0)   $menzrm=$i;  // Zeitraummenue
-      if(strpos($menues[$i]['name'],'raumfilter')>0) $menzfi=$i;  // Zeitraumfiltermenue
       endfor;
    #
    # --- POST-Parameter auslesen
