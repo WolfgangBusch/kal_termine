@@ -3,6 +3,7 @@
 kal_termine                 = Event Calendar
 kal_termine_introduction    = Introduction
 kal_termine_description     = Description
+kal_termine_details         = Details
 kal_termine_table_structure = Table Structure
 kal_termine_example         = Example
 kal_termine_settings        = Configuration
