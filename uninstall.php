@@ -2,7 +2,7 @@
 /**
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
- * @package redaxo4.6
+ * @package redaxo5
  * @version Januar 2021
 */
 #

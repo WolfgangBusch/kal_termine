@@ -1,5 +1,5 @@
 package:  kal_termine
-version:  '3.1.2'
+version:  '3.2'
 author:   Wolfgang Busch
 supportpage: redaxo.org/forum/
 
@@ -10,6 +10,7 @@ page:
     subpages:
         introduction:    { title: 'translate:introduction' }
         description:     { title: 'translate:description' }
+        details:         { title: 'translate:details' }
         table_structure: { title: 'translate:table_structure' }
         example:         { title: 'translate:example' }
         settings:        { title: 'translate:settings' }

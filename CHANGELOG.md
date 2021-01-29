@@ -1,4 +1,26 @@
 # kal_termine
+<h4>Version 3.2</h4>
+<ul>
+    <li>Bei wöchentlich wiederkehrenden Terminen kann jetzt für
+        jeden zugehörigen Wiederholungstermin ein Alternativtermin
+        eingegeben werden. Dieser ersetzt an seinem Datum den
+        Wiederholungstermin in allen Menüs und Terminlisten.
+        Voraussetzung ist, dass der Alternativtermin in Datum,
+        Bezeichnung und Kategorie mit dem zu ersetzenden Termin
+        übereinstimmt und selbst kein Wiederholungstermin und
+        kein Folgetermin ist.</li>
+    <li>Die Auswahlmenüs für die Terminkategorien enthalten
+        die Kategorien jetzt in der Reihenfolge, wie sie im
+        Konfigurationsformular definiert sind.</li>
+    <li>Die Dokumentation ist etwas erweitert, u.a. um
+        'erste Schritte'.</li>
+    <li>Die Frontendausgabe beim Modul 'Termine anzeigen' liefert
+        jetzt das Zeitraumfiltermenü mit korrektem Zeitraum.</li>
+    <li>Die vor Version 3.1 angebotenen Module 'Start-Kalendermenü'
+        und 'Standard-Terminliste' werden jetzt nicht mehr mit
+        installiert. Sie sind seit Version 3.1 obsolet
+        (ersetzbar durch Modul 'Termine anzeigen').</li>
+</ul>
 <h4>Version 3.1.2</h4>
 <ul>
     <li>Ein kleines Detail bei der Ausgabe einer Terminliste in einem
