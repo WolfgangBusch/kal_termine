@@ -1,5 +1,5 @@
 # kal_termine
-<p>Nachbesserung zu Version 5.3.1: Anzeige des Terminblatts<br/>
+<p>Nachbesserung zu Version 3.2.1: Anzeige des Terminblatts<br/>
 (lib/class.kal_termine_formulare.php, function kal_terminbatt)</p>
 <h4>Version 3.2.1</h4>
 <ul>
