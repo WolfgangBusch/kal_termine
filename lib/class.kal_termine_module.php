@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 #
 class kal_termine_module {
@@ -104,12 +104,12 @@ public static function kal_find_termin($pidalt,$katid=0) {
    #      'action:$pid' ($pid = Id des gefundenen Termins)
    #   benutzte functions:
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
-   #      kal_termine_formulare::kal_terminblatt($termin)
+   #      kal_termine_formulare::kal_terminblatt($termin,$datum,$ruecklinks)
    #      kal_termine_formulare::kal_aktionsauswahl($pid)
    #      kal_termine_menues::kal_menue($katid,$mennr)
    #
    # --- Ueberschrift
-   $abbruch='Abbruch der Suche erst nach erfolgter Auswahl und Anzeige eines einzelnen Termins möglich';
+   $abbruch='Abbruch der Suche im Menü erst möglich nach Auswahl und Anzeige eines einzelnen Termins';
    $ueber='Auswahlmenü zum Suchen eines Termins';
    #
    # --- Einlesen der Termin-Id
@@ -131,6 +131,7 @@ kal_termine_menues::kal_menue($katid,$men).'
      #
      # --- Ausgabe des des gefundenen Termins mit Auswahl der Aktion 
      $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
+     $datum=$_POST[KAL_DATUM];
      return '<table class="kal_table">
     <tr><td></td>
         <td class="kal_form_pad">
@@ -139,7 +140,7 @@ kal_termine_menues::kal_menue($katid,$men).'
         <td class="kal_form_list_th">
             gefundener Termin:</td>
         <td class="kal_form_pad">
-'.      kal_termine_formulare::kal_terminblatt($termin).'</td></tr>
+'.      kal_termine_formulare::kal_terminblatt($termin,$datum,1).'</td></tr>
 </table><br/>'.
         kal_termine_formulare::kal_aktionsauswahl($pid);
      endif;
@@ -341,11 +342,7 @@ public static function kal_terminmenue_out($men,$ab,$anztage,$katid) {
      if(strpos($menues[$men]['name'],'minliste')>0):
        $str=kal_termine_formulare::kal_terminliste($term);
        else:
-       if(strpos($menues[$men]['name'],'raumfilter')>0):
-         $str=kal_termine_menues::kal_such_menue($katid,$von,$anztage,$katid,'','');
-         else:
-         $str=kal_termine_menues::kal_menue($katid,$men);
-         endif;
+       $str=kal_termine_menues::kal_menue($katid,$men);
        endif;
      else:
      #

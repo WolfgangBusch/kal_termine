@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 define ('ACTION_START',  'START');
 define ('ACTION_SEARCH', 'SEARCH');
@@ -14,8 +14,8 @@ define ('ACTION_UPDATE', 'UPDATE');
 class kal_termine_formulare {
 #
 #----------------------------------------- Inhaltsuebersicht
-#         kal_proof_termin($termin)
 #   Terminformulare
+#         kal_proof_termin($termin)
 #         kal_radiobutton($action,$pid)
 #         kal_select_kategorie($name,$katid,$kont)
 #         kal_fuellen($value)
@@ -24,12 +24,12 @@ class kal_termine_formulare {
 #         kal_aktionsauswahl($pid)
 #         kal_loeschen($pid,$action)
 #         kal_korrigieren($value,$pid,$action)
-#         kal_show_termin($termin,$ueber)
-#         kal_terminblatt($termin)
+#         kal_terminblatt($termin,$datum,$ruecklinks)
 #   Terminliste
 #         kal_terminliste($termin)
 #         kal_uhrzeit_string($termin)
 #
+#----------------------------------------- Terminformulare
 public static function kal_proof_termin($termin) {
    #   Ueberpruefen der Felder eines Termin-Arrays auf
    #   - leere Pflichtfelder
@@ -115,8 +115,6 @@ public static function kal_proof_termin($termin) {
         return $errtim3;
       endfor;
    }
-#
-#----------------------------------------- Terminformulare
 public static function kal_radiobutton($action,$pid) {
    #   Rueckgabe des HTML-Codes einer 2-spaltigen Zeile einer HTML-Tabelle in einer der
    #   Funktionen kal_formular_aktion (aktion='eingeben' oder 'loeschen' oder 'korrigieren').
@@ -333,10 +331,10 @@ public static function kal_eingeben($value,$action) {
    #                         und nach Bestaetigung der Eintragung gefragt
    #                   Die Uebergabe der Werte erfolgt ueber die Werte der
    #                   Redaxo-Variablen REX_INPUT_VALUE[$i], REX_INPUT_VALUE[count($cols)]
-   #   #################################################################
+   #   =================================================================
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   =================================================================
    #      Die Auswahl Eintragung oder Abbruch erfolgt ueber den Wert der Redaxo-Variablen
    #      REX_INPUT_VALUE[count($cols)]
    #   Es wird eine Fehlermeldung ausgegeben (in rot), falls
@@ -451,16 +449,17 @@ public static function kal_loeschen($pid,$action) {
    #                         und nach Bestaetigung der Loeschung gefragt
    #                   =ACTION_DELETE: die Loeschung wird durchgefuehrt
    #                   =ACTION_START:  Rueckkehr zum Startmenue ohne Loeschung
-   #   #################################################################
+   #   =================================================================
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   =================================================================
    #      Die Auswahl Loeschen oder Abbruch erfolgt ueber den Wert der Redaxo-Variablen
    #      REX_INPUT_VALUE[count($cols)] ($cols: Array der Tabellenspalten)
    #   Es wird eine Fehlermeldung zurueck gegeben (in rot), falls der Termin nicht
    #   geloescht werden konnte
    #   benutzte functions:
-   #      self::kal_terminblatt($termin)
+   #      self::kal_terminblatt($termin,$datum,$ruecklinks)
+   #      self::kal_show_termin($termin,$ueber)
    #      self::kal_radiobutton($action,$pid)
    #      self::kal_startauswahl()
    #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
@@ -502,11 +501,12 @@ public static function kal_loeschen($pid,$action) {
         <td class="kal_form_pad">
             '.$error.'</td></tr>';
        else:
+       $datum=$termin[COL_DATUM];
        $string=$string.'
     <tr valign="top">
         <td class="kal_form_list_th">
             Termin:</td>
-        <td class="kal_form_pad">'.self::kal_terminblatt($termin).'
+        <td class="kal_form_pad">'.self::kal_terminblatt($termin,$datum,0).'
         </td></tr>';
        endif;
    #  -  Termin konnte nicht geloescht werden
@@ -542,10 +542,10 @@ public static function kal_korrigieren($value,$pid,$action) {
    #                         und nach Bestaetigung der Korrektur gefragt
    #                   =ACTION_UPDATE: die Korektur wird durchgefuehrt
    #                   =ACTION_START:  Rueckkehr zum Startmenue ohne Korrektur
-   #   #################################################################
+   #   =================================================================
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   =================================================================
    #      Die Auswahl Korrigieren oder Abbruch erfolgt ueber den Wert der Redaxo-Variablen
    #      REX_INPUT_VALUE[count($cols)]
    #   Es wird eine Fehlermeldung ausgegeben (in rot), falls der Termin nicht
@@ -625,71 +625,70 @@ public static function kal_korrigieren($value,$pid,$action) {
      endif;
    return $string;
    }
-public static function kal_terminblatt($termin) {
-   #   Rueckgabe des HTML-Codes zur formatierten Ausgabe der Daten eines Termins
-   #   im Backend-Fall. Die Ueberschrift enthaelt nur den Namen des Termins und
-   #   keine Navigations-Links.
-   #   $termin         assoziatives Array des Termins
-   #   benutzte functions:
-   #      self::kal_show_termin($termin,$ueber)
-   #
-   $ueber=array(array('title'=>'','link'=>''),array('title'=>'','link'=>''));
-   return self::kal_show_termin($termin,$ueber);
-   }
-public static function kal_show_termin($termin,$ueber) {
+public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    #   Rueckgabe des HTML-Codes zur formatierten Ausgabe der Daten eines Termins.
    #   Die Ueberschrift enthaelt die Ueberschrift des Termins (Termin-Name) sowie
-   #   im Frontend zusaetzlich einen Link auf das Kalendermenue des Monats und
-   #   einen Link auf das aktuelle Tagesblatt.
+   #   in der Regel zusaetzlich je einen Ruecklink auf das Kalendermenue des
+   #   Monats und auf das aktuelle Tagesblatt.
    #   $termin         assoziatives Array des Termins
-   #   $ueber          linker Teil der Ueberschrift, nummeriertes Array der Form:
-   #                      [0]  Link auf das Kalendermenue des Monats zum Termin
-   #                      [1]  Link auf das Tagesblatt zum Termin
-   #                      jeweils als assoziatives Array dieser Form:
-   #                         ['title']  Titel des Links
-   #                         ['link']   HTML-Code des Links
-   #                   im Backend verwendet, um den Termin vor dem Loeschen noch
-   #                   einmal anzuzeigen, dann sind alle Array-Elemente leer 
+   #   $datum          Datum, kann von $termin[COL_DATUM] abweichen, wenn es
+   #                   sich um einen woechentlich wiederkehrenden Termin oder
+   #                   um den Folgetermin eines mehrtägigen Termins handelt
+   #   $ruecklinks     >0:  Ruecklinks werden angezeigt
+   #                   <=0: Ruecklinks werden nicht angezeigt (nur im Falle des
+   #                        Loeschen eines Termins
    #   benutzte functions:
+   #      kal_termine_kalender::kal_heute()
+   #      kal_termine_kalender::kal_standard_datum($datum)
+   #      kal_termine_kalender::kal_monate()
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
    #      kal_termine_kalender::kal_wotag($datum)
+   #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
    #      kal_termine_tabelle::kal_kategorie_name($katid)
+   #      kal_termine_menues::kal_define_menues()
+   #      kal_termine_menues::kal_link($par,$mennr,$linktext,$modus)
    #
-   if(count($termin)>2):
-     $datum=$termin[COL_DATUM];
-     $name=$termin[COL_NAME];
-     $pid=$termin[COL_PID];
-     $dauer=$termin[COL_TAGE];
-     if($dauer>1):
-       $datend=kal_termine_kalender::kal_datum_vor_nach($datum,$dauer-1);
-       else:
-       $datend=$datum;
-       endif;
+   # --- ggf. Ruecklinks
+   $dat=$datum;
+   if(empty($dat)) $dat=kal_termine_kalender::kal_heute();
+   $dat=kal_termine_kalender::kal_standard_datum($dat);
+   if($ruecklinks<=0):
+     $ueber= array(
+        array('title'=>'','link'=>''),
+        array('title'=>'','link'=>''),
+        $dat);
      else:
-     $datum='';
-     $name='<small>... kein Termin vorhanden/angegeben ...</small>';
-     $pid=0;
+     $mon=substr($dat,3,2);
+     $monate=kal_termine_kalender::kal_monate();
+     $monat=$monate[intval($mon)];
+     $jahr=substr($dat,6);
+     $menues=kal_termine_menues::kal_define_menues();
+     for($i=1;$i<=count($menues);$i=$i+1):
+        if(strpos($menues[$i]['name'],'natsmenü')>0)  $menmom=$i;   // Monatsmenue
+        if(strpos($menues[$i]['name'],'gesblatt')>0)  $mentab=$i;   // Tagesblatt
+        endfor;
+     $ueber=array(
+        array('title'=>$menues[$menmom]['name'].' '.$monat.' '.$jahr,
+              'link' =>kal_termine_menues::kal_link(KAL_MONAT.'='.$mon.'&'.KAL_JAHR.'='.$jahr,$menmom,'&nbsp;&nbsp;&nbsp;&laquo;',1)),
+        array('title'=>$menues[$mentab]['name'].' '.$dat,
+              'link' =>kal_termine_menues::kal_link(KAL_DATUM.'='.$dat,$mentab,'&nbsp;&nbsp;<small>&lt;</small>',1)),
+        $dat);
      endif;
    #
    # --- Ueberschrift-Zeile
-   if(empty($ueber)):
-     $ueb=array(array('title'=>'','link'=>''),array('title'=>'','link'=>''));
-     else:
-     $ueb=$ueber;
-     endif;
    $seite='<table class="kal_border">
     <tr valign="top">
-        <td class="kal_txtb1" title="'.$ueb[0]['title'].'">
-            '.$ueb[0]['link'].'</td>
-        <td class="kal_txtb1" title="'.$ueb[1]['title'].'">
-            '.$ueb[1]['link'].'</td>
+        <td class="kal_txtb1" title="'.$ueber[0]['title'].'">
+            '.$ueber[0]['link'].'</td>
+        <td class="kal_txtb1" title="'.$ueber[1]['title'].'">
+            '.$ueber[1]['link'].'</td>
         <td width="50"></td>
-        <td class="kal_txt_titel">
-            '.$name.'</td></tr>';
+        <td class="kal_txt_titel">';
    #
    # --- return, falls kein Termin angegeben ist
    if(count($termin)<=2):
      $seite=$seite.'
+            <tt>... kein Termin vorhanden/angegeben ...</tt></td></tr>  
     <tr valign="top">
         <td colspan="3" class="kal_txtb2">
             Termin:</td>
@@ -698,7 +697,20 @@ public static function kal_show_termin($termin,$ueber) {
      return $seite;
      endif;
    #
-   # --- Datum, Startzeit, Enddatum, Endzeit, woechentliche Wiederholungen
+   # --- Termindaten
+   $name=$termin[COL_NAME];
+   $datum=$termin[COL_DATUM];
+   $pid=$termin[COL_PID];
+   $dauer=$termin[COL_TAGE];
+   if($dauer>1):
+     $datend=kal_termine_kalender::kal_datum_vor_nach($datum,$dauer-1);
+     else:
+     $datend=$datum;
+     endif;
+   $seite=$seite.'
+            '.$name.'</td></tr>';
+   #
+   # --- Datum, Startzeit, Enddatum, Endzeit, woechentliche Wiederholungen, Folgetermine
    $wt=kal_termine_kalender::kal_wotag($datum);
    $wte=kal_termine_kalender::kal_wotag($datend);
    $str=$wt.', '.$datum;
@@ -709,11 +721,28 @@ public static function kal_show_termin($termin,$ueber) {
      ;else:
      if(!empty($termin[COL_BEGINN]))
        $str=$str.', &nbsp; '.$termin[COL_BEGINN].' Uhr &nbsp;';
-     $str=$str.' &nbsp; &nbsp; - &nbsp; &nbsp; '.$wte.', '.$datend;
+     $str=$str.' &nbsp; - &nbsp; '.$wte.', '.$datend;
      if(!empty($termin[COL_ENDE])) $str=$str.', &nbsp; '.$termin[COL_ENDE].' Uhr';
      endif;
-   if($termin[COL_WOCHEN]>0) $str=$str.'<br/>
-            wöchentlich wiederholt über die '.$termin[COL_WOCHEN].' folgenden Wochen';
+   $warnung='';
+   #     Wiederholungstermine
+   if($termin[COL_WOCHEN]>0 and !empty($ueber[2])):
+     $ter=kal_termine_tabelle::kal_select_termin_by_pid($pid);
+     $dat=$ter[COL_DATUM];
+     $dat1=$ueber[2];
+     $wta=kal_termine_kalender::kal_wotag($dat1);
+     $warnung='<b>wöchentlich</b>, '.$termin[COL_WOCHEN].' Wochen, ab '.$dat;
+     $str=$wta.', '.$dat1.'<br/>
+            ('.$warnung.')';
+     endif;
+   #     Folgetermine
+   if($dauer>1 and !empty($ueber[2])):
+     $dat=$ueber[2];
+     $wta=kal_termine_kalender::kal_wotag($dat);
+     $warnung='<b>mehrtägig</b>, '.$dauer.' Tage, ab '.$dat;
+     $str=$wta.', '.$dat.'<br/>
+            ('.$warnung.')';
+     endif;
    $seite=$seite.'
     <tr valign="top">
         <td colspan="3" class="kal_txtb2">
@@ -777,8 +806,8 @@ public static function kal_show_termin($termin,$ueber) {
      $seite=$seite.'
     <tr valign="top">
         <td colspan="3" class="kal_txtb2">
-            Hinweise:&nbsp;&nbsp;&nbsp;</td>
-        <td class="kal_termv">
+            Hinweise:</td>
+        <td class="kal_termv kal_termval">
             '.$komm.'</td></tr>';
    #
    # --- Kategorie
@@ -790,6 +819,16 @@ public static function kal_show_termin($termin,$ueber) {
             Kategorie:</td>
         <td class="kal_termv">
             '.$kategorie.'</td></tr>';
+   #
+   # --- Warnung wegen Wiederholungs-/Folgetermin im Falle der Loeschung
+   if($ruecklinks<=0 and !empty($warnung))
+     $seite=$seite.'
+    <tr valign="top">
+        <td colspan="3" class="kal_txtb2 kal_fail">
+            Vorsicht:</td>
+        <td class="kal_termv kal_fail">
+            '.$warnung.'</td></tr>';
+   #
    $seite=$seite.'
 </table>
 ';

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 define ('KAL_MONAT'     , 'MONAT');
 define ('KAL_KW'        , 'KW');
@@ -23,9 +23,6 @@ class kal_termine_menues {
 #----------------------------------------- Inhaltsuebersicht
 #         kal_define_menues()
 #         kal_link($par,$mennr,$linktext,$modus)
-#   Terminblatt
-#         kal_terminblatt_head($datum)
-#         kal_terminblatt($termin)
 #   Monatsmenue
 #         kal_monatsmenue($katid,$mon,$jahr)
 #         kal_monatsmenue_modus($katid,$mon,$jahr,$datum1,$modus)
@@ -122,60 +119,6 @@ public static function kal_link($par,$mennr,$linktext,$modus) {
             <button type="submit" class="kal_transparent kal_linkbutton">'.$linktext.'</button>
             </form>';
    return $str;
-   }
-#
-#----------------------------------------- Terminblatt
-public static function kal_terminblatt_head($datum) {
-   #   Rueckgabe des HTML-Codes fuer die beiden ersten Spalten der Ueberschrift-Zeile
-   #   eines Terminblatts.
-   #   $datum          Datum des Termins (Spalte COL_DATUM)
-   #                   falls leer, wird das heutige Datum benutzt
-   #   1. Spalte: Link auf das Kalendermenue des Monats:
-   #      (POST-Parameter: KAL_MENUE=$men, KAL_MONAT=$monat, KAL_JAHR=$jahr):
-   #         $monat    Nummer des aktuellen Monats
-   #         $jahr     4-stellige Jahreszahl des aktuellen Jahres
-   #         $men      =1: Link-Ziel ist das Monatsmenue des aktuellen Monats
-   #         Linktext: «
-   #   2. Spalte: Link auf das aktuelle Tagesblatt
-   #      (POST-Parameter: KAL_MENUE=$men, KAL_DATUM=$datum):
-   #         $datum:   10-Zeichen-Datums-String des aktuellen Tages
-   #         $men      =4: Link-Ziel ist das Tagesblatt des aktuellen Tages
-   #         Linktext: <
-   #   benutzte functions:
-   #      self::kal_define_menues()
-   #      self::kal_link($par,$mennr,$linktext,$modus)
-   #      kal_termine_kalender::kal_heute()
-   #      kal_termine_kalender::kal_monate()
-   #
-   $menues=self::kal_define_menues();
-   for($i=1;$i<=count($menues);$i=$i+1):
-      if(strpos($menues[$i]['name'],'natsmenü')>0)  $menmom=$i;   // Monatsmenue
-      if(strpos($menues[$i]['name'],'gesblatt')>0)  $mentab=$i;   // Tagesblatt
-      endfor;
-   $dat=$datum;
-   if(empty($dat)) $dat=kal_termine_kalender::kal_heute();
-   $mon=substr($dat,3,2);
-   $monate=kal_termine_kalender::kal_monate();
-   $monat=$monate[intval($mon)];
-   $jahr=substr($dat,6);
-   return array(
-        array('title'=>$menues[$menmom]['name'].' '.$monat.' '.$jahr,
-              'link' =>self::kal_link(KAL_MONAT.'='.$mon.'&'.KAL_JAHR.'='.$jahr,$menmom,'&nbsp;&nbsp;&nbsp;&laquo;',1)),
-        array('title'=>$menues[$mentab]['name'].' '.$dat,
-              'link' =>self::kal_link(KAL_DATUM.'='.$dat,$mentab,'&nbsp;&nbsp;<small>&lt;</small>',1)));
-   }
-public static function kal_terminblatt($termin) {
-   #   Rueckgabe des HTML-Codes zur formatierten Ausgabe der Daten eines Termins.
-   #   Die Ueberschrift enthaelt die Ueberschrift des Termins (Termin-Name) sowie
-   #   im Frontend zusaetzlich einen Link auf das Kalendermenue des Monats und
-   #   einen Link auf das aktuelle Tagesblatt.
-   #   $termin         assoziatives Array des Termins
-   #   benutzte functions:
-   #      self::kal_terminblatt_head($datum)
-   #      kal_termine_formulare::kal_show_termin($termin,$ueber)
-   #
-   $ueber=self::kal_terminblatt_head($termin[COL_DATUM]);
-   return kal_termine_formulare::kal_show_termin($termin,$ueber);
    }
 #
 #----------------------------------------- Monatsmenue
@@ -1215,14 +1158,14 @@ public static function kal_such_daten($datum,$anztage,$monat,$jahr) {
 </table>';
    }
 public static function kal_such_menue($katid,$datum1,$anztage,$kid,$suchen,$vorher) {
-   #   Rueckgabe des HTML-Codes fuer ein Menue zur Auswahl bzw. Suche von Terminen
-   #   eines Zeitraums in Form eines Formulars
-   #   $katid          (vergl. unten)
-   #   $datum1         Startdatum im Format 'tt.mm.yyyy''
-   #   $anztage        Anzahl der Tage
-   #   $kid            (vergl. unten)
-   #   $suchen         (vergl. unten)
-   #   $vorher         (vergl. unten)
+   #   Rueckgabe des HTML-Codes fuer ein Menue zur Auswahl und Filterung von Terminen
+   #   eines Zeitraums und einer Kategorie bzw. aller Kategorien in Form eines Formulars
+   #   $katid          (vergl. unten) Id der vorgegebenen Kategorie(n)
+   #   $datum1         Startdatum des Zeitraums
+   #   $anztage        Anzahl der Tage des Zeitraums
+   #   $kid            (vergl. unten) Id der Filter-Kategorie
+   #   $suchen         (vergl. unten) Filter-Suchbegriff
+   #   $vorher         (vergl. unten) Filter-Checkbox-Wert
    #   benutzte functions:
    #      self::kal_define_menues()
    #      self::kal_such($katid,$param,$kid,$suchen,$vorher)
@@ -1253,35 +1196,41 @@ public static function kal_such_menue($katid,$datum1,$anztage,$kid,$suchen,$vorh
    return self::kal_such($katid,$param,$kid,$suchen,$vorher);
    }
 public static function kal_such($katid,$param,$kid,$suchen,$vorher) {
-   #   Rueckgabe des HTML-Codes fuer ein Menue zur Suche und Filterung von Terminen
-   #   eines Tages (gemaess Parameter $datum) bzw.
-   #   einer Woche (gemaess Parameter $kw und $jahr) bzw.
-   #   eines Monats (gemaess Parameter $mon und $jahr) bzw.
-   #   eines Zeitraums (gemaess Parameter $datum und $datum2)
-   #   in Form eines Formulars
-   #   $katid          es werden nur Termine mit dieser Kategorie-Id bzw. aller Kategorien
-   #                   ($katid=0/SPIEL_KATID [Datenbank-/Spieldaten]) ausgelesen
-   #   $param          nummeriertes Array von Parametern (Nummerierung ab 1):
-   #              [0]  Startdatum
-   #              [1]  Enddatum
+   #   Rueckgabe des HTML-Codes fuer ein Menue zur Filterung gegebener Termine
+   #   in Form eines Formulars. Die Termine ...
+   #   ... liegen in einem vorgegebenen Zeitraum und
+   #   ... gehören zu einer vorgegebenen Kategorie (bzw. zu allen Kategorien).
+   #   Der vorgegebene Zeitraum ist beliebig, umfasst im Spezialfall aber auch
+   #   einen Tag, eine Woche oder einen Monat und wird durch die Parameter $katid
+   #   und $param definiert. Die Filterbedingungen sind diese: Alle Termine ...
+   #   ... gehoeren zu einer bestimmten Kategorie bzw. zu allen Kategorien und
+   #   ... enthalten einen Suchbegriff oder keinen und
+   #   ... liegen in der Zukunft (inkl. heutiger Tag) oder auch vorher
+   #   Die Bedingungen werden ueber die Parameter $kid, $suchen, $vorher definiert
+   #   und gelten zugleich.
+   #   $katid          vorgegebene Kategorie-Id bzw. =0/SPIEL_KATID (alle Kategorien,
+   #                   Datenbank-/Spieldaten)
+   #   $param          nummeriertes Array von Parametern:
+   #              [0]  Startdatum des vorgegebenen Zeitraums
+   #              [1]  Enddatum des vorgegebenen Zeitraums
    #              [2]  erster hidden-Parameter
    #              [3]  zweiter hidden-Parameter
-   #              [4]  Jahr des Monats fuer den Ruecklink
-   #              [5]  Monat fuer den Ruecklink
-   #              [6]  Parameter fuer den zweiten Ruecklink auf das Zeitabschnittsblatt
-   #              [7]  Menuenummer fuer das Zeitabschnittsblatt
-   #              [8]  Menuenummer fuer das Zeitabschnittsfiltermenue
+   #              [4]  Jahr des Monats fuer den ersten Ruecklink auf das Monatsmenue
+   #              [5]  Monat fuer den ersten Ruecklink auf das Monatsmenue
+   #              [6]  Parameter fuer den zweiten Ruecklink auf das Zeitraummenue
+   #              [7]  Menuenummer fuer das Zeitraummenue
+   #              [8]  Menuenummer fuer das Zeitraumfiltermenue
    #              [9]  Ueberschrift fuer das Auswahlmenue
-   #      Beschraenkung der Suche gemaess den folgenden 3 Randbedingungen
-   #      (alle Randbedingungen gelten zugleich):
    #   $kid            Id der im Menue ausgewaehlten Kategorie
    #                   (=$katid, falls $katid>0 bzw. $katid>SPIEL_KATID) 
-   #   $suchen         Suchbegriff (nur Termine, die diesen Suchbegriff enthalten,
-   #                   unabh. von Gross-/Kleinschreibung) in diesen Termin-Parametern:
+   #   $suchen         im Menue eingegebener Suchbegriff (unabhaengig von
+   #                   Gross-/Kleinschreibung), der Begriff wird in diesen
+   #                   Termin-Parametern gesucht:
    #                      [COL_NAME], [COL_KOMM], [COL_AUSRICHTER], [COL_ORT]
    #                      [COL_TEXT2], [COL_TEXT3], [COL_TEXT4], [COL_TEXT5]
-   #   $vorher         ='':    nur Termine ab dem heutigen Datum
-   #                   ='on':  es werden auch abgelaufene Termine beruecksichtigt
+   #   $vorher         Wert der im Menue markierten Checkbox
+   #                   ='':    nur Termine ab dem heutigen Tag
+   #                   ='on':  auch abgelaufene Termine
    #   Das Auswahlformular liefert diese Parameter samt Werten:
    #      KAL_KATEGORIE  gemaess $kid
    #      KAL_SUCHEN     gemaess $suchen
@@ -1316,10 +1265,12 @@ public static function kal_such($katid,$param,$kid,$suchen,$vorher) {
    #         $men      Menuenummer des Monatsmenues
    #         $monat    Nummer des gewaehlten Monats
    #         $jahr     4-stellige Jahreszahl des Jahres, zu dem der Monat gehoert
-   #   2) auf das Zeitraummenue mit dem POST-Parameter:
-   #      KAL_MENUE=$men
-   #         Linktext  «
+   #      2) auf das Zeitraummenue mit den POST-Parametern:
+   #      KAL_MENUE=$men, KAL_DARUM2=$datum2, KAL_ANZTAGE=$anztage
+   #         Linktext  <
    #         $men      Menuenummer des Zeitraummenues
+   #         $datum2   Startdatum des Zeitraums
+   #         $anztage  Anzahl der Tage des Zeitraums
    #   benutzte functions:
    #      self::kal_define_menues()
    #      self::kal_link($par,$mennr,$linktext,$modus)
@@ -1547,11 +1498,10 @@ public static function kal_menue($katid,$mennr) {
    #      self::kal_monats_such_menue($katid,$mon,$jahr,$suchen,$vorher)
    #      self::kal_wochen_such_menue($katid,$kw,$jahr,$suchen,$vorher)
    #      self::kal_tages_such_menue($katid,$datum,$suchen,$vorher)
-   #      self::kal_terminblatt_head($datum)
    #      kal_termine_kalender::kal_heute()
    #      kal_termine_kalender::kal_kw($datum)
    #      kal_termine_tabelle::kal_get_termine($von,$bis,$katid,$kontif)
-   #      kal_termine_formulare::kal_show_termin($termin,$ueber)
+   #      kal_termine_formulare::kal_terminblatt($termin,$datum,$ruecklinks)
    #
    # --- Menuenummern
    $menues=self::kal_define_menues();
@@ -1632,16 +1582,10 @@ public static function kal_menue($katid,$mennr) {
    # --- Terminblatt
    if($men==$menteb):
      $termin=array();
-     $term=kal_termine_tabelle::kal_get_termine($datum,$datum,$kid,1);
-     if(rex::isBackend()):
-       for($i=1;$i<=count($term);$i=$i+1):
-          if($term[$i][COL_PID]==$pid) $termin=$term[$i];
-          endfor;
-       else:
-       if(count($term)>=1) $termin=$term[1];
-       endif;
-     $ueber=self::kal_terminblatt_head($datum);
-     return kal_termine_formulare::kal_show_termin($termin,$ueber);
+     $term=kal_termine_tabelle::kal_get_termine($datum,$datum,$kid,0);
+     for($i=1;$i<=count($term);$i=$i+1)
+        if($term[$i][COL_PID]==$pid) $termin=$term[$i];
+     return kal_termine_formulare::kal_terminblatt($termin,$datum,1);
      endif;
    #
    # --- Zeitraummenue

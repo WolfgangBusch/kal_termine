@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 #
 class kal_termine_tabelle {
@@ -25,7 +25,7 @@ class kal_termine_tabelle {
 #         kal_kategorie_name($katid)
 #         kal_select_termine($von,$bis,$katid)
 #         kal_vorherige_wiederholungstermine($von,$bis,$katid)
-#         kal_vorherige_folgetermine($von,$bis,$katid)
+#         kal_vorherige_folgetermine($von,$bis,$katid,$kontif)
 #         kal_interne_wiederholungstermine($termin,$von,$bis,$katid)
 #         kal_interne_folgetermine($termin,$von,$bis,$katid)
 #         kal_get_termine_all($von,$bis,$katid,$kontif)
@@ -199,10 +199,10 @@ public static function kal_insert_termin($termin) {
    #   $termin         Array des Termins
    #   Rueckgabe:      Eintragung erfolgreich:   Id des neuen Termins (COL_PID>0)
    #                   andernfalls:              Fehlermeldung
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #   benutzte functions:
    #      self::kal_standard_termin($termin)
    #      self::kal_exist_termin($termin)
@@ -247,10 +247,10 @@ public static function kal_delete_termin($pid) {
    #   $pid            Id des Termins
    #   Rueckgabe:      leer, falls der Termin geloescht wurde bzw.
    #                   Fehlermeldung in rot (andernfalls)
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #
    if($pid<=0)
      return '<span class="kal_fail">Bitte einen Termin zum Löschen benennen (Termin-Id>0)</span>';
@@ -279,10 +279,10 @@ public static function kal_update_termin($pid,$termkor) {
    #                   in Form eines vollstaendigen Termin-Arrays (ohne COL_PID)
    #   Rueckgabe:      leer, falls der Termin korrigiert wurde
    #                   Fehlermeldung (in rot), falls das Update fehlschlug
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
    #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   #################################################################
+   #   -----------------------------------------------------------------
    #   benutzte functions:
    #      self::kal_select_termin_by_pid($pid)
    #      self::kal_standard_termin($termin)
@@ -437,7 +437,7 @@ public static function kal_vorherige_wiederholungstermine($von,$bis,$katid) {
       endfor;
    return $termin;
    }
-public static function kal_vorherige_folgetermine($von,$bis,$katid) {
+public static function kal_vorherige_folgetermine($von,$bis,$katid,$kontif) {
    #   Rueckgabe von Terminen ueber mehrere Tage (Folgetermine,
    #   $term[$i][COL_TAGE]>1), deren Basistermine vor einem vorgegebenen
    #   Datumsbereich liegen, die aber in den Datumsbereich hineinfallen.
@@ -446,6 +446,12 @@ public static function kal_vorherige_folgetermine($von,$bis,$katid) {
    #   $katid          nur Termine mit dieser Kategorie-Id
    #                   falls =0/=SPIEL_KATID Termine aller Kategorien
    #                   (Datenbank-/Spieldaten)
+   #   $kontif         =0: Termine mit Folgeterminen werden NICHT aufgeloest
+   #                       zu mehreren Einzelterminen
+   #                       (gebraucht hier und in den Termin-/Suchterminlisten)
+   #                   >0: Termine mit Folgeterminen werden aufgeloest
+   #                       zu mehreren Einzelterminen
+   #                       (gebraucht in den Kalendermenues)
    #   benutzte functions:
    #      self::kal_set_spieldaten($datum)
    #      self::kal_select_termine($von,$bis,$katid)
@@ -498,7 +504,18 @@ public static function kal_vorherige_folgetermine($von,$bis,$katid) {
          if(kal_termine_kalender::kal_datumsdifferenz($stdbis,$datneu)>0) continue; // zu spaet
          $m=$m+1;
          $termin[$m]=$term;
-         break;
+         if($kontif<=0):
+           #     nur den Basistermin aufsammeln
+           break;
+           else:
+           #     Termin zum Einzeltermin umwandeln
+           $termin[$m][COL_TAGE]=1;
+           $termin[$m][COL_DATUM]=$datneu;
+           #     Beginn und Ende des jetzigen einfachen Termins anpassen
+           $termin[$m][COL_BEGINN]='';
+           $termin[$m][COL_ENDE]='';
+           if($k==$term[COL_TAGE]) $termin[$m][COL_ENDE]=$term[COL_ENDE];
+           endif;
          endfor;
       endfor;
    return $termin;
@@ -579,7 +596,7 @@ public static function kal_interne_folgetermine($termin,$von,$bis,$katid) {
          if(kal_termine_kalender::kal_datumsdifferenz($datneu,$stdbis)<0) continue; // zu spaet
          $m=$m+1;
          $term[$m]=$ter;
-         #     Termin als Einzeltermin umwandeln
+         #     Termin zum Einzeltermin umwandeln
          $term[$m][COL_TAGE]=1;
          $term[$m][COL_DATUM]=$datneu;
          #     Beginn und Ende des jetzigen einfachen Termins anpassen
@@ -612,7 +629,7 @@ public static function kal_get_termine_all($von,$bis,$katid,$kontif) {
    #                       (gebraucht in den Kalendermenues)
    #   benutzte functions:
    #      self::kal_vorherige_wiederholungstermine($von,$bis,$katid)
-   #      self::kal_vorherige_folgetermine($von,$bis,$katid)
+   #      self::kal_vorherige_folgetermine($von,$bis,$katid,$kontif)
    #      self::kal_get_spieltermine($stvon,$stbis,$katid)
    #      self::kal_select_termine($von,$bis,$katid)
    #      self::kal_interne_wiederholungstermine($termin,$von,$bis,$katid)
@@ -628,8 +645,8 @@ public static function kal_get_termine_all($von,$bis,$katid,$kontif) {
    # --- vorherige Wiederholungstermine
    $term1=self::kal_vorherige_wiederholungstermine($stvon,$stbis,$katid);
    #
-   # --- vorherige Wiederholungstermine
-   $term2=self::kal_vorherige_folgetermine($stvon,$stbis,$katid);
+   # --- vorherige Folgetermine
+   $term2=self::kal_vorherige_folgetermine($stvon,$stbis,$katid,$kontif);
    #
    # --- 'einfache' Termine und Basistermine fuer Wiederholungen und Folgetermine
    if($katid>=SPIEL_KATID):
@@ -644,11 +661,11 @@ public static function kal_get_termine_all($von,$bis,$katid,$kontif) {
    # --- interne Folgetermine
    if($kontif>0) $term5=self::kal_interne_folgetermine($term3,$stvon,$stbis,$katid);
    #
-   # --- Korrekturen der 'einfache' Termine und Basistermine
+   # --- Korrekturen der internen 'einfachen' Termine und Basistermine
    #     Endzeit des ersten Tages von Folgeterminen anpassen
    for($i=1;$i<=count($term3);$i=$i+1)
       if($kontif>0 and $term3[$i][COL_TAGE]>=2) $term3[$i][COL_ENDE]='';
-   #     Wiederholungen und Folgetermine entfernen
+   #     Wiederholungen und Folgetermine zu Einzelterminen machen
    for($i=1;$i<=count($term3);$i=$i+1):
       if($kontif>0) $term3[$i][COL_TAGE]=1;
       endfor;
