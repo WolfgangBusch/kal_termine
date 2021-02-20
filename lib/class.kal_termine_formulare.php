@@ -739,7 +739,8 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    if($dauer>1 and !empty($ueber[2])):
      $dat=$ueber[2];
      $wta=kal_termine_kalender::kal_wotag($dat);
-     $warnung='<b>mehrtägig</b>, '.$dauer.' Tage, ab '.$dat;
+###     $warnung='<b>mehrtägig</b>, '.$dauer.' Tage, ab '.$dat;
+     $warnung='<b>mehrtägig</b>, '.$dauer.' Tage, ab '.$datum;   // Korrektur nach Vers. 3.2.1
      $str=$wta.', '.$dat.'<br/>
             ('.$warnung.')';
      endif;
