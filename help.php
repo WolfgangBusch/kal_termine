@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 echo '
 <div>Dieses AddOn bietet ein System zur Verwaltung und Darstellung von

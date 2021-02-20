@@ -1,4 +1,14 @@
 # kal_termine
+<h4>Version 3.2.1</h4>
+<ul>
+    <li>In den Monats-/Wochen-/Tagesblättern im Frontend werden jetzt
+        wieder alle Folgetermine von Terminen über mehrere Tage
+        angezeigt.</li>
+    <li>Wenn der Modul 'Termine anzeigen' mit dem Zeitraumfiltermenü
+        gestartet wird, ist jetzt wieder der Übergang in andere Menüs
+        möglich.</li>
+    <li>Die Darstellung des Terminblatts ist erweitert.</li>
+</ul>
 <h4>Version 3.2</h4>
 <ul>
     <li>Bei wöchentlich wiederkehrenden Terminen kann jetzt für
