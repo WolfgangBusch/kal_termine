@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Januar 2021
+ * @version Februar 2021
 */
 echo '<div>Hier werden nur <u>reine Spieldaten</u> benutzt, die nicht in der
 Tabelle <tt>'.TAB_NAME.'</tt> enthalten sind.<br/>Sie gruppieren sich um das
