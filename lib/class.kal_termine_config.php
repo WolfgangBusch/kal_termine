@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2021
+ * @version März 2021
 */
 define ('PACKAGE',         $this->getPackageId());
 define ('TAB_NAME',        'rex_'.PACKAGE);
@@ -35,13 +35,21 @@ define ('STD_ANZ_PIXEL',   'pixel');
 define ('MIN_ANZ_PIXEL',   100);
 define ('MAX_ANZ_PIXEL',   1000);
 define ('KAL_DEFAULT_COL', 'rgb(5,90,28)');     // Default-Grundfarbe (dunkelgruen)
-define ('KAL_COL',         'col');              // Name Keys der Grundfarbe
+define ('KAL_COL',         'col');              // Name des Keys der Grundfarbe
 define ('KAL_KAT',         'kat');              // Namensstamm der Kategorie-Keys ('kat1', 'kat2', ...)
 define ('RGB_GREY',        'rgb(150,150,150)'); // Farbe fuer Tage ausserhalb des aktuellen Monats
 define ('RGB_DIFF',        25);                 // RGB-Werte-Differenz 
 define ('RGB_MAX',         255-6*RGB_DIFF);
 define ('RGB_BLACK_WHITE', 128);                // Schwellwert fuer schwarze/weisse Beschriftung
 define ('SPIEL_KATID',     99990);              // Kategorie-Ids der Spieldaten beginnen bei 99991
+define ('KAL_MOBILE',      35);                 // Stylesheet-Variante Smartphone 'max-width:...em'
+define ('CSS_TERMBLATT',   'kal_terminblatt');  // Stylesheet Terminblatt
+define ('CSS_TERMLIST',    'kal_terminliste');  // Stylesheet Terminliste
+define ('CSS_MONMENUE',    'kal_monatsmenue');  // Stylesheet Monatsmenue
+define ('CSS_MWTBLATT',    'kal_mowotablatt');  // Stylesheet Mo-/Wo-/Ta-Blatt
+define ('CSS_SUCH',        'kal_such');         // Stylesheet Suchmenue
+define ('CSS_EINFORM',     'kal_eingabeform');  // Stylesheet Eingabeformulare
+define ('CSS_CONFIG',      'kal_config');       // Stylesheet Konfigurationsformulare
 #
 class kal_termine_config {
 #
@@ -77,26 +85,26 @@ public static function kal_define_tabellenspalten() {
    #   - Beschreibung und Hinweise zu den Tabellenspalten
    #
    $cols=array(
-      COL_PID   =>array('int(11) NOT NULL auto_increment', 'Termin-Id', 'Primärschlüssel', 'auto_increment'),
-      COL_NAME  =>array('varchar(255) NOT NULL',      'Veranstaltung',  '',            'nicht leer'),
-      COL_DATUM =>array('date NOT NULL',              'Datum',          'tt.mm.yyyy',  'nicht leer'),
-      COL_BEGINN=>array('time NOT NULL',              'Uhrzeit Beginn', 'hh:mm',       ''),
-      COL_TAGE  =>array('int(11) NOT NULL DEFAULT 1', 'Dauer in Tagen', '',            '>=1'),
-      COL_ENDE  =>array('time NOT NULL',              'Uhrzeit Ende',   'hh:mm',       ''),
-      COL_WOCHEN=>array('int(11) NOT NULL DEFAULT 0', 'Anz. wöchentl. Wiederholungen', '', ''),
-      COL_AUSRICHTER=>array('varchar(500) NOT NULL',  'Ausrichter',     '',            ''),
-      COL_ORT   =>array('varchar(255) NOT NULL',      'Ort',            '',            ''),
-      COL_LINK  =>array('varchar(500) NOT NULL',      'Link',           '',            ''),
-      COL_KOMM  =>array('text NOT NULL',              'Hinweise',       '',            ''),
-      COL_KATID =>array('int(11) NOT NULL DEFAULT 1', 'Kategorie-Id',   '',            '>=1'),
-      COL_ZEIT2 =>array('time NOT NULL',              'Beginn 2',       'hh:mm',       ''),
-      COL_TEXT2 =>array('varchar(255) NOT NULL',      'Ereignis 2',     '',            ''),
-      COL_ZEIT3 =>array('time NOT NULL',              'Beginn 3',       'hh:mm',       ''),
-      COL_TEXT3 =>array('varchar(255) NOT NULL',      'Ereignis 3',     '',            ''),
-      COL_ZEIT4 =>array('time NOT NULL',              'Beginn 4',       'hh:mm',       ''),
-      COL_TEXT4 =>array('varchar(255) NOT NULL',      'Ereignis 4',     '',            ''),
-      COL_ZEIT5 =>array('time NOT NULL',              'Beginn 5',       'hh:mm',       ''),
-      COL_TEXT5 =>array('varchar(255) NOT NULL',      'Ereignis 5',     '',            ''));
+      COL_PID   =>array('int(11) NOT NULL auto_increment', 'Termin-Id',  'Primärschlüssel', 'auto_increment'),
+      COL_NAME  =>array('varchar(255) NOT NULL',      'Veranstaltung',   '',            'nicht leer'),
+      COL_DATUM =>array('date NOT NULL',              'Datum',           'tt.mm.yyyy',  'nicht leer'),
+      COL_BEGINN=>array('time NOT NULL',              'Uhrzeit Beginn',  'hh:mm',       ''),
+      COL_TAGE  =>array('int(11) NOT NULL DEFAULT 1', 'Dauer in Tagen',  '',            '>=1'),
+      COL_ENDE  =>array('time NOT NULL',              'Uhrzeit Ende',    'hh:mm',       ''),
+      COL_WOCHEN=>array('int(11) NOT NULL DEFAULT 0', 'Wiederholungen',  '',            ''),
+      COL_AUSRICHTER=>array('varchar(500) NOT NULL',  'Ausrichter',      '',            ''),
+      COL_ORT   =>array('varchar(255) NOT NULL',      'Ort',             '',            ''),
+      COL_LINK  =>array('varchar(500) NOT NULL',      'Link',            '',            ''),
+      COL_KOMM  =>array('text NOT NULL',              'Hinweise',        '',            ''),
+      COL_KATID =>array('int(11) NOT NULL DEFAULT 1', 'Kategorie-Id',    '',            '>=1'),
+      COL_ZEIT2 =>array('time NOT NULL',              'Uhrzeit 2 Beginn','hh:mm',       ''),
+      COL_TEXT2 =>array('varchar(255) NOT NULL',      'Teil 2',          '',            ''),
+      COL_ZEIT3 =>array('time NOT NULL',              'Uhrzeit 3 Beginn','hh:mm',       ''),
+      COL_TEXT3 =>array('varchar(255) NOT NULL',      'Teil 3',          '',            ''),
+      COL_ZEIT4 =>array('time NOT NULL',              'Uhrzeit 4 Beginn','hh:mm',       ''),
+      COL_TEXT4 =>array('varchar(255) NOT NULL',      'Teil 4',          '',            ''),
+      COL_ZEIT5 =>array('time NOT NULL',              'Uhrzeit 5 Beginn','hh:mm',       ''),
+      COL_TEXT5 =>array('varchar(255) NOT NULL',      'Teil 5',          '',            ''));
    ###         create table:     'PRIMARY KEY (pid)'
    return $cols;
    }
@@ -109,14 +117,14 @@ public static function kal_ausgabe_tabellenstruktur() {
    $cols=self::kal_define_tabellenspalten();
    $keys=array_keys($cols);
    $string='
+<div class="'.CSS_CONFIG.'">
 <table class="kal_table">
-    <tr><td colspan="5" align="center">
-            <p><b>Tabelle \''.TAB_NAME.'\'</b></p></td></tr>
-    <tr><th class="kal_config_pad kal_config_border">Spaltenname</th>
-        <th class="kal_config_pad kal_config_border">Spalteninhalt</th>
-        <th class="kal_config_pad kal_config_border">Format</th>
-        <th class="kal_config_pad kal_config_border">Restriktionen</th>
-        <th class="kal_config_pad kal_config_border">Bem.</th></tr>
+    <tr><td class="indent" colspan="5"><h4>Tabelle \''.TAB_NAME.'\'</h4></td></tr>
+    <tr><td class="indent head">Spaltenname</td>
+        <td class="indent head">Spalteninhalt</td>
+        <td class="indent head">SQL-Format</td>
+        <td class="indent head">Restriktionen</td>
+        <td class="indent head">Hinweis</td></tr>
 ';
    for($i=0;$i<count($cols);$i=$i+1):
       $inha=$cols[$keys[$i]][1];
@@ -128,39 +136,43 @@ public static function kal_ausgabe_tabellenstruktur() {
       $beme='';
       if($form=='date') $beme='(1)';
       if($form=='time') $beme='(2)';
-      if($keys[$i]==COL_KATID) $beme='(3)';
+      if($keys[$i]==COL_WOCHEN) $beme='(*)';
+      if($keys[$i]==COL_KATID) $beme='(**)';
       $string=$string.'
-    <tr><td class="kal_config_pad kal_config_border"><tt>'.$keys[$i].'</tt></td>
-        <td class="kal_config_pad">'.$inha.'</td>
-        <td class="kal_config_pad"><tt>'.$form.'</tt></td>
-        <td class="kal_config_pad"><i>'.$bedg.'</i></td>
-        <td class="kal_config_pad"><i>'.$beme.'</i></td></tr>
+    <tr><td class="indent"><tt>'.$keys[$i].'</tt></td>
+        <td class="indent">'.$inha.'</td>
+        <td class="indent"><tt>'.$form.'</tt></td>
+        <td class="indent"><i>'.$bedg.'</i></td>
+        <td class="indent"><i>'.$beme.'</i></td></tr>
 ';
      endfor;
    $string=$string.'
 </table><br/>
 <table class="kal_table">
-    <tr valign="top">
-        <td class="kal_config_pad" colspan="2">
-            Texte (<tt>varchar</tt> bzw. <tt>text</tt>)
-            können keine (HTML-)Formatierung enthalten.</td></tr>
-    <tr valign="top">
-        <td class="kal_config_pad" colspan="2">
+    <tr><td class="indent head" colspan="2">Hinweise:</td></tr>
+    <tr><td class="indent">(1)</td>
+        <td class="indent">Datumsformat: <tt>tt.mm.yyyy</tt>
+            (wird für MySQL in das Format <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
+    <tr><td class="indent">(2)</td>
+        <td class="indent">Zeitformat: <tt>hh:mm</tt>
+            (wird für MySQL in das Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
+    <tr><td class="indent">(*)</td>
+        <td class="indent"><tt>'.COL_WOCHEN.'</tt> gibt an, wie oft der
+            betreffende Termin wöchentlich wiederkehrt</td></tr>
+    <tr><td class="indent">(**)</td>
+        <td class="indent"><tt>'.COL_KATID.'</tt> ist der Schlüssel für die
+            Kategorie gemäß Konfiguration</td></tr>
+    <tr><td class="indent" colspan="2">
             Mit <tt>'.COL_ZEIT2.'/'.COL_TEXT2.', ... , '.COL_ZEIT5.'/'.COL_TEXT5.'</tt>
             kann die Veranstaltung zeitlich untergliedert werden.</td></tr>
-    <tr valign="top">
-        <td class="kal_config_pad">(1)</td>
-        <td class="kal_config_pad">Datumsformat: <tt>tt.mm.yyyy</tt>
-            (wird für MySQL in das Format <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
-    <tr valign="top">
-        <td class="kal_config_pad">(2)</td>
-        <td class="kal_config_pad">Zeitformat: <tt>hh:mm</tt>
-            (wird für MySQL in das Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
-    <tr valign="top">
-        <td class="kal_config_pad">(3)</td>
-        <td class="kal_config_pad"><tt>'.COL_KATID.'</tt> ist der Schlüssel für die
-            Kategorie gemäß Konfiguration</td></tr>
+    <tr><td class="indent" colspan="2">
+            Texte (<tt>varchar</tt> bzw. <tt>text</tt>)
+            können keine (HTML-)Formatierung enthalten.</td></tr>
+    <tr><td class="indent" colspan="2">
+            Wöchentlich wiederkehrende Termine können <tt>nicht zugleich mehrtägig</tt>
+            sein.</td></tr>
 </table>
+</div>
 ';
    return $string;
    }
@@ -284,7 +296,7 @@ public static function kal_farben() {
    #
    # --- Charakterisierung/Einsatz der Farben
    $cnam=array(
-      1=>'dunkle Schrift-/Rahmenfarbe',
+      1=>'dunkle Schrift-/Rahmenfarbe, Grundfarbe (<b>R,G,B &le; '.RGB_MAX.'</b>)',
       2=>'helle Schriftfarbe, Stundenleiste',
       3=>'Hintergrundfarbe (Termine im Tages-/Wochen-/Monatsblatt)',
       4=>'Hintergrundfarbe (Sonn- und Feiertage, Such-Button)',
@@ -292,7 +304,7 @@ public static function kal_farben() {
       6=>'Hintergrundfarbe (Wochentage, Terminblatt, Suchformular)',
       7=>'Schrift-/Rahmenfarbe (heutiger Tag)',
       8=>'Hintergrundfarbe (heutiger Tag)',
-      9=>'Schrift-/Rahmenfarbe außerhalb des aktuellen Monats');
+      9=>'neutrale Schrift-/Rahmenfarbe (nicht abgeleitet)');
    $anz=6;   // Anzahl der Farbtoene in der Farbe der Grundfarbe
    #
    # --- RGB-Werte der Farben
@@ -343,7 +355,7 @@ public static function kal_hatch_gen($dif,$bgcolor) {
         $n=0;
         endif;
       $hatch=$hatch.'
-   '.$col.' '.$i.'%, '.$col.' '.$kk.'%,';
+    '.$col.' '.$i.'%, '.$col.' '.$kk.'%,';
       $ii=$kk;
       endfor;
    $hatch=substr($hatch,0,strlen($hatch)-1).'); }';
@@ -357,117 +369,174 @@ public static function kal_define_css() {
    #      self::kal_farben()
    #      self::kal_hatch_gen($dif,$bgcolor)
    #
-   # --- Bemassung der Stundenleiste (Anzahl Pixel fuer 1 bzw. 2 Stunden)
-   $daten=self::kal_define_stundenleiste();
-   $stdsiz=$daten[4];
-   $stdsi2=2*$stdsiz;
-   #
    # --- Farben
    $farben=self::kal_farben();
    for($i=1;$i<=count($farben);$i=$i+1) $kalcol[$i]=$farben[$i]['rgb'];
    #
    # --- Streifenmuster fuer Monatstage, an denen Termine liegen
    $dif=10;     // Streifenbreite: 10%
-   $hatch=self::kal_hatch_gen($dif,$kalcol[5]);
+   $hatch=self::kal_hatch_gen($dif,$kalcol[4]);
    #
-   $string='/*   K a l e n d e r   */
+   # --- CSS-Formate
+   $liste_width=intval(0.6*KAL_MOBILE);
+   $monwidth=8.5;
+   $form_box='padding:0.25em; border-collapse:separate; border-spacing:0.25em;';
+   $form_col1=$form_box.'
+    color:'.$kalcol[1].'; background-color:transparent;
+    border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
+   $form_col2=$form_box.'
+    color:'.$kalcol[2].'; background-color:transparent;
+    border:solid 1px '.$kalcol[2].'; border-radius:0.25em;';
+   $form_col3=$form_box.'
+    color:'.$kalcol[1].'; background-color:'.$kalcol[3].';
+    border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
+   $form_col4=$form_box.'
+    color:'.$kalcol[1].'; background-color:'.$kalcol[4].';
+    border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
+   $form_col5=$form_box.'
+    color:'.$kalcol[1].'; background-color:'.$kalcol[5].';
+    border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
+   $form_col6=$form_box.'
+    color:'.$kalcol[1].'; background-color:'.$kalcol[6].';
+    border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
+   $form_col7=$form_box.'
+    color:'.$kalcol[7].'; background-color:transparent;
+    border:solid 1px '.$kalcol[7].'; border-radius:0.25em;';
+   $form_col8=$form_box.'
+    color:'.$kalcol[7].'; background-color:'.$kalcol[8].';
+    border:solid 1px '.$kalcol[7].'; border-radius:0.25em;';
+   $form_col9=$form_box.'
+    color:'.$kalcol[9].'; background-color:transparent;
+    border:solid 1px '.$kalcol[9].'; border-radius:0.25em;';
+   #
+   # --- Stylesheet-Datei
+   $string='/*   T e r m i n k a l e n d e r   */
 
-/*   Tabelle, Rahmen   */
+/*   Allgemeines   */
+.kal_linkbutton { cursor:pointer; text-align:left; }
+.kal_boldbig { font-size:1.2em; font-weight:bold; }
+.kal_transparent { margin:0; padding:0; border:none; color:inherit; background-color:transparent; }
 .kal_table { background-color:inherit; }
-.kal_border { padding:1px; background-color:inherit; border-spacing:2px;
-   border-collapse:separate; border-radius:0.25em; border:solid 1px '.$kalcol[1].'; }
+.kal_box { '.$form_col1.' }
+.kal_rotate { margin:0 0 0.1em 0; text-align:center; font-size:1.2em; font-weight:bold;
+    display:inline-block; transform:rotate(1200deg); }
+.kal_100pro { width:100%; }
+.kal_basecol { color:'.$kalcol[1].'; }
+.kal_fail { color:red; }
+.kal_msg { '.$form_col6.' }
+.kal_block_uebernehmen { color:'.$kalcol[2].'; font-weight:bold; font-style:italic; }
 
-/*   Tag im Monatsmenue   */
-.kal_tag { width:20px; line-height:1.5em; padding:2px; text-align:right;
-   border-radius:0.25em; }
-.kal_wotag { background-color:'.$kalcol[6].'; border:solid 1px '.$kalcol[1].';
-   color:'.$kalcol[1].'; }
-.kal_sotag { background-color:'.$kalcol[4].'; border:solid 1px '.$kalcol[1].';
-   color:'.$kalcol[1].'; }
-.kal_hetag { background-color:'.$kalcol[8].'; border:solid 1px '.$kalcol[7].';
-   color:'.$kalcol[7].'; }
-.kal_vntag { background-color:transparent;    border:solid 1px '.$kalcol[9].';
-   color:'.$kalcol[9].'; }
+/*   Farbkombinationen fuer Kalenderfelder   */
+.kal_col1 { '.$form_col1.' }
+.kal_col2 { '.$form_col2.' }
+.kal_col3 { '.$form_col3.' }
+.kal_col4 { '.$form_col4.' }
+.kal_col5 { '.$form_col5.' }
+.kal_col6 { '.$form_col6.' }
+.kal_col7 { '.$form_col7.' }
+.kal_col8 { '.$form_col8.' }
+.kal_col9 { '.$form_col9.' }
+
+/*   Terminblatt   */
+.'.CSS_TERMBLATT.' { }
+.'.CSS_TERMBLATT.' th { padding:0.25em; vertical-align:top; text-align:left; }
+.'.CSS_TERMBLATT.' td { padding:0.25em; vertical-align:top; text-align:left; }
+.'.CSS_TERMBLATT.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
+
+/*   Terminliste   */
+.'.CSS_TERMLIST.' { }
+.'.CSS_TERMLIST.' th { padding:0 1em 0 0; text-align:right; white-space:nowrap;
+    font-weight:bold; vertical-align:top; }
+@media screen and (max-width:'.KAL_MOBILE.'em) {
+    .'.CSS_TERMLIST.' th { float:left; padding:0; text-align:left; white-space:normal; }
+    .'.CSS_TERMLIST.' td { float:left; padding:0 0 0 1em; min-width:'.$liste_width.'em; }
+    }
+
+/*   Monatsmenue   */
+.'.CSS_MONMENUE.' { }
+.'.CSS_MONMENUE.' .padl { padding:0 0.5em 0 0; }
+.'.CSS_MONMENUE.' .padr { padding:0 0 0 0.5em; }
+.'.CSS_MONMENUE.' .left  { float:left; }
+.'.CSS_MONMENUE.' .right { float:right; }
+.'.CSS_MONMENUE.' .center { text-align:center; }
+.'.CSS_MONMENUE.' .rechts { text-align:right; }
+.'.CSS_MONMENUE.' .width { min-width:'.$monwidth.'em; max-width:'.$monwidth.'em; }
+.'.CSS_MONMENUE.' .wot { padding:0.25em; text-align:center; color:'.$kalcol[2].'; }
+.'.CSS_MONMENUE.' .kalenderwoche  { padding:0.25em; text-align:right;  color:'.$kalcol[2].'; }
 '.$hatch.'
 
-/*   Tagesstreifen im Monats-/Wochen-/Tagesblatt   */
-.kal_pix { max-width:'.$stdsiz.'px; min-width:'.$stdsiz.'px; line-height:0.2em;
-   padding-left:1px; padding-right:1px; border-spacing:2px; border-width:1px; }
-.kal_pixn { border-left:solid 1px '.$kalcol[2].'; }
-.kal_pixr { border-left:solid 1px '.$kalcol[2].'; border-right:solid 1px '.$kalcol[2].'; }
-.kal_std1 { max-width:'.$stdsiz.'px; min-width:'.$stdsiz.'px; padding:2px;
-   text-align:right;  color:'.$kalcol[2].'; }
-.kal_std2 { max-width:'.$stdsi2.'px; min-width:'.$stdsi2.'px; padding:2px;
-   text-align:center; color:'.$kalcol[2].'; }
-.kal_strtag { line-height:1.5em; padding-left:1px; padding-right:1px;
-   border-spacing:2px; border-width:1px; border-radius:0.25em; }
-.kal_womtag { background-color:'.$kalcol[6].'; border:solid 1px '.$kalcol[1].'; }
-.kal_somtag { background-color:'.$kalcol[4].'; border:solid 1px '.$kalcol[1].'; }
-.kal_hemtag { background-color:'.$kalcol[8].'; border:solid 1px '.$kalcol[7].'; }
-.kal_termintag { white-space:nowrap; font-size:smaller; overflow-x:hidden;
-   background-color:'.$kalcol[3].'; color:'.$kalcol[1].'; }
+/*   Monats-/Wochen-/Tagesblatt, Stundenleiste, Terminfeld   */
+.'.CSS_MWTBLATT.' { }
+.'.CSS_MWTBLATT.' hr { margin:0; padding:0; border:none; background-color:inherit; }
+.'.CSS_MWTBLATT.' .vis_leiste { visibility:visible; }
+.'.CSS_MWTBLATT.' .zeitenzeile { height:0; visibility:hidden; }
+.'.CSS_MWTBLATT.' .left  { float:left; }
+.'.CSS_MWTBLATT.' .right { float:right; }
+.'.CSS_MWTBLATT.' .center { text-align:center; }
+.'.CSS_MWTBLATT.' .pad0 { padding:0 0.5em 0 0.5em; color:'.$kalcol[1].'; }
+.'.CSS_MWTBLATT.' .pad1 { padding:0 0.25em 0 0.25em; vertical-align:top; text-align:right;
+    white-space:nowrap; font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_MWTBLATT.' .tag { width:100%; padding:0; line-height:1.5em; }
+@media screen and (max-width:'.KAL_MOBILE.'em) {
+    .'.CSS_MWTBLATT.' hr { margin:0.25em; padding:1px; border:solid 1px inherit; 
+        background-color:'.$kalcol[3].'; }
+    .'.CSS_MWTBLATT.' .vis_leiste { visibility:collapse; }
+    .'.CSS_MWTBLATT.' .zeitenzeile { height:inherit; visibility:visible; }
+    .'.CSS_MWTBLATT.' .pad1 { padding:0 0.25em 0 0.25em; vertical-align:top; text-align:right; white-space:normal;
+        white-space:normal; font-weight:normal; color:'.$kalcol[2].'; }
+    }
+/*   Stundenleiste   */
+.'.CSS_MWTBLATT.' .width1 { min-width:1em; max-width:1em; }
+.'.CSS_MWTBLATT.' .width2 { min-width:2em; max-width:2em; }
+.'.CSS_MWTBLATT.' .lineal { line-height:0.25em; border-left:solid 1px '.$kalcol[2].'; }
+.'.CSS_MWTBLATT.' .center { text-align:center; color:'.$kalcol[2].'; }
+.'.CSS_MWTBLATT.' .right  { text-align:right;  color:'.$kalcol[2].'; }
+/*   Terminfeld   */
+.'.CSS_MWTBLATT.' .termin { white-space:nowrap; overflow-x:hidden;
+    '.$form_col4.' padding:0.1em !important; }
+@media screen and (max-width:'.KAL_MOBILE.'em) {
+    .'.CSS_MWTBLATT.' .termin { white-space:normal;
+        padding:0.25em; color:'.$kalcol[1].'; background-color:transparent; border:none; }
+    }
 
-/*   Termin-Parameter im Terminblatt   */
-.kal_termv { max-width:400px; line-height:1.5em; padding-left:5px; padding-right:5px;
-   color:'.$kalcol[1].'; }
-.kal_termval { background-color:'.$kalcol[6].'; border:solid 1px '.$kalcol[1].';
-   border-radius:0.25em; }
+/*   Suchmenue   */
+.'.CSS_SUCH.' { }
+.'.CSS_SUCH.' select, .'.CSS_SUCH.' input, .'.CSS_SUCH.' button { padding:0.1em; }
+.'.CSS_SUCH.' .th { padding:0.25em; text-align:left; font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_SUCH.' .td { padding:0.25em; white-space:nowrap; color:'.$kalcol[1].'; }
+.'.CSS_SUCH.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
+.'.CSS_SUCH.' .right { float:right; }
+.'.CSS_SUCH.' .left  { text-align:left; }
+.'.CSS_SUCH.' .liste { padding-left:1em; }
+@media screen and (max-width:'.KAL_MOBILE.'em) {
+    .'.CSS_SUCH.' .liste { padding-left:0; }
+    }
 
-/*   Kopf des Suchmenues   */
-.kal_search { line-height:1.5em; padding:1px 5px 1px 5px; font-size:smaller;
-   white-space:nowrap; text-align:center; color:'.$kalcol[1].';
-   border-radius:0.25em; border:solid 1px '.$kalcol[1].'; }
-.kal_search_td { width:100px; background-color:'.$kalcol[6].'; }
-.kal_search_th { width:10px; font-weight:bold; background-color:'.$kalcol[5].'; }
-.kal_option { padding:1px; font-size:1.0em; color:'.$kalcol[1].';
-   background-color:'.$kalcol[5].'; }
-.kal_select { border-radius:0.25em; border:solid 1px '.$kalcol[1].'; }
-.kal_form { font-size:1.0em; color:'.$kalcol[1].';
-   border-radius:0.25em; border:solid 1px '.$kalcol[1].'; }
-.kal_input { padding:2px 5px 3px 5px; background-color:'.$kalcol[5].'; }
-.kal_submit { padding:0px 5px 0px 5px; font-weight:bold; background-color:'.$kalcol[4].'; }
-.kal_transparent { margin:0px; padding:0px; border:none; font-size:inherit;
-   font-weight:inherit; color:inherit; background-color:transparent; }
-.kal_linkbutton { cursor:pointer; }
-
-/*   Text-Charakteristika und -farben   */
-.kal_txt_titel { min-width:150px; padding:2px; white-space:nowrap; font-weight:bold;
-   font-size:1.2em; text-align:center; color:'.$kalcol[1].'; }
-.kal_txt1 { padding:2px; color:'.$kalcol[1].'; }
-.kal_txtb1 { padding:2px; font-weight:bold; color:'.$kalcol[1].'; }
-.kal_txt2 { padding:2px; color:'.$kalcol[2].'; }
-.kal_txtb2 { padding:2px; font-weight:bold; color:'.$kalcol[2].'; }
-.kal_success { color:blue; }
-.kal_fail { color:red; }
+/*   Termin-Eingabeformular   */
+.'.CSS_EINFORM.' { }
+.'.CSS_EINFORM.' th { vertical-align:top; line-height:2em; text-align:left; font-weight:bold; }
+.'.CSS_EINFORM.' td { line-height:1.5em; }
+.'.CSS_EINFORM.' select { padding:0.25em; }
+.'.CSS_EINFORM.' .action { font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_EINFORM.' .left { width:12em; vertical-align:top; white-space:nowrap; }
+.'.CSS_EINFORM.' .right { text-align:right; }
+.'.CSS_EINFORM.' .text { width:35em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .date { width: 6em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .time { width: 4em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .int  { width: 3em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .left2 { width:8em; vertical-align:top; white-space:nowrap; }
+.'.CSS_EINFORM.' .pad { padding-left:1em; text-align:left; }
 
 /*   Formulare im Backend   */
-.kal_install_menue { padding-left:20px; vertical-align:top; }
-.kal_install_number { width:50px; padding-right:5px; text-align:right; }
-.kal_install_termlist { padding-left:20px; white-space:nowrap; }
-.kal_config_pad { padding-left:5px; padding-right:5px; white-space:nowrap; }
-.kal_config_border { border:solid 1px grey; }
-.kal_config_indent { padding-left:20px; }
-.kal_config_th { height:2.5em; font-weight:bold; }
-.kal_config_kat { width:100%; padding-left:5px; }
-.kal_config_number { width:50px; padding-right:5px; text-align:right; }
-.kal_config_small { font-size:smaller; }
-.kal_config_bgcol { width:400px; padding-left:5px; white-space:nowrap; }
-.kal_form_input_text { width:450px; padding-left:2px; padding-right:2px; }
-.kal_form_input_date { width:80px; padding-left:2px; padding-right:2px; }
-.kal_form_input_time { width:60px; padding-left:2px; padding-right:2px; }
-.kal_form_input_int  { width:40px; padding-left:2px; padding-right:2px; text-align:right; }
-.kal_form_th { vertical-align:top; text-decoration:underline; font-weight:bold;
-    white-space:nowrap; width:110px; }
-.kal_form_pad { padding-left:10px; }
-.kal_form_nowrap { white-space:nowrap; }     
-.kal_form_td450 { padding-left:5px; width:450px; white-space:nowrap; }
-.kal_form_prom { white-space:nowrap; color:blue; }
-.kal_form_msg { white-space:nowrap; color:blue; background-color:yellow; }
-.kal_form_search { width:150px; padding-left:2px; padding-right:2px; }
-.kal_form_block { color:green; white-space:nowrap; font-style:italic; }
-.kal_form_fail { color:red; white-space:nowrap; }
-.kal_form_list_th { vertical-align:top; padding-left:15px; padding-right:10px;
-    text-align:right; font-weight:bold; white-space:nowrap; }
+.'.CSS_CONFIG.' { }
+.'.CSS_CONFIG.' h4 { text-align:center; }
+.'.CSS_CONFIG.' th { text-align:center; }
+.'.CSS_CONFIG.' .head { text-align:left; font-weight:bold; }
+.'.CSS_CONFIG.' .indent { padding:0.1em 0.1em 0.1em 1.5em; white-space:nowrap; }
+.'.CSS_CONFIG.' .undent { padding:0.1em 0.1em 0.1em 0.25em; white-space:nowrap; }
+.'.CSS_CONFIG.' .number { padding:0.25em 1em 0.25em 0.25em; text-align:right; }
+.'.CSS_CONFIG.' .inpint { width:4em; padding:0 0.25em 0 0.25em; text-align:right; }
+.'.CSS_CONFIG.' .inptxt { width:14em; padding:0 0.25em 0 0.25em; }
 ';
    return $string;
    }
@@ -528,17 +597,20 @@ public static function kal_config_form($readsett) {
    #      self::kal_farben()
    #      self::kal_split_color($color)
    #
-   # --- Formular, Farben
-   $restr='<span class="kal_config_indent kal_config_small" style="font-weight:normal;">(R,G,B < '.intval(RGB_MAX+1).')</span>';
+   # --- Ueberschrift Farbe
    $string='
+<div class="'.CSS_CONFIG.'">
 <form method="post">
 <table class="kal_table">
-    <tr><td class="kal_config_th">
-            Grundfarbe in den Kalendermenüs (RGB): '.$restr.'</td>
-        <td class="kal_config_indent" align="center">R</td>
-        <td class="kal_config_indent" align="center">G</td>
-        <td class="kal_config_indent" align="center">B</td></tr>';
-   # --- Formular, Erlaeuterungstexte zu den Farben
+    <tr><td class="head" colspan="4">
+            Farben in den Kalendermenüs (RGB):</td></tr>
+    <tr><td class="indent">
+            zumeist abgeleitet von der definierten Grundfarbe</td>
+        <th class="number">R&nbsp;</th>
+        <th class="number">G&nbsp;</th>
+        <th class="number">B&nbsp;</th></tr>';
+   #
+   # --- Formular Grundfarbe
    $farben=self::kal_farben();
    $colrgb=array();
    $coltxt=array();
@@ -548,72 +620,55 @@ public static function kal_config_form($readsett) {
       endfor;
    $col=self::kal_split_color($colrgb[1]);
    $string=$string.'
-    <tr><td class="kal_config_indent">
-            <input class="form-control kal_config_bgcol"
-                   style="color:'.$colrgb[1].'; border:solid 1px '.$colrgb[1].';" type="text" value="'.$coltxt[1].':" /></td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="red"   value="'.$col['red'].'" /></td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="green" value="'.$col['green'].'" /></td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="blue"  value="'.$col['blue'].'" /></td></tr>
-    <tr><td class="kal_config_indent" colspan="4"><span class="kal_config_indent">daraus abgeleitete Farbtöne:</span></td></tr>';
+    <tr><td class="indent">
+            <div class="indent kal_col1">'.$coltxt[1].'</div></td>
+        <td class="indent">
+            <input class="inpint" type="text" name="red"   value="'.$col['red'].'" /></td>
+        <td class="undent">
+            <input class="inpint" type="text" name="green" value="'.$col['green'].'" /></td>
+        <td class="undent">
+            <input class="inpint" type="text" name="blue"  value="'.$col['blue'].'" /></td></tr>';
+   #
+   # --- restliche Farben
    for($i=2;$i<=count($farben);$i=$i+1):
-      $tcol=$colrgb[1];
       $col=self::kal_split_color($colrgb[$i]);
-      if($i==2 or $i==7 or $i==9):
-        if($i==7 or $i==9) $tcol=$colrgb[$i];
-        $string=$string.'
-    <tr><td class="kal_config_indent">
-            <div class="kal_config_pad kal_config_small"
-                 style="margin-bottom:1px; background-color:transparent; color:'.$colrgb[$i].'; border:solid 1px '.$tcol.';">'.$coltxt[$i].'</div></td>
-        <td class="kal_config_number kal_config_small">'.$col['red'].' &nbsp; &nbsp; </td>
-        <td class="kal_config_number kal_config_small">'.$col['green'].' &nbsp; &nbsp; </td>
-        <td class="kal_config_number kal_config_small">'.$col['blue'].' &nbsp; &nbsp; </td></tr>';
-        else:
-        if($i==8) $tcol=$colrgb[7];
-        $string=$string.'
-    <tr><td class="kal_config_indent">
-            <div class="kal_config_pad kal_config_small"
-                 style="margin-bottom:1px; background-color:'.$colrgb[$i].'; color:'.$tcol.'; border:solid 1px '.$tcol.';">'.$coltxt[$i].'</div></td>
-        <td class="kal_config_number kal_config_small">'.$col['red'].' &nbsp; &nbsp; </td>
-        <td class="kal_config_number kal_config_small">'.$col['green'].' &nbsp; &nbsp; </td>
-        <td class="kal_config_number kal_config_small">'.$col['blue'].' &nbsp; &nbsp; </td></tr>';
-        endif;
+      $string=$string.'
+    <tr><td class="indent">
+            <div class="indent kal_col'.$i.'">'.$coltxt[$i].'</div></td>
+        <td class="number">'.$col['red'].'</td>
+        <td class="number">'.$col['green'].'</td>
+        <td class="number">'.$col['blue'].'</td></tr>';
       endfor;
    #
-   # --- Formular, Stundenleiste
+   # --- Formular Stundenleiste
    $string=$string.'
-    <tr><td class="kal_config_th" colspan="4"><br/>
+    <tr><td class="head" colspan="4">
             Darstellung des Uhrzeit-Bereichs bei Tagesterminen:</td></tr>
-    <tr><td class="kal_config_indent">Start-Uhrzeit &nbsp;
-            <span class="kal_config_small">(ganze Zahl)</span>:</td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="'.STD_BEG_UHRZEIT.'" value="'.$readsett[STD_BEG_UHRZEIT].'" /></td>
-        <td class="kal_config_small" colspan="2"> &nbsp; : 00 Uhr</td></tr>
-    <tr><td class="kal_config_indent">End-Uhrzeit &nbsp;
-            <span class="kal_config_small">(ganze Zahl)</span>:</td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="'.STD_END_UHRZEIT.'" value="'.$readsett[STD_END_UHRZEIT].'" /></td>
-        <td class="kal_config_small" colspan="2"> &nbsp; : 00 Uhr</td></tr>
-    <tr><td class="kal_config_indent">Gesamtbreite &nbsp;
-            <span class="kal_config_small">(ganze Zahl, zwischen '.MIN_ANZ_PIXEL.' und '.MAX_ANZ_PIXEL.')</span>:</td>
-        <td class="kal_config_indent">
-            <input class="form-control kal_config_number" type="text" name="'.STD_ANZ_PIXEL.'" value="'.$readsett[STD_ANZ_PIXEL].'" /></td>
-        <td class="kal_config_small" colspan="2"> &nbsp; Pixel</td></tr>';
+    <tr><td class="indent">Start-Uhrzeit &nbsp; <i>(ganze Zahl)</i>:</td>
+        <td class="indent">
+            <input class="inpint" type="text" name="'.STD_BEG_UHRZEIT.'" value="'.$readsett[STD_BEG_UHRZEIT].'" /></td>
+        <td colspan="2"><tt>&nbsp;:00 Uhr</tt></td></tr>
+    <tr><td class="indent">End-Uhrzeit &nbsp; <i>(ganze Zahl)</i>:</td>
+        <td class="indent">
+            <input class="inpint" type="text" name="'.STD_END_UHRZEIT.'" value="'.$readsett[STD_END_UHRZEIT].'" /></td>
+        <td colspan="2"><tt>&nbsp;:00 Uhr</tt></td></tr>
+    <tr><td class="indent">Gesamtbreite &nbsp; <i>(ganze Zahl, zwischen '.MIN_ANZ_PIXEL.' und '.MAX_ANZ_PIXEL.')</i>:</td>
+        <td class="indent">
+            <input class="inpint" type="text" name="'.STD_ANZ_PIXEL.'" value="'.$readsett[STD_ANZ_PIXEL].'" /></td>
+        <td colspan="2"><tt>&nbsp;Pixel</tt></td></tr>';
    #
    # --- Formular, Terminkategorien
    $string=$string.'
-    <tr><td class="kal_config_th" colspan="4">Terminkategorien:</td></tr>';
+    <tr><td class="head" colspan="4">Terminkategorien:</td></tr>';
    $anz=0;
    for($i=1;$i<=count($readsett)-4;$i=$i+1):
       $key=KAL_KAT.strval($i);
       $set=$readsett[$key];
       if(!empty($set)):
         $string=$string.'
-    <tr><td class="kal_config_indent">'.$i.':</td>
-        <td class="kal_config_indent" colspan="3">
-            <input class="form-control kal_config_kat" type="text" name="'.$key.'" value="'.$set.'" /></td></tr>';
+    <tr><td class="indent">'.$i.'</td>
+        <td class="indent" colspan="3">
+            <input class="inptxt" type="text" name="'.$key.'" value="'.$set.'" /></td></tr>';
         $anz=$anz+1;
         endif;
       endfor;
@@ -622,14 +677,14 @@ public static function kal_config_form($readsett) {
    $i=$anz+1;
    $key=KAL_KAT.strval($i);
    $string=$string.'
-    <tr><td class="kal_config_indent">
-            '.$i.' <span class="kal_config_indent kal_config_small">(hier im Feld '.$i.' kann eine neue Kategorie angefügt werden)</span>:</td>
-        <td class="kal_config_indent" colspan="3">
-            <input class="form-control kal_config_kat" type="text" name="'.$key.'" value="" /></td></tr>
-    <tr><td class="kal_config_indent kal_config_small">
-            Zum Entfernen der letzten Kategorien (ab Kategorie <u>m</u>):</td>
-        <td class="kal_config_indent kal_config_small" colspan="3">
-            entsprechende Felder leeren (ab Feld <u>m</u>)</td></tr>';
+    <tr><td class="indent">
+            '.$i.' &nbsp; <i>(hier kann eine neue Kategorie angefügt werden)</i></td>
+        <td class="indent" colspan="3">
+            <input class="inptxt" type="text" name="'.$key.'" value="" /></td></tr>
+    <tr><td class="indent">
+            <i>Zum <b>Entfernen</b> der <b>letzten</b> Kategorien:</i></td>
+        <td class="indent" colspan="3">
+            <i>entsprechende Felder leeren</i></td></tr>';
    #
    # --- Formular, Abschluss
    $rebut='auf Defaultwerte zurücksetzen';
@@ -640,11 +695,12 @@ public static function kal_config_form($readsett) {
     <tr><td><br/>
             <button class="btn btn-update" type="submit" name="reset" value="reset"
                     title="'.$retit.'">'.$rebut.' und speichern</button></td>
-        <td class="kal_config_indent" colspan="3"><br/>
+        <td class="indent" colspan="3"><br/>
             <button class="btn btn-save"   type="submit" name="save"  value="save"
                     title="'.$sptit.'">'.$spbut.'</button></td></tr>
 </table>
-</form>';
+</form>
+</div>';
    echo $string;
    }
 public static function kal_config() {
@@ -699,7 +755,8 @@ public static function kal_config() {
         else:
         # --- Sonstige
         $defs='';
-        if($i<$nzdefs) $defs=$defsett[$key];
+        $defs='';
+        if($i<$nzdefs and !empty($defsett[$key])) $defs=$defsett[$key];
         $conf=$confsett[$key];
         $post='';
         if(!empty($_POST[$key])) $post=$_POST[$key];

@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2021
+ * @version März 2021
 */
 #
 class kal_termine_install {
@@ -206,13 +206,13 @@ $value[17]=REX_VALUE[17];
 $value[18]=REX_VALUE[18];
 $value[19]=REX_VALUE[19];
 $value[20]=REX_VALUE[20];
-$katid=0;
+$katid=0;   // ggf. hier eine feste Kategorie-Id>0 vorschreiben
 $sid="REX_SLICE_ID";
 kal_termine_module::kal_manage_termine($value,$sid,$katid);
 ?>';
    $out[1]='<?php
 if(rex::isBackend())
-  echo "<div><span class=\"kal_form_msg\">".
+  echo "<div><span class=\"kal_msg\">".
      "Für die Terminverwaltung den Block editieren!</span></div>";
 ?>';
    $ident[1]='kal_termine_module::kal_manage_termine';
@@ -223,15 +223,16 @@ if(rex::isBackend())
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-$katid=REX_VALUE[4];
-echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage,$katid)
+$kid=REX_VALUE[4];
+$katid=0;   // ggf. hier eine feste Kategorie-Id>0 vorschreiben
+echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage,$kid,$katid)
 ?>';
    $out[2]='<?php
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-$katid=REX_VALUE[4];
-echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$katid);
+$kid=REX_VALUE[4];
+echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$kid);
 ?>';
    $ident[2]='kal_termine_module::kal_terminmenue_in';
    #
