@@ -1,6 +1,14 @@
 # kal_termine
-<p>Nachbesserung zu Version 3.2.1: Anzeige des Terminblatts<br/>
-(lib/class.kal_termine_formulare.php, function kal_terminbatt)</p>
+<h4>Version 3.3</h4>
+<ul>
+    <li>Die Menüs sind jetzt systematischer strukturiert und
+        verlinkt. Außerdem gibt es jetzt nur noch ein Suchmenü
+        über jeweils ein Kalenderjahr.</li>
+    <li>Die Menüs sind jetzt mittels responsiver CSS-Codes am
+        Smartphone genauso gut lesbar wie am Desktop.</li>
+    <li>Die Terminkategorien können jetzt vollständig getrennt
+        benutzt und verwaltet werden.</li>
+</ul>
 <h4>Version 3.2.1</h4>
 <ul>
     <li>In den Monats-/Wochen-/Tagesblättern im Frontend werden jetzt
