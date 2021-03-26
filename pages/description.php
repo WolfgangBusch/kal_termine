@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2021
+ * @version März 2021
 */
 #
 # --- Beschreibung
@@ -20,15 +20,15 @@ $string='
 <ul>
     <li>Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert</li>
     <li>Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine</li>
-    <li>Liste der Termine eines beliebigen Zeitraums mit/ohne Filterfunktionen</li>
-    <li>Liste der Termine eines Zeitabschnitts (Monat/Woche/Tag) mit Filterfunktionen</li>
+    <li>Liste der Termine eines Kalenderjahres mit Filterfunktionen</li>
     <li>tabellarische Darstellung der Daten eines Termins</li>
 </ul>
 
-<div>Alle Menüs sind untereinander verlinkt, sodass man von einem zum
-anderen wechseln kann. Das Monatsmenü gestattet das Blättern zum Vor- oder
-Folgemonat sowie zum gleichen Monat im Vor- oder Folgejahr. Gesetzliche und
-christliche Feiertage sind entsprechend markiert.</div>
+<div>Alle Kalendermenüs gestatten das Blättern zum vorherigen und nachfolgenden
+Zeitabschnitt, das Monatsmenü zusätzlich zum gleichen Monat im Vor- oder Folgejahr.
+Zudem sind sie untereinander verlinkt, sodass man von einem zum anderen wechseln
+kann. Die Kalenderfunktionen liefern in Form von tooltips gesetzliche und
+christliche Feiertage.</div>
 ';
 echo $string;
 ?>

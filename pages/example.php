@@ -3,14 +3,16 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Februar 2021
+ * @version März 2021
 */
-echo '<div>Hier werden nur <u>reine Spieldaten</u> benutzt, die nicht in der
-Tabelle <tt>'.TAB_NAME.'</tt> enthalten sind.<br/>Sie gruppieren sich um das
-aktuelle Datum herum und wiederholen sich wöchentlich.<br/>
-Einige der hier angezeigten Menüs können (anstelle des Monatsmenüs) als Startmenü
-gewählt werden.<br/>&nbsp;</div>
-<div align="center">
+echo '<div><br/>Hier werden nur <u>reine Spieldaten</u> benutzt, die nicht in der
+Tabelle <tt>'.TAB_NAME.'</tt> enthalten sind. Sie sind in insgesamt '.
+count(kal_termine_tabelle::kal_get_spielkategorien()).'
+Kategorien gegliedert und werden hier gemeinsam angezeigt. Sie gruppieren sich um das
+aktuelle Datum herum und wiederholen sich wöchentlich.</div>
+<div><br/>Einige der hier angezeigten Menüs können (anstelle des Monatsmenüs) als
+Startmenü gewählt werden.</div>
+<div align="center"><br/>
 '.kal_termine_menues::kal_menue(SPIEL_KATID,1).'
 <br/>&nbsp;</div>';
 ?>
