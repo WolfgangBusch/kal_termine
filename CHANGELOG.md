@@ -1,4 +1,18 @@
 # kal_termine
+<h4>Version 3.3.1</h4>
+<ul>
+    <li>Die Version enthält eine kleine Verbesserung des
+        responsiven Designs für iPhones.</li>
+    <li>Im Suchmenü sind die abgelaufenen Termine jetzt
+        standardmäßig ausgeblendet.</li>
+    <li>Das Design der Terminliste wird jetzt über CSS-Klassen
+        gesteuert. Die Defaults können über eigene Stylesheets
+        individuell überschrieben und angepasst werden. Die
+        Termine sind in der Liste zusätzlich entsprechend ihrer
+        Kategorie farblich markierbar; die zugehörige
+        Farbpalette kann über ein $GLOBALS-Array eingebracht
+        werden.</li>        
+</ul>
 <h4>Version 3.3</h4>
 <ul>
     <li>Die Menüs sind jetzt systematischer strukturiert und

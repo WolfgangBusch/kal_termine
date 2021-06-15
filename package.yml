@@ -1,7 +1,7 @@
 package:  kal_termine
-version:  '3.3'
+version:  '3.3.1'
 author:   Wolfgang Busch
-supportpage: redaxo.org/forum/
+supportpage: redaxo.org/support/community/
 
 page:
     title: 'translate:kal_termine'
