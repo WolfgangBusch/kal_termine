@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 define ('ACTION_START',  'START');
 define ('ACTION_SEARCH', 'SEARCH');
@@ -207,7 +207,7 @@ public static function kal_radiobutton($action,$pid) {
    $block=' &nbsp; &nbsp; <span class="kal_block_uebernehmen">( Ausführung: &laquo; Block übernehmen &raquo; )</span>';
    $actstr='auswählen';
    if($action==ACTION_SEARCH) $actstr='Termin suchen';
-   if($action==ACTION_INSERT) $actstr='Termin eintragen';
+   if($action==ACTION_INSERT) $actstr='neuen Termin eintragen';
    if($action==ACTION_DELETE) $actstr='Termin löschen';
    if($action==ACTION_UPDATE) $actstr='Termin korrigieren';
    if(empty($action) or $action==ACTION_SEARCH or $action==ACTION_INSERT or $pid>0):
@@ -233,7 +233,7 @@ public static function kal_startauswahl() {
    #   Rueckgabe des HTML-Formulars zur Entscheidung, ob ein neuer Termin
    #   eingegeben werden soll oder ob ein vorhandener Termin geloescht oder
    #   korrigiert werden soll. Das Formular ist eingebettet in eine 2-spaltige
-   #   Tabelle, deren erste Spalte eine feste Breite hat, passend zum eingabeformular.
+   #   Tabelle, deren erste Spalte eine feste Breite hat, passend zu eingabeformular.
    #   Die Auswahlentscheidung erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
    #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
    #   REX_INPUT_VALUE[count($cols)] ($cols = Array der Terminspaltennamen).
@@ -267,7 +267,7 @@ public static function kal_aktionsauswahl($pid) {
    #   Rueckgabe des HTML-Formulars zur Auswahl einer Aktion fuer einen Termin auf
    #   der Datenbanktabelle (Korrigieren / Loeschen). Das Formular ist eingebettet
    #   in eine 2-spaltige Tabelle, deren erste Spalte eine feste Breite hat,
-   #   passend zum eingabeformular.
+   #   passend zu eingabeformular.
    #   $pid            Id des Termins
    #   Die Auswahl der Aktion erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
    #   Die Durchfuehrung der Auswahl erfolgt ueber die Redaxo-Variable
@@ -679,13 +679,53 @@ public static function kal_terminliste($termin) {
    #      self::kal_uhrzeit_string($termin)
    #      self::kal_zusatzzeiten_string($termin)
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
+   #      kal_termine_kalender::kal_wotag($datum)
+   #      kal_termine_config::kal_get_terminkategorien()
+   #      kal_termine_tabelle::kal_get_spielkategorien()
+   #
+   if(count($termin)<=0) return;
+   #
+   # --- Terminkategorien ggf. farbig markieren ($colkat=TRUE),
+   #     falls Termine aus mehr als einer Kategorie vorliegen und
+   #     falls eine genuegend grosse Farbpalette ueber $GLOBALS
+   #     bereitgestellt wird
+   #          als nummeriertes Array (Nummerierung ab 1) in der Form
+   #          1=>'rgb(44,146,99)', 2=>'rgb(201,56,124)', ... oder
+   #          1=>'#4b66ea', 2=>'#b37f44', ...
+   $colkat=FALSE;
+   $katid=$termin[1][COL_KATID];
+   if($katid<SPIEL_KATID):
+     $kateg=kal_termine_config::kal_get_terminkategorien();
+     else:
+     $kateg=kal_termine_tabelle::kal_get_spielkategorien();
+     endif;
+   $kat=array();
+   for($i=0;$i<count($kateg);$i=$i+1):
+      $k=$i+1;
+      $kat[$k]=$kateg[$i]['id'];
+      if($kat[$k]>SPIEL_KATID) $kat[$k]=$kat[$k]-SPIEL_KATID;
+      endfor;
+   $anzkat=count($kat);
+   $METHOD=substr(explode('::',__METHOD__)[1],4);
+   $cols=array();
+   if(isset($GLOBALS[PACKAGE][$METHOD])) $cols=$GLOBALS[PACKAGE][$METHOD];
+   if($anzkat>=2 and count($cols)>=$anzkat):
+     for($i=2;$i<=count($termin);$i=$i+1)
+        if($termin[$i][COL_KATID]!=$katid):
+          $colkat=TRUE;
+          break;
+          endif;
+     endif;
    #
    # --- Formular
    $string='
-<div class="'.CSS_TERMLIST.'">
 <table class="kal_table">';
    for($i=1;$i<=count($termin);$i=$i+1):
       $term=$termin[$i];
+      if($colkat):
+        $katid=$term[COL_KATID];
+        if($katid>SPIEL_KATID) $katid=$katid-SPIEL_KATID;
+        endif;
       #
       # --- Startdatum aufbereiten
       $datsta=$term[COL_DATUM];
@@ -694,6 +734,7 @@ public static function kal_terminliste($termin) {
       if(substr($arr[1],0,1)=='0') $arr[1]=substr($arr[1],1);
       $dat1=$arr[0].'.'.$arr[1].'.';
       $jahr1=$arr[2];
+      $wot1=kal_termine_kalender::kal_wotag($datsta);
       #
       # --- Enddatum aufbereiten
       $dat2=$jahr1;
@@ -703,26 +744,32 @@ public static function kal_terminliste($termin) {
         $arr=explode('.',$datend);
         if(substr($arr[0],0,1)=='0') $arr[0]=substr($arr[0],1);
         if(substr($arr[1],0,1)=='0') $arr[1]=substr($arr[1],1);
-        $trenn='/';
-        if($tage>2) $trenn='-';
-        $dat2=$trenn.$arr[0].'.'.$arr[1].'.'.$arr[2];
+        $dat2=$arr[0].'.'.$arr[1].'.'.$arr[2];
+        $dat2=kal_termine_kalender::kal_wotag($datend).',&nbsp;'.$dat2;
+        $trenn='&nbsp;/&nbsp;';
+        if($tage>2) $trenn='&nbsp;-&nbsp;';
+        $dat2=$trenn.$dat2;
         if($arr[2]>$jahr1) $dat1=$dat1.$jahr1;
         endif;
       #
       # --- Datumsangabe
-      $datum=$dat1.$dat2;
+      $datum=$wot1.',&nbsp;'.$dat1.$dat2.':';
+      $bord='';
+      if($colkat) $bord='border-left:solid 3px '.$cols[$katid].';';
       $zeile='
-    <tr><th>'.$datum.':</th>
-        <td>';
-      #
+    <tr><th class="termlist_th">
+            '.$datum.'</th>
+        <td class="termlist_td" style="'.$bord.'">';
       $str='';
       #
       # --- Uhrzeiten aufbereiten
       $uhrz=self::kal_uhrzeit_string($term);
-      $str=$str.$uhrz;
+      $str=$str.'
+            '.$uhrz;
       #
       # --- Veranstaltungsbezeichnung (ggf. als Link)
       $veran=$term[COL_NAME];
+      $veran='<span class="termlist_textattr">'.$veran.'</span>';
       #  -  Link
       $link=$term[COL_LINK];
       if(!empty($link)):
@@ -736,17 +783,15 @@ public static function kal_terminliste($termin) {
       # --- Ort
       $ort=$term[COL_ORT];
       if(!empty($ort)):
-        $ort='('.$ort.')';
         $str=$str.'
-            '.$ort;
+            <span class="termlist_ort">'.$ort.'</span>';
         endif;
       #
       # --- Ausrichter
       $ausrichter=$term[COL_AUSRICHTER];
       if(!empty($ausrichter)):
-        $ausrichter='Ausrichter: '.$ausrichter;
-        $str=$str.',
-            '.$ausrichter;
+        $str=$str.'
+            <span class="termlist_ausrichter">'.$ausrichter.'</span>';
         endif;
       #
       # --- Zusatzzeiten aufbereiten
@@ -755,9 +800,10 @@ public static function kal_terminliste($termin) {
       #
       # --- Hinweise zur Veranstaltung
       $hinw=$term[COL_KOMM];
-      if(!empty($hinw))
-        $str=$str.'<br/>
-            '.$hinw;
+      if(!empty($hinw)):
+        $str=$str.'
+            <span class="termlist_komm">'.$hinw.'</span>';
+        endif;
       #
       $zeile=$zeile.$str.'</td></tr>';
    #
@@ -765,8 +811,7 @@ public static function kal_terminliste($termin) {
       $string=$string.$zeile;
       endfor;
    $string=$string.'
-</table>
-</div>';
+</table>';
    return $string;
    }
 public static function kal_uhrzeit_string($termin) {
@@ -791,12 +836,12 @@ public static function kal_uhrzeit_string($termin) {
      if(!empty($beginn)):
        $uhrz=$beginn;
        if(!empty($ende)):
-         $uhrz=$uhrz.' - '.$ende.' Uhr: &nbsp; ';
+         $uhrz=$uhrz.' - '.$ende.' Uhr: ';
          else:
-         $uhrz=$uhrz.' Uhr: &nbsp; ';
+         $uhrz=$uhrz.' Uhr: ';
          endif;
        else:
-       if(!empty($ende)) $uhrz='Ende: '.$ende.' Uhr: &nbsp; ';
+       if(!empty($ende)) $uhrz='Ende: '.$ende.' Uhr: ';
        endif;
      else:
      #
@@ -805,9 +850,9 @@ public static function kal_uhrzeit_string($termin) {
      if(!empty($beginn)) $uhrz='Beginn '.$beginn.' Uhr';
      if(!empty($ende)):
        if(!empty($uhrz)) $uhrz=$uhrz.' ('.substr($datsta,0,6).'), ';
-       $uhrz=$uhrz.'Ende '.$ende.' Uhr ('.substr($datend,0,6).'): &nbsp; ';
+       $uhrz=$uhrz.'Ende '.$ende.' Uhr ('.substr($datend,0,6).'): ';
        else:
-       if(!empty($uhrz)) $uhrz=$uhrz.' ('.substr($datsta,0,6).'): &nbsp; ';
+       if(!empty($uhrz)) $uhrz=$uhrz.' ('.substr($datsta,0,6).'): ';
        endif;
      endif;
    return $uhrz;
@@ -822,25 +867,25 @@ public static function kal_zusatzzeiten_string($termin) {
      $zeit=$termin[COL_ZEIT2];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
      $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$termin[COL_TEXT2];
+            '.$zeit.' Uhr: '.$termin[COL_TEXT2];
      endif;
    if(!empty($termin[COL_ZEIT3])):
      $zeit=$termin[COL_ZEIT3];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
      $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$termin[COL_TEXT3];
+            '.$zeit.' Uhr: '.$termin[COL_TEXT3];
      endif;
    if(!empty($termin[COL_ZEIT4])):
      $zeit=$termin[COL_ZEIT4];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
      $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$termin[COL_TEXT4];
+            '.$zeit.' Uhr: '.$termin[COL_TEXT4];
      endif;
    if(!empty($termin[COL_ZEIT5])):
      $zeit=$termin[COL_ZEIT5];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
      $zusatz=$zusatz.'<br/>
-            '.$zeit.' Uhr: &nbsp; '.$termin[COL_TEXT5];
+            '.$zeit.' Uhr: '.$termin[COL_TEXT5];
      endif;
    return $zusatz;
    }

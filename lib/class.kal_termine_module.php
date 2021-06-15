@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 #
 class kal_termine_module {
@@ -21,7 +21,7 @@ public static function kal_manage_termine($value,$slice_id,$katid) {
    #   Ueber verschiedene Formulare kann man einen neuen Termin eintragen oder
    #   einen vorhandenen Termin suchen, um ihn zu loeschen oder zu korrigieren.
    #   Die Aktionen werden gesteuert ueber die Redaxo-Variablen REX_VALUE[1],
-   #   ..., REX_VALUE[20]. Am Ende werden alle Redaxco-Variablen geloescht.
+   #   ..., REX_VALUE[20]. Am Ende werden alle Redaxo-Variablen geloescht.
    #   $value          nummeriertes Array der vorliegenden Redaxo-Variablen
    #                   $value[$i]=REX_VALUE[$i] ($i = 1, 2, ..., 20)
    #   $slice_id       Slice-Id des Artikel-blocks (REX_SLICE_ID)
@@ -252,8 +252,8 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
      endif;
    $str=$str.'
     <tr><th class="left2">Kalendermenü:</th>
-        <th>
-'.self::kal_terminmenue_select('REX_INPUT_VALUE[1]',$men).'</th>
+        <td class="left2">
+'.self::kal_terminmenue_select('REX_INPUT_VALUE[1]',$men).'</td>
         <td class="pad"><b>'.$titel.'</b>
             Der Default-Zeitraum enthält jeweils den heutigen Tag.<br/>
         '.$links.'</td></tr>
@@ -267,19 +267,19 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
      endif;
    $str=$str.'
     <tr><th class="left2">Termine ab:</th>
-        <th><input type="text" name="REX_INPUT_VALUE[2]" value="'.$von.'" class="date right"'.$ro.' /></th>
+        <td><input type="text" name="REX_INPUT_VALUE[2]" value="'.$von.'" class="date right"'.$ro.' /></td>
         <td class="pad">'.$abtxt.'</td></tr>';
    #
    # --- Zeitraum in Anzahl Tage
    $str=$str.'
     <tr><th class="left2">Anzahl Tage:</th>
-        <th><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.' /></th>
+        <td><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.' /></td>
         <td class="pad">'.$zrtxt.'</td></tr>';
    #
    # --- Auswahl der Terminkategorie
    $str=$str.'
     <tr><th class="left2">Kategorie:</th>
-        <th>'.kal_termine_formulare::kal_select_kategorie('REX_INPUT_VALUE[4]',$katid,$kid,0).'</th>
+        <td>'.kal_termine_formulare::kal_select_kategorie('REX_INPUT_VALUE[4]',$katid,$kid,0).'</td>
         <td class="pad">keine Angabe: Termine aller Kategorien</td></tr>
     <tr><td colspan="2" class="right">Speicherung der Daten:</td>
         <td class="pad">'.$block.'</td></tr>

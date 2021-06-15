@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 define ('PACKAGE',         $this->getPackageId());
 define ('TAB_NAME',        'rex_'.PACKAGE);
@@ -44,7 +44,6 @@ define ('RGB_BLACK_WHITE', 128);                // Schwellwert fuer schwarze/wei
 define ('SPIEL_KATID',     99990);              // Kategorie-Ids der Spieldaten beginnen bei 99991
 define ('KAL_MOBILE',      35);                 // Stylesheet-Variante Smartphone 'max-width:...em'
 define ('CSS_TERMBLATT',   'kal_terminblatt');  // Stylesheet Terminblatt
-define ('CSS_TERMLIST',    'kal_terminliste');  // Stylesheet Terminliste
 define ('CSS_MONMENUE',    'kal_monatsmenue');  // Stylesheet Monatsmenue
 define ('CSS_MWTBLATT',    'kal_mowotablatt');  // Stylesheet Mo-/Wo-/Ta-Blatt
 define ('CSS_SUCH',        'kal_such');         // Stylesheet Suchmenue
@@ -378,8 +377,10 @@ public static function kal_define_css() {
    $hatch=self::kal_hatch_gen($dif,$kalcol[4]);
    #
    # --- CSS-Formate
-   $liste_width=intval(0.6*KAL_MOBILE);
-   $monwidth=8.5;
+   $tl_width=intval(0.6*KAL_MOBILE);
+   $monwidth  =8.5;
+   $tbl_width =6;
+   $such_width=5;
    $form_box='padding:0.25em; border-collapse:separate; border-spacing:0.25em;';
    $form_col1=$form_box.'
     color:'.$kalcol[1].'; background-color:transparent;
@@ -419,7 +420,7 @@ public static function kal_define_css() {
 .kal_table { background-color:inherit; }
 .kal_box { '.$form_col1.' }
 .kal_rotate { margin:0 0 0.1em 0; text-align:center; font-size:1.2em; font-weight:bold;
-    display:inline-block; transform:rotate(1200deg); }
+    display:inline-block; transform:rotate(120deg); }
 .kal_100pro { width:100%; }
 .kal_basecol { color:'.$kalcol[1].'; }
 .kal_fail { color:red; }
@@ -439,17 +440,23 @@ public static function kal_define_css() {
 
 /*   Terminblatt   */
 .'.CSS_TERMBLATT.' { }
-.'.CSS_TERMBLATT.' th { padding:0.25em; vertical-align:top; text-align:left; }
+.'.CSS_TERMBLATT.' th { max-width:'.$tbl_width.'em; padding:0.25em; vertical-align:top; text-align:left; }
 .'.CSS_TERMBLATT.' td { padding:0.25em; vertical-align:top; text-align:left; }
+.'.CSS_TERMBLATT.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
 .'.CSS_TERMBLATT.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
 
 /*   Terminliste   */
-.'.CSS_TERMLIST.' { }
-.'.CSS_TERMLIST.' th { padding:0 1em 0 0; text-align:right; white-space:nowrap;
-    font-weight:bold; vertical-align:top; }
+.termlist_th { padding:0.3em 0.5em 0.3em 0; text-align:right; white-space:nowrap;
+    font-weight:bold; vertical-align:top; border-top:solid 1px transparent; border-bottom:solid 1px transparent; }
+.termlist_td { padding:0.3em 0 0.3em 0.5em; border-top:solid 1px transparent; border-bottom:solid 1px transparent; }
+.termlist_textattr { font-weight:normal; }
+.termlist_ort::before { content:" ("; }
+.termlist_ort::after  { content:")"; }
+.termlist_ausrichter::before { content:", Ausrichter: "; }
+.termlist_komm::before { content:"\A"; white-space:pre; }
 @media screen and (max-width:'.KAL_MOBILE.'em) {
-    .'.CSS_TERMLIST.' th { float:left; padding:0; text-align:left; white-space:normal; }
-    .'.CSS_TERMLIST.' td { float:left; padding:0 0 0 1em; min-width:'.$liste_width.'em; }
+    .termlist_th { float:left; padding:0.3em 0 0.3em 0; text-align:left; white-space:normal; }
+    .termlist_td { float:left; padding:0.3em 0 0.3em 1em; min-width:'.$tl_width.'em; }
     }
 
 /*   Monatsmenue   */
@@ -502,9 +509,10 @@ public static function kal_define_css() {
 /*   Suchmenue   */
 .'.CSS_SUCH.' { }
 .'.CSS_SUCH.' select, .'.CSS_SUCH.' input, .'.CSS_SUCH.' button { padding:0.1em; }
-.'.CSS_SUCH.' .th { padding:0.25em; text-align:left; font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_SUCH.' .th { max-width:'.$such_width.'em; padding:0.25em; text-align:left; font-weight:bold; color:'.$kalcol[2].'; }
 .'.CSS_SUCH.' .td { padding:0.25em; white-space:nowrap; color:'.$kalcol[1].'; }
 .'.CSS_SUCH.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
+.'.CSS_SUCH.' .small { font-size:0.9em; }
 .'.CSS_SUCH.' .right { float:right; }
 .'.CSS_SUCH.' .left  { text-align:left; }
 .'.CSS_SUCH.' .liste { padding-left:1em; }

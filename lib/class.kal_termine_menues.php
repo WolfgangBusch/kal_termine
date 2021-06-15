@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 define ('KAL_MONAT'     , 'MONAT');
 define ('KAL_KW'        , 'KW');
@@ -596,13 +596,15 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    # --- Link
    $link=$termin[COL_LINK];
    if(!empty($link)):
-     $tg='_blank';
-     if(!empty($_GET['page'])) $tg='_self';
+     $linktext=substr($link,0,50);
+     if(strlen($link)>50) $linktext=$linktext.' . . . ';
+     if(!rex::isBackend())
+       $linktext='<a href="'.$link.'" target="_blank">'.$linktext.'</a>';
      $seite=$seite.'
     <tr valign="top">
         <th>Link:</th>
         <td class="kal_col6">
-            <a href="'.$link.'" target="'.$tg.'">'.substr($link,0,50).' . . .</td></tr>';
+            '.$linktext.'</td></tr>';
      endif;
    #
    # --- Hinweise
@@ -1423,7 +1425,7 @@ public static function kal_such($katid,$jahr,$kid,$suchen,$vorher) {
     <tr><th class="th">künftige:</th>
         <td class="td kal_col6">
             <input type="checkbox" name="'.KAL_VORHER.'" '.$chk.' />
-            (abgelaufene Termine ausblenden)</td></tr>';
+            <span class="small">(abgelaufene Termine einblenden)</span></td></tr>';
    #
    # --- Menue-Nr. als hidden-Parameter und Submit-Button
    $menues=self::kal_define_menues();
@@ -1474,7 +1476,7 @@ public static function kal_such($katid,$jahr,$kid,$suchen,$vorher) {
    #
    # --- alle Termine heraussuchen, die nach dem heutigen Tage liegen ($term)
    $term=array();
-   if(!empty($vorher)):
+   if(empty($vorher)):
      $heutesql=kal_termine_tabelle::kal_datum_standard_mysql(kal_termine_kalender::kal_heute());
      $m=0;
      for($i=1;$i<=$nztermin;$i=$i+1):
