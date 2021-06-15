@@ -9,7 +9,7 @@
     color:rgb(5,90,28); background-color:transparent;
     border:solid 1px rgb(5,90,28); border-radius:0.25em; }
 .kal_rotate { margin:0 0 0.1em 0; text-align:center; font-size:1.2em; font-weight:bold;
-    display:inline-block; transform:rotate(1200deg); }
+    display:inline-block; transform:rotate(120deg); }
 .kal_100pro { width:100%; }
 .kal_basecol { color:rgb(5,90,28); }
 .kal_fail { color:red; }
@@ -49,17 +49,23 @@
 
 /*   Terminblatt   */
 .kal_terminblatt { }
-.kal_terminblatt th { padding:0.25em; vertical-align:top; text-align:left; }
+.kal_terminblatt th { max-width:6em; padding:0.25em; vertical-align:top; text-align:left; }
 .kal_terminblatt td { padding:0.25em; vertical-align:top; text-align:left; }
+.kal_terminblatt .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
 .kal_terminblatt .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
 
 /*   Terminliste   */
-.kal_terminliste { }
-.kal_terminliste th { padding:0 1em 0 0; text-align:right; white-space:nowrap;
-    font-weight:bold; vertical-align:top; }
+.termlist_th { padding:0.3em 0.5em 0.3em 0; text-align:right; white-space:nowrap;
+    font-weight:bold; vertical-align:top; border-top:solid 1px transparent; border-bottom:solid 1px transparent; }
+.termlist_td { padding:0.3em 0 0.3em 0.5em; border-top:solid 1px transparent; border-bottom:solid 1px transparent; }
+.termlist_textattr { font-weight:normal; }
+.termlist_ort::before { content:" ("; }
+.termlist_ort::after  { content:")"; }
+.termlist_ausrichter::before { content:", Ausrichter: "; }
+.termlist_komm::before { content:"\A"; white-space:pre; }
 @media screen and (max-width:35em) {
-    .kal_terminliste th { float:left; padding:0; text-align:left; white-space:normal; }
-    .kal_terminliste td { float:left; padding:0 0 0 1em; min-width:21em; }
+    .termlist_th { float:left; padding:0.3em 0 0.3em 0; text-align:left; white-space:normal; }
+    .termlist_td { float:left; padding:0.3em 0 0.3em 1em; min-width:21em; }
     }
 
 /*   Monatsmenue   */
@@ -70,7 +76,7 @@
 .kal_monatsmenue .right { float:right; }
 .kal_monatsmenue .center { text-align:center; }
 .kal_monatsmenue .rechts { text-align:right; }
-.kal_monatsmenue .width { min-width:8,5em; max-width:8,5em; }
+.kal_monatsmenue .width { min-width:8.5em; max-width:8.5em; }
 .kal_monatsmenue .wot { padding:0.25em; text-align:center; color:rgb(55,140,78); }
 .kal_monatsmenue .kalenderwoche  { padding:0.25em; text-align:right;  color:rgb(55,140,78); }
 #hatch { background-image:linear-gradient(-45deg,
@@ -124,9 +130,10 @@
 /*   Suchmenue   */
 .kal_such { }
 .kal_such select, .kal_such input, .kal_such button { padding:0.1em; }
-.kal_such .th { padding:0.25em; text-align:left; font-weight:bold; color:rgb(55,140,78); }
+.kal_such .th { max-width:5em; padding:0.25em; text-align:left; font-weight:bold; color:rgb(55,140,78); }
 .kal_such .td { padding:0.25em; white-space:nowrap; color:rgb(5,90,28); }
 .kal_such .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
+.kal_such .small { font-size:0.9em; }
 .kal_such .right { float:right; }
 .kal_such .left  { text-align:left; }
 .kal_such .liste { padding-left:1em; }
