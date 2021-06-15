@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 $sty='style="color:rgb(0,120,0); background-color:rgb(242,249,244);"';
 #
@@ -65,7 +65,13 @@ Folgetermin sein.</div>
                 Konfiguration) in der Termintabelle abgelegt wird. -
                 Ihre Reihenfolge in den Menüs zur Auswahl einer
                 Kategorie entspricht der Reihenfolge in der
-                Konfiguration.</li>
+                Konfiguration.<br/>
+                Kategorien können Farben zugeordnet werden, die in der
+                Terminliste (und nur dort!) eine optische Zuordnung
+                zur Kategorie unterstützen. Die Farben muss der
+                Anwender als nummeriertes Array
+                <tt>$GLOBALS[\''.PACKAGE.'\'][\'terminliste\']</tt>
+                bereitstellen (Nummerierung ab 1).</li>
         </ul></li>
     <li>Ein Redakteur kann <code>auf eine einzelne Terminkategorie
         eingeschränkt</code> werden. Dazu werden ihm Kopien der beiden
@@ -75,7 +81,7 @@ Folgetermin sein.</div>
         Beispiel - Einschränkung auf Kategorie 5: &nbsp;
         <code '.$sty.'>$katid=5;</code> &nbsp; anstatt &nbsp;
         <code '.$sty.'>$katid=0;</code> (alle Kategorien).</li>
-</ol>
+</ol><br/>
 ';
 echo $string;
 ?>

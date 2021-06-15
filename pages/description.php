@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2021
+ * @version Juni 2021
 */
 #
 # --- Beschreibung
@@ -22,6 +22,7 @@ $string='
     <li>Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine</li>
     <li>Liste der Termine eines Kalenderjahres mit Filterfunktionen</li>
     <li>tabellarische Darstellung der Daten eines Termins</li>
+    <li>tabellarische Liste der Termine eines Zeitabschnitts</li>
 </ul>
 
 <div>Alle Kalendermenüs gestatten das Blättern zum vorherigen und nachfolgenden
