@@ -17,7 +17,8 @@ getrennt verwaltete Kategorien gliedern.</div>
 - Eintragung eines Termins samt zugehörigen Daten in die Datenbanktabelle<br/>
 - Löschung eines Termins<br/>
 - Aktualisierung der Daten eines Termins<br/>
-- Suche eines Termins mittels Kalendermenüs</div>
+- Suche eines Termins mittels Kalendermenüs<br/>
+- tabellarische Liste der Termine eines Zeitabschnitts</div>
 
 <div><br/>Als Kalendermenüs stehen die folgenden Darstellungen zur Wahl:<br/>
 - Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert<br/>
