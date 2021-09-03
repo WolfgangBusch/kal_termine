@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2021
+ * @version September 2021
 */
 define ('PACKAGE',         $this->getPackageId());
 define ('TAB_NAME',        'rex_'.PACKAGE);
@@ -28,7 +28,6 @@ define ('COL_ZEIT4',       'zeit4');
 define ('COL_TEXT4',       'text4');
 define ('COL_ZEIT5',       'zeit5');
 define ('COL_TEXT5',       'text5');            // 19 REX_VALUE-Werte (COL_NAME bis COL_TEXT5)
-define ('COL_ANZAHL',      20);                 // REX_VALUE-Wert fuer COL_PID bzw. fuer die Aktionen
 define ('STD_BEG_UHRZEIT', 'stauhrz');
 define ('STD_END_UHRZEIT', 'enduhrz');
 define ('STD_ANZ_PIXEL',   'pixel');
@@ -41,7 +40,10 @@ define ('RGB_GREY',        'rgb(150,150,150)'); // Farbe fuer Tage ausserhalb de
 define ('RGB_DIFF',        25);                 // RGB-Werte-Differenz 
 define ('RGB_MAX',         255-6*RGB_DIFF);
 define ('RGB_BLACK_WHITE', 128);                // Schwellwert fuer schwarze/weisse Beschriftung
+define ('DATEN',           'DATEN');            // URL-Parametername fuer die Spieldaten
+define ('SPIELDATEN',      'SPIELDATEN');       // URL-Parameterwert fuer die Spieldaten
 define ('SPIEL_KATID',     99990);              // Kategorie-Ids der Spieldaten beginnen bei 99991
+define ('ROLE_KAT',        'Terminkategorie');  // Rollenname <Nr.> fuer eine Terminkategorie
 define ('KAL_MOBILE',      35);                 // Stylesheet-Variante Smartphone 'max-width:...em'
 define ('CSS_TERMBLATT',   'kal_terminblatt');  // Stylesheet Terminblatt
 define ('CSS_MONMENUE',    'kal_monatsmenue');  // Stylesheet Monatsmenue
@@ -76,6 +78,9 @@ class kal_termine_config {
 #         kal_get_terminkategorien()
 #         kal_get_stundenleiste()
 #         kal_define_stundenleiste()
+#   Terminkategorien als Benutzerrollen
+#         kal_set_roles()
+#         kal_allowed_terminkategorien($artid)
 #
 #----------------------------------------- Tabellenstruktur
 public static function kal_define_tabellenspalten() {
@@ -90,20 +95,20 @@ public static function kal_define_tabellenspalten() {
       COL_BEGINN=>array('time NOT NULL',              'Uhrzeit Beginn',  'hh:mm',       ''),
       COL_TAGE  =>array('int(11) NOT NULL DEFAULT 1', 'Dauer in Tagen',  '',            '>=1'),
       COL_ENDE  =>array('time NOT NULL',              'Uhrzeit Ende',    'hh:mm',       ''),
-      COL_WOCHEN=>array('int(11) NOT NULL DEFAULT 0', 'Wiederholungen',  '',            ''),
+      COL_WOCHEN=>array('int(11) NOT NULL DEFAULT 0', 'Wiederholungen',  'wöchentlich', ''),
       COL_AUSRICHTER=>array('varchar(500) NOT NULL',  'Ausrichter',      '',            ''),
       COL_ORT   =>array('varchar(255) NOT NULL',      'Ort',             '',            ''),
       COL_LINK  =>array('varchar(500) NOT NULL',      'Link',            '',            ''),
       COL_KOMM  =>array('text NOT NULL',              'Hinweise',        '',            ''),
       COL_KATID =>array('int(11) NOT NULL DEFAULT 1', 'Kategorie-Id',    '',            '>=1'),
-      COL_ZEIT2 =>array('time NOT NULL',              'Uhrzeit 2 Beginn','hh:mm',       ''),
-      COL_TEXT2 =>array('varchar(255) NOT NULL',      'Teil 2',          '',            ''),
-      COL_ZEIT3 =>array('time NOT NULL',              'Uhrzeit 3 Beginn','hh:mm',       ''),
-      COL_TEXT3 =>array('varchar(255) NOT NULL',      'Teil 3',          '',            ''),
-      COL_ZEIT4 =>array('time NOT NULL',              'Uhrzeit 4 Beginn','hh:mm',       ''),
-      COL_TEXT4 =>array('varchar(255) NOT NULL',      'Teil 4',          '',            ''),
-      COL_ZEIT5 =>array('time NOT NULL',              'Uhrzeit 5 Beginn','hh:mm',       ''),
-      COL_TEXT5 =>array('varchar(255) NOT NULL',      'Teil 5',          '',            ''));
+      COL_ZEIT2 =>array('time NOT NULL',              'Teil 2, Beginn',  'hh:mm',       ''),
+      COL_TEXT2 =>array('varchar(255) NOT NULL',      'Teil 2, Titel',   '',            ''),
+      COL_ZEIT3 =>array('time NOT NULL',              'Teil 3, Beginn',  'hh:mm',       ''),
+      COL_TEXT3 =>array('varchar(255) NOT NULL',      'Teil 3, Titel',   '',            ''),
+      COL_ZEIT4 =>array('time NOT NULL',              'Teil 4, Beginn',  'hh:mm',       ''),
+      COL_TEXT4 =>array('varchar(255) NOT NULL',      'Teil 4, Titel',   '',            ''),
+      COL_ZEIT5 =>array('time NOT NULL',              'Teil 5, Beginn',  'hh:mm',       ''),
+      COL_TEXT5 =>array('varchar(255) NOT NULL',      'Teil 5, Titel',   '',            ''));
    ###         create table:     'PRIMARY KEY (pid)'
    return $cols;
    }
@@ -166,7 +171,7 @@ public static function kal_ausgabe_tabellenstruktur() {
             kann die Veranstaltung zeitlich untergliedert werden.</td></tr>
     <tr><td class="indent" colspan="2">
             Texte (<tt>varchar</tt> bzw. <tt>text</tt>)
-            können keine (HTML-)Formatierung enthalten.</td></tr>
+            können auch HTML-Code enthalten.</td></tr>
     <tr><td class="indent" colspan="2">
             Wöchentlich wiederkehrende Termine können <tt>nicht zugleich mehrtägig</tt>
             sein.</td></tr>
@@ -370,43 +375,49 @@ public static function kal_define_css() {
    #
    # --- Farben
    $farben=self::kal_farben();
+   $kalcol=array();
    for($i=1;$i<=count($farben);$i=$i+1) $kalcol[$i]=$farben[$i]['rgb'];
    #
    # --- Streifenmuster fuer Monatstage, an denen Termine liegen
    $dif=10;     // Streifenbreite: 10%
    $hatch=self::kal_hatch_gen($dif,$kalcol[4]);
    #
-   # --- CSS-Formate
-   $tl_width=intval(0.6*KAL_MOBILE);
+   # --- Breitenwerte
+   $tl_width  =intval(0.6*KAL_MOBILE);
    $monwidth  =8.5;
    $tbl_width =6;
-   $such_width=5;
+   $suth_width=intval(0.2*KAL_MOBILE);
+   $sutd_width=intval(0.8*KAL_MOBILE);
+   $sutk_width=$suth_width+3;
+   #
+   # --- CSS-Formate
    $form_box='padding:0.25em; border-collapse:separate; border-spacing:0.25em;';
-   $form_col1=$form_box.'
+   $form_col=array();
+   $form_col[1]=$form_box.'
     color:'.$kalcol[1].'; background-color:transparent;
     border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
-   $form_col2=$form_box.'
+   $form_col[2]=$form_box.'
     color:'.$kalcol[2].'; background-color:transparent;
     border:solid 1px '.$kalcol[2].'; border-radius:0.25em;';
-   $form_col3=$form_box.'
+   $form_col[3]=$form_box.'
     color:'.$kalcol[1].'; background-color:'.$kalcol[3].';
     border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
-   $form_col4=$form_box.'
+   $form_col[4]=$form_box.'
     color:'.$kalcol[1].'; background-color:'.$kalcol[4].';
     border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
-   $form_col5=$form_box.'
+   $form_col[5]=$form_box.'
     color:'.$kalcol[1].'; background-color:'.$kalcol[5].';
     border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
-   $form_col6=$form_box.'
+   $form_col[6]=$form_box.'
     color:'.$kalcol[1].'; background-color:'.$kalcol[6].';
     border:solid 1px '.$kalcol[1].'; border-radius:0.25em;';
-   $form_col7=$form_box.'
+   $form_col[7]=$form_box.'
     color:'.$kalcol[7].'; background-color:transparent;
     border:solid 1px '.$kalcol[7].'; border-radius:0.25em;';
-   $form_col8=$form_box.'
+   $form_col[8]=$form_box.'
     color:'.$kalcol[7].'; background-color:'.$kalcol[8].';
     border:solid 1px '.$kalcol[7].'; border-radius:0.25em;';
-   $form_col9=$form_box.'
+   $form_col[9]=$form_box.'
     color:'.$kalcol[9].'; background-color:transparent;
     border:solid 1px '.$kalcol[9].'; border-radius:0.25em;';
    #
@@ -418,31 +429,30 @@ public static function kal_define_css() {
 .kal_boldbig { font-size:1.2em; font-weight:bold; }
 .kal_transparent { margin:0; padding:0; border:none; color:inherit; background-color:transparent; }
 .kal_table { background-color:inherit; }
-.kal_box { '.$form_col1.' }
+.kal_box { '.$form_col[1].' }
 .kal_rotate { margin:0 0 0.1em 0; text-align:center; font-size:1.2em; font-weight:bold;
     display:inline-block; transform:rotate(120deg); }
 .kal_100pro { width:100%; }
 .kal_basecol { color:'.$kalcol[1].'; }
 .kal_fail { color:red; }
-.kal_msg { '.$form_col6.' }
+.kal_msg { '.$form_col[6].' }
 .kal_block_uebernehmen { color:'.$kalcol[2].'; font-weight:bold; font-style:italic; }
 
 /*   Farbkombinationen fuer Kalenderfelder   */
-.kal_col1 { '.$form_col1.' }
-.kal_col2 { '.$form_col2.' }
-.kal_col3 { '.$form_col3.' }
-.kal_col4 { '.$form_col4.' }
-.kal_col5 { '.$form_col5.' }
-.kal_col6 { '.$form_col6.' }
-.kal_col7 { '.$form_col7.' }
-.kal_col8 { '.$form_col8.' }
-.kal_col9 { '.$form_col9.' }
+.kal_col1 { '.$form_col[1].' }
+.kal_col2 { '.$form_col[2].' }
+.kal_col3 { '.$form_col[3].' }
+.kal_col4 { '.$form_col[4].' }
+.kal_col5 { '.$form_col[5].' }
+.kal_col6 { '.$form_col[6].' }
+.kal_col7 { '.$form_col[7].' }
+.kal_col8 { '.$form_col[8].' }
+.kal_col9 { '.$form_col[9].' }
 
 /*   Terminblatt   */
 .'.CSS_TERMBLATT.' { }
 .'.CSS_TERMBLATT.' th { max-width:'.$tbl_width.'em; padding:0.25em; vertical-align:top; text-align:left; }
 .'.CSS_TERMBLATT.' td { padding:0.25em; vertical-align:top; text-align:left; }
-.'.CSS_TERMBLATT.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
 .'.CSS_TERMBLATT.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
 
 /*   Terminliste   */
@@ -455,8 +465,8 @@ public static function kal_define_css() {
 .termlist_ausrichter::before { content:", Ausrichter: "; }
 .termlist_komm::before { content:"\A"; white-space:pre; }
 @media screen and (max-width:'.KAL_MOBILE.'em) {
-    .termlist_th { float:left; padding:0.3em 0 0.3em 0; text-align:left; white-space:normal; }
-    .termlist_td { float:left; padding:0.3em 0 0.3em 1em; min-width:'.$tl_width.'em; }
+    .termlist_th { float:left; padding:0.6em 0 0 0; text-align:left; white-space:normal; }
+    .termlist_td { float:left; padding:0 0 0 1em; min-width:'.$tl_width.'em; }
     }
 
 /*   Monatsmenue   */
@@ -483,7 +493,7 @@ public static function kal_define_css() {
 .'.CSS_MWTBLATT.' .pad0 { padding:0 0.5em 0 0.5em; color:'.$kalcol[1].'; }
 .'.CSS_MWTBLATT.' .pad1 { padding:0 0.25em 0 0.25em; vertical-align:top; text-align:right;
     white-space:nowrap; font-weight:bold; color:'.$kalcol[2].'; }
-.'.CSS_MWTBLATT.' .tag { width:100%; padding:0; line-height:1.5em; }
+.'.CSS_MWTBLATT.' .tag { width:100%; padding:0 !important; }
 @media screen and (max-width:'.KAL_MOBILE.'em) {
     .'.CSS_MWTBLATT.' hr { margin:0.25em; padding:1px; border:solid 1px inherit; 
         background-color:'.$kalcol[3].'; }
@@ -499,8 +509,9 @@ public static function kal_define_css() {
 .'.CSS_MWTBLATT.' .center { text-align:center; color:'.$kalcol[2].'; }
 .'.CSS_MWTBLATT.' .right  { text-align:right;  color:'.$kalcol[2].'; }
 /*   Terminfeld   */
-.'.CSS_MWTBLATT.' .termin { white-space:nowrap; overflow-x:hidden;
-    '.$form_col4.' padding:0.1em !important; }
+.'.CSS_MWTBLATT.' .termin { white-space:nowrap; overflow-x:hidden; margin-top:0.1em; margin-bottom:0.1em;
+    '.$form_col[4].' }
+.'.CSS_MWTBLATT.' .leertermin { '.$form_box.' margin-top:0.1em; margin-bottom:0.1em; }
 @media screen and (max-width:'.KAL_MOBILE.'em) {
     .'.CSS_MWTBLATT.' .termin { white-space:normal;
         padding:0.25em; color:'.$kalcol[1].'; background-color:transparent; border:none; }
@@ -509,30 +520,35 @@ public static function kal_define_css() {
 /*   Suchmenue   */
 .'.CSS_SUCH.' { }
 .'.CSS_SUCH.' select, .'.CSS_SUCH.' input, .'.CSS_SUCH.' button { padding:0.1em; }
-.'.CSS_SUCH.' .th { max-width:'.$such_width.'em; padding:0.25em; text-align:left; font-weight:bold; color:'.$kalcol[2].'; }
-.'.CSS_SUCH.' .td { padding:0.25em; white-space:nowrap; color:'.$kalcol[1].'; }
+.'.CSS_SUCH.' select { width:100%; }
+.'.CSS_SUCH.' .stichwort { max-width:'.$sutd_width.'em; }
+.'.CSS_SUCH.' .th { min-width:'.$suth_width.'em; max-width:'.$sutk_width.'em; padding:0.25em; text-align:left;
+    font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_SUCH.' .td { padding:0.25em; max-width:'.$sutd_width.'em; }
 .'.CSS_SUCH.' .kopf { font-size:1.2em; font-weight:bold; color:'.$kalcol[1].'; }
-.'.CSS_SUCH.' .small { font-size:0.9em; }
-.'.CSS_SUCH.' .right { float:right; }
+.'.CSS_SUCH.' .small { font-size:0.9em; vertical-align:text-top; }
+.'.CSS_SUCH.' .filter_button { float:right; margin-top:1em; padding:0.25em; }
 .'.CSS_SUCH.' .left  { text-align:left; }
 .'.CSS_SUCH.' .liste { padding-left:1em; }
 @media screen and (max-width:'.KAL_MOBILE.'em) {
     .'.CSS_SUCH.' .liste { padding-left:0; }
+    .'.CSS_SUCH.' .th { min-width:0; }
     }
 
 /*   Termin-Eingabeformular   */
-.'.CSS_EINFORM.' { }
-.'.CSS_EINFORM.' th { vertical-align:top; line-height:2em; text-align:left; font-weight:bold; }
-.'.CSS_EINFORM.' td { line-height:1.5em; }
+.'.CSS_EINFORM.' { text-align:left; }
+.'.CSS_EINFORM.' .th_einf { vertical-align:top; line-height:2em; text-align:left; font-weight:bold; }
+.'.CSS_EINFORM.' .td_einf { line-height:1.5em; }
 .'.CSS_EINFORM.' select { padding:0.25em; }
 .'.CSS_EINFORM.' .action { font-weight:bold; color:'.$kalcol[2].'; }
+.'.CSS_EINFORM.' .martop { margin-top:1em; line-height:3em; }
 .'.CSS_EINFORM.' .left { width:12em; vertical-align:top; white-space:nowrap; }
 .'.CSS_EINFORM.' .right { text-align:right; }
 .'.CSS_EINFORM.' .text { width:35em; padding:0 0.25em 0 0.25em; }
-.'.CSS_EINFORM.' .date { width: 6em; padding:0 0.25em 0 0.25em; }
-.'.CSS_EINFORM.' .time { width: 4em; padding:0 0.25em 0 0.25em; }
-.'.CSS_EINFORM.' .int  { width: 3em; padding:0 0.25em 0 0.25em; }
-.'.CSS_EINFORM.' .left2 { width:8em; vertical-align:top; white-space:nowrap; }
+.'.CSS_EINFORM.' .date { width: 8em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .time { width: 6em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .int  { width: 4em; padding:0 0.25em 0 0.25em; }
+.'.CSS_EINFORM.' .left2 { width:10em; vertical-align:top; white-space:nowrap; }
 .'.CSS_EINFORM.' .pad { padding-left:1em; text-align:left; }
 
 /*   Formulare im Backend   */
@@ -689,8 +705,10 @@ public static function kal_config_form($readsett) {
             '.$i.' &nbsp; <i>(hier kann eine neue Kategorie angefügt werden)</i></td>
         <td class="indent" colspan="3">
             <input class="inptxt" type="text" name="'.$key.'" value="" /></td></tr>
-    <tr><td class="indent">
-            <i>Zum <b>Entfernen</b> der <b>letzten</b> Kategorien:</i></td>
+    <tr valign="top">
+        <td class="indent">
+            <i>Zum <b>Entfernen</b> der <b>letzten</b> Kategorien:</i><br/>
+            &nbsp; &nbsp; (<u>Vorsicht:</u> zugehörige Termine werden <b>nicht</b> mit entfernt!)</td>
         <td class="indent" colspan="3">
             <i>entsprechende Felder leeren</i></td></tr>';
    #
@@ -892,6 +910,114 @@ public static function kal_define_stundenleiste() {
    if($sizeuhr*$stdsize<$pixel) $pixel=intval($sizeuhr*$stdsize);
    $daten=array(1=>$stauhrz, 2=>$enduhrz, 3=>$pixel, 4=>$stdsize);
    return $daten;
+   }
+#
+#----------------------------------------- Terminkategorien als Benutzerrollen
+public static function kal_set_roles() {
+   #   Einrichtung von je einer Benutzerrolle pro konfigurierter Terminkategorie.
+   #   Zur Kontrolle werden die Rollen in Form eines nummerierten Arrays zurueck
+   #   gegeben (Nummerierung ab 1, jede Rolle als assoziatives Array).
+   #   Aufgerufen in der boot.php
+   #   benutzte functions:
+   #      kal_termine_kalender::kal_heute();
+   #      kal_termine_config::kal_get_terminkategorien()
+   #      kal_termine_tabelle::kal_datum_standard_mysql($datum)
+   #
+   # --- Administrator-Benutzer und heutiges Datum
+   $art=rex_article::getSiteStartArticle();
+   $admin=$art->getCreateUser();   // Login des Administrators
+   $heute=kal_termine_kalender::kal_heute();
+   $heute=kal_termine_tabelle::kal_datum_standard_mysql($heute).' 00:00:00';
+   #
+   # --- Rollen in die Datenbanktabelle rex_user_role schreiben
+   $kats=kal_termine_config::kal_get_terminkategorien();
+   $sql=rex_sql::factory();
+   $roles=array();
+   for($i=0;$i<count($kats);$i=$i+1):
+      $katid=$kats[$i]['id'];
+      $perm='kal_termine['.$katid.']';
+      $role=ROLE_KAT.' '.$katid;
+      #     Permission registrieren
+      rex_perm::register($perm,$kats[$i]['name'],rex_perm::EXTRAS);
+      #     Rolle einrichten, falls sie nicht schon eingerichtet ist
+      $perm=json_encode(["general"=>null, "options"=>null,"extras"=>"|".$perm."|"]);
+      $qselect='SELECT * FROM rex_user_role WHERE name=\''.$role.'\'';
+      $arr=$sql->getArray($qselect);
+      if(count($arr)<=0):
+        $qpar='name,perms,createuser,updateuser,createdate,updatedate';
+        $qval='\''.$role.'\',\''.$perm.'\',\''.$admin.'\',\''.$admin.'\',\''.$heute.'\',\''.$heute.'\'';
+        $sql->setQuery('INSERT INTO rex_user_role ('.$qpar.') VALUES ('.$qval.')');
+        #     neue Rolle direkt wieder auslesen
+        $arr=$sql->getArray($qselect);
+        endif;
+      $roles[$i+1]=$arr[0];
+      endfor;
+   #
+   # --- Rueckgabe der definierten Terminkategorie-Rollen
+   return $roles;
+   }
+public static function kal_allowed_terminkategorien($artid=0) {
+   #   Rueckgabe der Ids der konfigurierten Terminkategorien, die ein bestimmter
+   #   Redaxo-Redakteur verwenden darf, als nummeriertes Array (Nummerierung ab 1).
+   #   Der Redakteur wird aus den Daten des aktuellen Artikels ermittelt:
+   #   Die function wird nur in den Modulen dieses AddOns aufgerufen. Wenn ein
+   #   Redakteur diese Module in einem Artikelblock nutzt, hinterlaesst er in
+   #   natuerlicher Weise seine Identitaet im Artikel-Parameter CREATEUSER.
+   #   Die Ids der Terminkategorien werden aus den Permissions der Benutzerrolle
+   #   (name='ROLE_KAT id') des Redakteurs ausgelesen.
+   #   $artid          <=0: Es wird die Id des aktellen Artikels angenommen.
+   #                   >0:  Id eines Artikels (nur zu Testzwecken).
+   #                        Falls kein Artikel mit entsprechender Id existiert,
+   #                        wird die Id des aktellen Artikels angenommen.
+   #   benutzte functions:
+   #      self::kal_get_terminkategorien()
+   #
+   # --- aktueller Artikel
+   $art_id=$artid;
+   if($art_id<=0) $art_id=rex_article::getCurrentId();
+   $art=rex_article::get($art_id);
+   if($art==null):
+     $art=rex_article::getCurrent();
+     $art_id=$art->getId();
+     endif;
+   #
+   # --- Id des Redakteurs, der den Artikel erzeugt hat
+   $login=$art->getCreateUser();
+   $sql=rex_sql::factory();
+   $users=$sql->getArray('SELECT * FROM rex_user WHERE login=\''.$login.'\'');
+   $userid=$users[0]['id'];
+   $user=rex_user::get($userid);
+   #
+   $katids=array();
+   #
+   # --- Administrator (Zugriff auf alle Terminkategorien)
+   if($user->isAdmin()):
+     $kat=self::kal_get_terminkategorien();
+     for($i=1;$i<=count($kat);$i=$i+1) $katids[$i]=$i;
+     endif;
+   #
+   # --- sonstiger Redakteur
+   if(!$user->isAdmin()):
+     $role=$user->getValue('role');
+     $roles=explode(',',$role);
+     $m=0;
+     $sql=rex_sql::factory();
+     for($k=0;$k<count($roles);$k=$k+1):
+        $query='SELECT * FROM rex_user_role WHERE id='.$roles[$k];
+        $rolarr=$sql->getArray($query);
+        #     hat er Rollen namens 'ROLE_KAT id'?
+        $rname=$rolarr[0]['name'];
+        if(substr($rname,0,strlen(ROLE_KAT))!=ROLE_KAT) continue;
+        #     Die Katgorie-Ids werden aus den Permissions der Rolle 'ROLE_KAT id' ausgelesen
+        $perms=$rolarr[0]['perms'];
+        $extras=json_decode($perms,TRUE)['extras'];   // = |kal_termine[id]|
+        $id=substr($extras,1,strlen($extras)-3);      // = kal_termine[id
+        $id=substr($id,strpos($id,'[')+1);            // = id
+        $m=$m+1;
+        $katids[$m]=$id;
+        endfor;
+     endif;
+   return $katids;
    }
 }
 ?>

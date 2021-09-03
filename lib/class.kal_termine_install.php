@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2021
+ * @version September 2021
 */
 #
 class kal_termine_install {
@@ -153,10 +153,11 @@ public static function build_modules() {
       $input =$modules[$i]['input'];
       $output=$modules[$i]['output'];
       $ident =$modules[$i]['ident'];
+      $idname='output';   // 'input' or 'output'
       #
       # --- module exists already?
       $sql=rex_sql::factory();
-      $where='name LIKE \'%'.PACKAGE.'%\' AND input LIKE \'%'.$ident.'%\'';
+      $where='name LIKE \'%'.PACKAGE.'%\' AND '.$idname.' LIKE \'%'.$ident.'%\'';
       $query='SELECT * FROM '.$table.' WHERE '.$where;
       $mod=$sql->getArray($query);
       if(!empty($mod)):
@@ -186,34 +187,10 @@ public static function define_modules() {
    # --- first module
    $name[1]='Termine verwalten ('.PACKAGE.')';
    $in[1]='<?php
-$value[ 1]=REX_VALUE[ 1];
-$value[ 2]=REX_VALUE[ 2];
-$value[ 3]=REX_VALUE[ 3];
-$value[ 4]=REX_VALUE[ 4];
-$value[ 5]=REX_VALUE[ 5];
-$value[ 6]=REX_VALUE[ 6];
-$value[ 7]=REX_VALUE[ 7];
-$value[ 8]=REX_VALUE[ 8];
-$value[ 9]=REX_VALUE[ 9];
-$value[10]=REX_VALUE[10];
-$value[11]=REX_VALUE[11];
-$value[12]=REX_VALUE[12];
-$value[13]=REX_VALUE[13];
-$value[14]=REX_VALUE[14];
-$value[15]=REX_VALUE[15];
-$value[16]=REX_VALUE[16];
-$value[17]=REX_VALUE[17];
-$value[18]=REX_VALUE[18];
-$value[19]=REX_VALUE[19];
-$value[20]=REX_VALUE[20];
-$katid=0;   // ggf. hier eine feste Kategorie-Id>0 vorschreiben
-$sid="REX_SLICE_ID";
-kal_termine_module::kal_manage_termine($value,$sid,$katid);
+echo "<div>Einfach nur <big>Abbrechen</big> !</div>\n";
 ?>';
    $out[1]='<?php
-if(rex::isBackend())
-  echo "<div><span class=\"kal_msg\">".
-     "Für die Terminverwaltung den Block editieren!</span></div>";
+echo kal_termine_module::kal_manage_termine();
 ?>';
    $ident[1]='kal_termine_module::kal_manage_termine';
    #
@@ -223,18 +200,15 @@ if(rex::isBackend())
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-$kid=REX_VALUE[4];
-$katid=0;   // ggf. hier eine feste Kategorie-Id>0 vorschreiben
-echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage,$kid,$katid)
+echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage)
 ?>';
    $out[2]='<?php
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-$kid=REX_VALUE[4];
-echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$kid);
+echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage);
 ?>';
-   $ident[2]='kal_termine_module::kal_terminmenue_in';
+   $ident[2]='kal_termine_module::kal_terminmenue';
    #
    # --- returning the modules codes
    $modules=array();

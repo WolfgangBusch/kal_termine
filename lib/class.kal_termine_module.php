@@ -3,162 +3,147 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2021
+ * @version September 2021
 */
 #
 class kal_termine_module {
 #
 #----------------------------------------- Inhaltsuebersicht
-#      kal_manage_termine($value,$slice_id,$katid)
-#          kal_find_termin($pidalt,$katid)
+#      kal_manage_termine()
 #      kal_terminmenue_in($men,$ab,$anztage,$katid)
 #          kal_terminmenue_select($name,$mennr)
 #      kal_terminmenue_out($men,$ab,$anztage,$katid)
 #
-public static function kal_manage_termine($value,$slice_id,$katid) {
-   #   Rueckgabe des HTML-Codes zur Verwaltung der Termine einer bzw. aller
-   #   Kategorien in der Datenbanktabelle (fuer einen entsprechenden Modul).
+public static function kal_manage_termine() {
+   #   Rueckgabe des HTML-Codes fuer ein Menue zur Verwaltung der Termine einer
+   #   Auswahl an Kategorien in der Datenbanktabelle (fuer einen entsprechenden
+   #   Modul). Die Auswahl haengt von den entsprechenden Permissions des aktuell
+   #   im Backend eingeloggten Redakteurs ab.
    #   Ueber verschiedene Formulare kann man einen neuen Termin eintragen oder
-   #   einen vorhandenen Termin suchen, um ihn zu loeschen oder zu korrigieren.
-   #   Die Aktionen werden gesteuert ueber die Redaxo-Variablen REX_VALUE[1],
-   #   ..., REX_VALUE[20]. Am Ende werden alle Redaxo-Variablen geloescht.
-   #   $value          nummeriertes Array der vorliegenden Redaxo-Variablen
-   #                   $value[$i]=REX_VALUE[$i] ($i = 1, 2, ..., 20)
-   #   $slice_id       Slice-Id des Artikel-blocks (REX_SLICE_ID)
-   #   $katid          Id der Kategorie bzw. =0 fuer alle Kategorien
+   #   einen vorhandenen Termin suchen, um ihn zu loeschen, zu korrigieren
+   #   oder zu kopieren.
+   #   Die Aktionen werden gesteuert ueber die Werte der Parameter ACTION_NAME
+   #   und PID_NAME.
    #   benutzte functions:
-   #      self::kal_find_termin($pidalt,$katid)
-   #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
-   #      kal_termine_formulare::kal_startauswahl()
-   #      kal_termine_formulare::kal_eingeben($value,$action,$katid)
-   #      kal_termine_formulare::kal_loeschen($pid,$action)
-   #      kal_termine_formulare::kal_korrigieren($value,$pid,$action,$katid)
+   #      kal_termine_formulare::kal_action($action,$pid)
+   #      kal_termine_formulare::kal_eingeben()
+   #      kal_termine_formulare::kal_korrigieren()
+   #      kal_termine_formulare::kal_loeschen()
+   #      kal_termine_formulare::kal_kopieren()
+   #      kal_termine_menues::kal_define_menues()
    #
-   $val=$value;
+   #                     +--------------------+
+   #                     | kal_manage_termine |
+   #                     +----------+---------+
+   #                                |
+   #                         +------+-----+
+   #                         |  kal_menue |
+   #                         +------+-----+
+   #                                |
+   #          +-- Tagesblatt -------+-- Terminblatt --+
+   #          |                                       |
+   #          |                   +-------------------+------------------+
+   #          |                   |                   |                  |
+   #  +-------+-------+  +--------+--------+  +-------+-------+  +-------+--------+
+   #  | $action=''    |  | $action=UPDATE  |  | $action=COPY  |  | $action=DELETE |
+   #  | $pid=0        |  | $pid>0          |  | $pid>0        |  | $pid>0         |
+   #  +---------------+  +-----------------+  +---------------+  +----------------+
+   #  |  kal_eingeben |  | kal_korrigieren |  |  kal_kopieren |  |  kal_loeschen  |
+   #  +---------------+  +-----------------+  +---------------+  +----------------+
+   #  | $action=''    |  | $action=UPDATE  |  | $action=COPY  |  | $action=DELETE |
+   #  |         START |  |         START   |  |         START |  |         START  |
+   #  | $pid=$pidneu  |  | $pid=$pid       |  | $pid=$pidneu  |  | $pid=$pid      |
+   #  +---------------+  +-----------------+  +---------------+  +----------------+
    #
+   # --- Menue sowie Aktion und Termin-Id als POST-Parameter uebernehmen
+   $men=0;
+   if(!empty($_POST[KAL_MENUE])) $men=$_POST[KAL_MENUE];
    $action='';
+   if(!empty($_POST[ACTION_NAME])) $action=$_POST[ACTION_NAME];
    $pid='';
-   if(!empty($val[COL_ANZAHL])):
-     $arr=explode(':',$val[COL_ANZAHL]);
-     $action=$arr[0];
-     if(count($arr)>1) $pid=$arr[1];
-     endif;
-   $ACT=$val[1];
-   #
-   # --- Start-/Eingabe-/Suchformular
-   if(empty($pid) or (empty($action) and empty($ACT))):
-     #  -  Startformular
-     if($action==ACTION_START or (empty($action) and empty($ACT) and empty($pid)))
-       echo kal_termine_formulare::kal_startauswahl();
-     #  -  Eingabeformular
-     if($action==ACTION_INSERT or $ACT==ACTION_INSERT):
-       if($ACT==ACTION_INSERT) $val[1]='';
-       echo kal_termine_formulare::kal_eingeben($val,$action,$katid);
-       endif;
-     #  -  Suchformular
-     if(($pid>0 and empty($action) and empty($ACT)) or
-        (empty($action) and $ACT==ACTION_SEARCH))
-       echo self::kal_find_termin($katid,$pid);
-   #
-   # --- Loesch-/Korrekturformular
+   if(empty($action)):
+     if(!empty($_POST[KAL_PID])) $pid=$_POST[KAL_PID];
      ;else:
-     #  -  Loeschformular
-     if($action==ACTION_DELETE or $ACT==ACTION_DELETE)
-       echo kal_termine_formulare::kal_loeschen($pid,$action);
-     #  -  Korrekturformular
-     if($action==ACTION_UPDATE or $ACT==ACTION_UPDATE):
-       if($ACT==ACTION_UPDATE):
-         $term=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-         $keys=array_keys($term);
-         for($i=1;$i<count($term);$i=$i+1) $val[$i]=$term[$keys[$i]];
-         endif;
-       echo kal_termine_formulare::kal_korrigieren($val,$pid,$action,$katid);
+     if(!empty($_POST[PID_NAME])) $pid=$_POST[PID_NAME];
+     endif;
+   #
+   # --- Tagesblatt oder Terminblatt erreicht? ($tagesblatt/$terminblatt==TRUE)
+   $menues=kal_termine_menues::kal_define_menues();
+   $tagesblatt =FALSE;
+   $terminblatt=FALSE;
+   $datum='';
+   if($men>0):
+     if(strpos($menues[$men]['name'],'agesblatt')>0):
+       $tagesblatt=TRUE;
+       $datum=$_POST[KAL_DATUM];
        endif;
+     if(strpos($menues[$men]['name'],'rminblatt')>0) $terminblatt=TRUE;
      endif;
    #
-   # --- Loeschen aller Redaxo-Variablen
-   if(!empty($slice_id)):
-     $sql=rex_sql::factory();
-     $upd='UPDATE rex_article_slice SET ';
-     for($i=1;$i<=COL_ANZAHL;$i=$i+1) $upd=$upd.'value'.$i.'="", ';
-     $upd=substr($upd,0,strlen($upd)-2);
-     $upd=$upd.' WHERE id='.strval($slice_id);
-     $sql->setQuery($upd);
-     endif;
-   }
-public static function kal_find_termin($pidalt,$katid=0) {
-   #   Suche eines Termins in einer bzw. in allen Kategorien, beginnend mit dem
-   #   Monatsmenue des aktuellen Monats. Ueber dieses oder ueber ein Tages-/Wochen-/
-   #   Monatsblatt wird der Termin ausgewaehlt. Solange die Suche andauert, wird
-   #   nur der HTML-Code fuer die entsprechenden Menues zurueck gegeben.
-   #   Ist der Termin gefunden, werden dessen Termindaten ausgegeben und die
-   #   Auswahl der geplanten Aktion angezeigt.
-   #   $pidalt         Id eines vorher schon bestimmten Termins;
-   #                   wird benutzt, falls zunaechst keine Auswahl einer
-   #                   Aktion fuer den Termin erfolgt ist
-   #   $katid          Id der Kategorie bzw. =0 fuer alle Kategorien
-   #   Die Auswahl der Aktion erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
-   #   Die Durchfuehrung der Aktion (bzw. deren Abbruch) erfolgt ueber die
-   #      Redaxo-Variable REX_INPUT_VALUE[count($cols)]
-   #      ($cols = Array der Terminspaltennamen) mit dem Schlusswert
-   #      'action:$pid' ($pid = Id des gefundenen Termins)
-   #   benutzte functions:
-   #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
-   #      kal_termine_formulare::kal_aktionsauswahl($pid)
-   #      kal_termine_menues::kal_terminblatt($termin,$datum,$ruecklinks)
-   #      kal_termine_menues::kal_menue($katid,$mennr)
+   # --- Monatsmenue-Nummer
+   $menmom=0;
+   for($i=1;$i<=count($menues);$i=$i+1)
+      if(strpos($menues[$i]['name'],'natsmenü')>0) $menmom=$i;    // Monatsmenue
    #
-   # --- Ueberschrift
-   $abbruch='Abbruch der Suche im Menü erst möglich nach Auswahl und Anzeige eines einzelnen Termins';
-   $ueber='Auswahlmenü zum Suchen eines Termins';
+   # --- Ueberschrift + Erlaeuterung
+   $str='
+<div align="center">
+<h3>Termine verwalten</h3>
+<p align="left">Die <b>Eingabe</b> eines Termins erfolgt im zugehörigen <b>Tagesblatt</b>.<br/>
+<b>Korrektur</b>, <b>Löschung</b> oder <b>Kopie</b> eines Termins sind im zugehörigen <b>Terminblatt</b> möglich.</p>
+<div>&nbsp;</div>';
    #
-   # --- Einlesen der Termin-Id
-   $pid='';
-   if(!empty($_POST[KAL_PID])) $pid=$_POST[KAL_PID];
-   if(empty($pid)) $pid=$pidalt;
-   if($pid<=0):
+   if(empty($action) or $action==ACTION_START or $action==ACTION_SELECT):
      #
-     # --- Oeffnen des Terminmenues
-     $men='';
-     if(!empty($_POST[KAL_MENUE])) $men=$_POST[KAL_MENUE];
-     if(empty($men)) $men=1;
-     return '<div align="center">
-<h4 title="'.$abbruch.'">'.$ueber.'</h4>
-<p><i>('.$abbruch.')</i></p>'.
-kal_termine_menues::kal_menue($katid,$men).'
-</div>';
+     # --- Termin/Datum suchen (Startformular)
+     $str=$str.kal_termine_menues::kal_menue($menmom).'
+<form method="post">';
+     if($tagesblatt)
+       $str=$str.'<br/>
+<input type="hidden" name="'.KAL_DATUM.'" value="'.$datum.'" />'.
+       kal_termine_formulare::kal_action(ACTION_INSERT,$pid);
+     if($terminblatt)
+       $str=$str.'<br/>'.kal_termine_formulare::kal_action(ACTION_SELECT,$pid);
+     if(!$tagesblatt and !$terminblatt and $men>=2)
+       $str=$str.'<br/>'.kal_termine_formulare::kal_action($action,$pid);
+     $str=$str.'</form>';
+     #
      else:
      #
-     # --- Ausgabe des gefundenen Termins mit Auswahl der Aktion 
-     $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-     $datum='';
-     if(!empty($_POST[KAL_DATUM]))$datum=$_POST[KAL_DATUM];
-     return '<div class="'.CSS_EINFORM.'">
-<table class="kal_table">
-    <tr><th class="left"></th>
-        <td><h4>'.$ueber.'</h4></td></tr>
-    <tr><th class="left">gefundener Termin:</th>
-        <td>'.kal_termine_menues::kal_terminblatt($termin,$datum,1).'        </td></tr>
-</table><br/>
-</div>'.
-        kal_termine_formulare::kal_aktionsauswahl($pid);
+     # --- neuen Termin eingeben
+     if($action==ACTION_INSERT and $pid<=0):
+       $str=$str.kal_termine_formulare::kal_eingeben();
+       endif;
+     #
+     # --- Termin korrigieren
+     if($action==ACTION_UPDATE and $pid>0):
+       $str=$str.kal_termine_formulare::kal_korrigieren();
+       endif;
+     #
+     # --- Termin loeschen
+     if($action==ACTION_DELETE and $pid>0):
+       $str=$str.kal_termine_formulare::kal_loeschen();
+       endif;
+     #
+     # --- Termin kopieren
+     if($action==ACTION_COPY and $pid>0):
+       $str=$str.kal_termine_formulare::kal_kopieren();
+       endif;
      endif;
+   return $str.'
+</div>';
    }
-public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
+public static function kal_terminmenue_in($men,$ab,$anztage) {
    #   Rueckgabe des HTML-Codes zur Konfigurierung einer Standard-Ausgabeliste
    #   von Terminen (fuer einen entsprechenden Modul).
    #   $men            ggf. vorher schon gewaehlte Menuenummer
+   #                   (Auswahl ueber REX_VALUE[1])
    #   $ab             ggf. vorher schon gewaehltes Datum fuer den ersten Tag der
-   #                   auszugebenden Termine
-   #                   (falls leer, wird jeweils das heutige Datum eingesetzt).
+   #                   auszugebenden Termine (leer: heutiges Datum eingesetzt)
+   #                   (Auswahl ueber REX_VALUE[2])
    #   $anztage        ggf. vorher schon gewaehlte Anzahl von Tagen fuer den
-   #                   Zeitraum, fuer die Termine ausgegeben werden sollen.
-   #   $kid            Id der ggf. vorher schon gewaehlten Kategorie
-   #                   (=0: es wurde 'alle Kategorien' gewaehlt)
-   #   $katid          Id der zugelassenen Kategorie (=0: alle Kategorien zugelassen)
-   #   Die Auswahl des Startdatums erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
-   #   Die Auswahl der Anzahl Tage erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[2].
-   #   Die Auswahl der Kategorie erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[3].
+   #                   Zeitraum, fuer die Termine ausgegeben werden sollen
+   #                   (Auswahl ueber REX_VALUE[3])
    #   benutzte functions:
    #      self::kal_terminmenue_select($name,$mennr)
    #      kal_termine_kalender::kal_standard_datum($datum)
@@ -166,7 +151,6 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
    #      kal_termine_kalender::kal_monatstage($jahr)
    #      kal_termine_kalender::kal_kw($datum)
    #      kal_termine_kalender::kal_kw_montag($kw,$jahr)
-   #      kal_termine_formulare::kal_select_kategorie($name,$katid,$kid,$kont)
    #      kal_termine_menues::kal_define_menues()
    #
    $von=$ab;
@@ -232,6 +216,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
        endif;
      $defanz=$nztage;
      $anz=$anztage;
+     if($anz<=0) $anz=$defanz;
      $abtxt='Eingabe im Format <tt>tt.mm.jjjj</tt> (Default: der heutige Tag)';
      $zrtxt='Eingabe der Anzahl Tage (inkl. Startdatum, Default: '.$defanz.')';
      endif;
@@ -248,7 +233,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
      $links='';
      else:
      $titel=$menues[$men]['titel'];
-     $links='Links zu anderen Menüs: &nbsp; '.$menues[$men]['links'];
+     $links='Links zu anderen Menüs: <i>'.$menues[$men]['links'].'</i>';
      endif;
    $str=$str.'
     <tr><th class="left2">Kalendermenü:</th>
@@ -275,14 +260,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
     <tr><th class="left2">Anzahl Tage:</th>
         <td><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.' /></td>
         <td class="pad">'.$zrtxt.'</td></tr>';
-   #
-   # --- Auswahl der Terminkategorie
    $str=$str.'
-    <tr><th class="left2">Kategorie:</th>
-        <td>'.kal_termine_formulare::kal_select_kategorie('REX_INPUT_VALUE[4]',$katid,$kid,0).'</td>
-        <td class="pad">keine Angabe: Termine aller Kategorien</td></tr>
-    <tr><td colspan="2" class="right">Speicherung der Daten:</td>
-        <td class="pad">'.$block.'</td></tr>
 </table>
 </div>';
    #
@@ -290,7 +268,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid,$katid) {
    }
 public static function kal_terminmenue_select($name,$mennr) {
    #   Rueckgabe des HTML-Codes fuer die Auswahl der moeglichen Kalendermenues:
-   #      Monatsmenue, Monatsblatt, Wochenblatt, Tagesblatt, Filtermenue
+   #   Monatsmenue, Monatsblatt, Wochenblatt, Tagesblatt, Filtermenue, Terminliste
    #   $name           Name des select-Formulars
    #   $mennr          Nummer des vorher gewaehlten Menues (Default: 1)
    #   benutzte functions:
@@ -319,54 +297,58 @@ public static function kal_terminmenue_select($name,$mennr) {
 </select>';
    return $string;
    }
-public static function kal_terminmenue_out($men,$ab,$anztage,$katid) {
+public static function kal_terminmenue_out($mennr,$ab,$anztage) {
    #   Rueckgabe des HTML-Codes zur Ausgabe einer Standard-Terminliste
    #   (fuer einen entsprechenden Modul).
-   #   $men            Nummer des gewaehlten Menues
-   #   $ab             gewaehltes Datum fuer den ersten Tag der auszugebenden Termine
-   #                   (falls leer, wird das heutige Datum eingesetzt)
-   #   $anztage        gewaehlte Anzahl von Tagen fuer den Zeitraum, fuer die Termine
-   #                   ausgegeben werden sollen
-   #   $katid          Id der gewaehlten Kategorie
-   #   Die Auswahl des Startdatums erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[1].
-   #   Die Auswahl der Anzahl Tage erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[2].
-   #   Die Auswahl der Kategorie erfolgt ueber die Redaxo-Variable REX_INPUT_VALUE[3].
+   #   $mennr          ggf. vorher schon gewaehlte Menuenummer
+   #                   (Auswahl ueber REX_VALUE[1])
+   #   $ab             ggf. vorher schon gewaehltes Datum fuer den ersten Tag der
+   #                   auszugebenden Termine (leer: heutiges Datum eingesetzt)
+   #                   (Auswahl ueber REX_VALUE[2])
+   #   $anztage        ggf. vorher schon gewaehlte Anzahl von Tagen fuer den
+   #                   Zeitraum, fuer die Termine ausgegeben werden sollen
+   #                   (Auswahl ueber REX_VALUE[3])
    #   benutzte functions:
    #      kal_termine_kalender::kal_heute()
    #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
-   #      kal_termine_tabelle::kal_get_termine($von,$bis,$katid,$katif)
-   #      kal_termine_tabelle::kal_kategorie_name($katid)
+   #      kal_termine_config::kal_allowed_terminkategorien()
+   #      kal_termine_tabelle::kal_get_termine($von,$bis,$katids,$katif)
    #      kal_termine_formulare::kal_terminliste($termin)
    #      kal_termine_menues::kal_define_menues()
-   #      kal_termine_menues::kal_menue($katid,$mennr)
+   #      kal_termine_menues::kal_menue($mennr)
    #
+   # --- Parameterueberprefung
+   $menues=kal_termine_menues::kal_define_menues();
+   $menmom=0;
+   for($i=1;$i<=count($menues);$i=$i+1)
+      if(strpos($menues[$i]['name'],'natsmenü')>0) $menmom=$i;    // Monatsmenue
+   $men=$mennr;
+   if(empty($men)) $men=$menmom;
    $von=$ab;
    if(empty($von)) $von=kal_termine_kalender::kal_heute();
    $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anztage-1));
-   $term=kal_termine_tabelle::kal_get_termine($von,$bis,$katid,0);
-   $menues=kal_termine_menues::kal_define_menues();
-   if(empty($men)) $men=1;
+   #
+   # --- alle Termine auslesen (fuer Terminliste bzw. Backend) 
+   $katids=kal_termine_config::kal_allowed_terminkategorien();
+   $term=kal_termine_tabelle::kal_get_termine($von,$bis,$katids,0);
+   $nzt=count($term);
+   #
+   # --- Frontend
    if(!rex::isBackend()):
-     #
-     # --- Frontend (Terminliste || Filtermenue / alle anderen Menues)
      if(strpos($menues[$men]['name'],'minliste')>0):
+       #    Terminliste
        $str=kal_termine_formulare::kal_terminliste($term);
        else:
-       $str=kal_termine_menues::kal_menue($katid,$men);
+       #    Menues ausser Terminliste
+       $str=kal_termine_menues::kal_menue($men);
        endif;
-     else:
-     #
-     # --- Backend
-     $stb='<u>'.$menues[$men]['name'].':</u> &nbsp; '.$von.' - '.$bis;
-     $stc='alle Kategorien';
-     if($katid>0):
-       $kateg=kal_termine_tabelle::kal_kategorie_name($katid);
-       $stc='Kategorie "'.$kateg.'"';
-       endif;
-     $std=count($term).' Termine';
+     endif;
+   #
+   # --- Backend
+   if(rex::isBackend()):
      $str='
-<div><span class="kal_msg">'.$stb.' &nbsp; ('.$stc.'): &nbsp; '.$std.'</span> &nbsp; '.
-        '<small>(Ausgaben nur im Frontend)</small></div>';
+<div><span class="kal_msg"><u>'.$menues[$men]['name'].':</u> &nbsp; '.$von.' - '.$bis.
+        ' &nbsp; ('.$nzt.' Termine)</span> &nbsp; <small>(Ausgaben nur im Frontend)</small></div>';
      endif;
    return $str;
    }
