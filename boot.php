@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2021
+ * @version September 2021
 */
 $my_package=$this->getPackageId();
 $basedir=rex_path::addon($my_package);
@@ -17,4 +17,7 @@ require_once $basedir.'/lib/class.kal_termine_module.php';
 # --- Stylesheet-Datei auch im Backend einbinden
 $file=rex_url::addonAssets($my_package).$my_package.'.css';
 rex_view::addCssFile($file);
+#
+# --- Terminkategorien als Rollen einrichten
+kal_termine_config::kal_set_roles();
 ?>

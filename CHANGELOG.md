@@ -1,4 +1,35 @@
 # kal_termine
+<h4>Version 3.4</h4>
+<ul>
+    <li>Redakteuren kann jetzt Verwaltung und Ausgabe von
+        Terminen einer oder mehrerer Kategorien in Form von
+        Benutzerrollen zugewiesen werden. Damit ist die
+        Organisation mehrerer unabhängiger Terminkalender
+        in einer Tabelle mit zwei Modulen möglich.</li> 
+    <li>Der Modul zur Verwaltung der Termine ist vollständig
+        umgebaut. Die Aktionen erfolgen jetzt im Output-Teil
+        des Moduls. Startmenü ist dabei immer das Monatsmenü
+        des aktuellen Monats. Zum Anlegen eines neuen Termins
+        muss jetzt das Tagesblatt des entsprechenden Tages 
+        aufgesucht werden; dessen Datum wird ins Formular
+        übernommen.</li>
+    <li>Die Daten eines Termins können jetzt HTML-Texte
+        enthalten, u.a. also auch Links.</li>
+    <li>Neu ist die Möglichkeit, einen Termin zu kopieren.
+        Das ist u.a. dann interessant, wenn im Falle
+        wöchentlich wiederkehrender Termine an einem
+        einzelnen Tag eine Ergänzung angebracht werden
+        soll ('Ersatztermin').</li>
+    <li>Termine werden jetzt nicht nur nach Datum sortiert,
+        sondern auch nach Uhrzeit.</li>
+    <li>Die Tagesangaben in der linken Spalte des Monats-
+        und des Wochensblatts sind jetzt als Links auf das
+        zugehörige Tagesblatt ausgebildet.</li>
+    <li>Im Termin-Eingabeformular ist die Wahl der
+        Terminkategorie in die erste Zeile gerückt.</li>
+    <li>Design und Stylesheets von Suchmenü und Terminliste
+        sind leicht verändert.</li>
+</ul>
 <h4>Version 3.3.1</h4>
 <ul>
     <li>Die Version enthält eine kleine Verbesserung des
