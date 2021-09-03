@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2021
+ * @version September 2021
 */
 echo '<div><br/>Hier werden nur <u>reine Spieldaten</u> benutzt, die nicht in der
 Tabelle <tt>'.TAB_NAME.'</tt> enthalten sind. Sie sind in insgesamt '.
@@ -13,6 +13,6 @@ aktuelle Datum herum und wiederholen sich wöchentlich.</div>
 <div><br/>Einige der hier angezeigten Menüs können (anstelle des Monatsmenüs) als
 Startmenü gewählt werden.</div>
 <div align="center"><br/>
-'.kal_termine_menues::kal_menue(SPIEL_KATID,1).'
+'.kal_termine_menues::kal_spielmenue().'
 <br/>&nbsp;</div>';
 ?>
