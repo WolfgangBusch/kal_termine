@@ -52,7 +52,6 @@
 .kal_terminblatt th { max-width:6em; padding:0.25em; vertical-align:top; text-align:left; }
 .kal_terminblatt td { padding:0.25em; vertical-align:top; text-align:left; }
 .kal_terminblatt .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
-.kal_terminblatt .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
 
 /*   Terminliste   */
 .termlist_th { padding:0.3em 0.5em 0.3em 0; text-align:right; white-space:nowrap;
@@ -64,8 +63,8 @@
 .termlist_ausrichter::before { content:", Ausrichter: "; }
 .termlist_komm::before { content:"\A"; white-space:pre; }
 @media screen and (max-width:35em) {
-    .termlist_th { float:left; padding:0.3em 0 0.3em 0; text-align:left; white-space:normal; }
-    .termlist_td { float:left; padding:0.3em 0 0.3em 1em; min-width:21em; }
+    .termlist_th { float:left; padding:0.6em 0 0 0; text-align:left; white-space:normal; }
+    .termlist_td { float:left; padding:0 0 0 1em; min-width:21em; }
     }
 
 /*   Monatsmenue   */
@@ -76,7 +75,7 @@
 .kal_monatsmenue .right { float:right; }
 .kal_monatsmenue .center { text-align:center; }
 .kal_monatsmenue .rechts { text-align:right; }
-.kal_monatsmenue .width { min-width:8.5em; max-width:8.5em; }
+.kal_monatsmenue .width { min-width:8,5em; max-width:8,5em; }
 .kal_monatsmenue .wot { padding:0.25em; text-align:center; color:rgb(55,140,78); }
 .kal_monatsmenue .kalenderwoche  { padding:0.25em; text-align:right;  color:rgb(55,140,78); }
 #hatch { background-image:linear-gradient(-45deg,
@@ -102,7 +101,7 @@
 .kal_mowotablatt .pad0 { padding:0 0.5em 0 0.5em; color:rgb(5,90,28); }
 .kal_mowotablatt .pad1 { padding:0 0.25em 0 0.25em; vertical-align:top; text-align:right;
     white-space:nowrap; font-weight:bold; color:rgb(55,140,78); }
-.kal_mowotablatt .tag { width:100%; padding:0; line-height:1.5em; }
+.kal_mowotablatt .tag { width:100%; padding:0 !important; }
 @media screen and (max-width:35em) {
     .kal_mowotablatt hr { margin:0.25em; padding:1px; border:solid 1px inherit; 
         background-color:rgb(80,165,103); }
@@ -118,10 +117,11 @@
 .kal_mowotablatt .center { text-align:center; color:rgb(55,140,78); }
 .kal_mowotablatt .right  { text-align:right;  color:rgb(55,140,78); }
 /*   Terminfeld   */
-.kal_mowotablatt .termin { white-space:nowrap; overflow-x:hidden;
+.kal_mowotablatt .termin { white-space:nowrap; overflow-x:hidden; margin-top:0.1em; margin-bottom:0.1em;
     padding:0.25em; border-collapse:separate; border-spacing:0.25em;
     color:rgb(5,90,28); background-color:rgb(105,190,128);
-    border:solid 1px rgb(5,90,28); border-radius:0.25em; padding:0.1em !important; }
+    border:solid 1px rgb(5,90,28); border-radius:0.25em; }
+.kal_mowotablatt .leertermin { padding:0.25em; border-collapse:separate; border-spacing:0.25em; margin-top:0.1em; margin-bottom:0.1em; }
 @media screen and (max-width:35em) {
     .kal_mowotablatt .termin { white-space:normal;
         padding:0.25em; color:rgb(5,90,28); background-color:transparent; border:none; }
@@ -130,30 +130,35 @@
 /*   Suchmenue   */
 .kal_such { }
 .kal_such select, .kal_such input, .kal_such button { padding:0.1em; }
-.kal_such .th { max-width:5em; padding:0.25em; text-align:left; font-weight:bold; color:rgb(55,140,78); }
-.kal_such .td { padding:0.25em; white-space:nowrap; color:rgb(5,90,28); }
+.kal_such select { width:100%; }
+.kal_such .stichwort { max-width:28em; }
+.kal_such .th { min-width:7em; max-width:10em; padding:0.25em; text-align:left;
+    font-weight:bold; color:rgb(55,140,78); }
+.kal_such .td { padding:0.25em; max-width:28em; }
 .kal_such .kopf { font-size:1.2em; font-weight:bold; color:rgb(5,90,28); }
-.kal_such .small { font-size:0.9em; }
-.kal_such .right { float:right; }
+.kal_such .small { font-size:0.9em; vertical-align:text-top; }
+.kal_such .filter_button { float:right; margin-top:1em; padding:0.25em; }
 .kal_such .left  { text-align:left; }
 .kal_such .liste { padding-left:1em; }
 @media screen and (max-width:35em) {
     .kal_such .liste { padding-left:0; }
+    .kal_such .th { min-width:0; }
     }
 
 /*   Termin-Eingabeformular   */
-.kal_eingabeform { }
-.kal_eingabeform th { vertical-align:top; line-height:2em; text-align:left; font-weight:bold; }
-.kal_eingabeform td { line-height:1.5em; }
+.kal_eingabeform { text-align:left; }
+.kal_eingabeform .th_einf { vertical-align:top; line-height:2em; text-align:left; font-weight:bold; }
+.kal_eingabeform .td_einf { line-height:1.5em; }
 .kal_eingabeform select { padding:0.25em; }
 .kal_eingabeform .action { font-weight:bold; color:rgb(55,140,78); }
+.kal_eingabeform .martop { margin-top:1em; line-height:3em; }
 .kal_eingabeform .left { width:12em; vertical-align:top; white-space:nowrap; }
 .kal_eingabeform .right { text-align:right; }
 .kal_eingabeform .text { width:35em; padding:0 0.25em 0 0.25em; }
-.kal_eingabeform .date { width: 6em; padding:0 0.25em 0 0.25em; }
-.kal_eingabeform .time { width: 4em; padding:0 0.25em 0 0.25em; }
-.kal_eingabeform .int  { width: 3em; padding:0 0.25em 0 0.25em; }
-.kal_eingabeform .left2 { width:8em; vertical-align:top; white-space:nowrap; }
+.kal_eingabeform .date { width: 8em; padding:0 0.25em 0 0.25em; }
+.kal_eingabeform .time { width: 6em; padding:0 0.25em 0 0.25em; }
+.kal_eingabeform .int  { width: 4em; padding:0 0.25em 0 0.25em; }
+.kal_eingabeform .left2 { width:10em; vertical-align:top; white-space:nowrap; }
 .kal_eingabeform .pad { padding-left:1em; text-align:left; }
 
 /*   Formulare im Backend   */
