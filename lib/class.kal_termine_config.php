@@ -926,8 +926,8 @@ public static function kal_set_roles() {
    # --- Administrator-Benutzer und heutiges Datum
    $art_id=rex_article::getSiteStartArticleId();
    $sql=rex_sql::factory();
-   $art=$sql->getArray('SELECT * FROM rex_user WHERE id=\''.$art_id.'\'');
-   $admin=$art[0]['createuser'];
+   $art=$sql->getArray('SELECT * FROM rex_article WHERE id=\''.$art_id.'\'');
+   $admin=$art[0]['updateuser'];
    $heute=kal_termine_kalender::kal_heute();
    $heute=kal_termine_tabelle::kal_datum_standard_mysql($heute).' 00:00:00';
    #
