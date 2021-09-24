@@ -211,7 +211,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid) {
    #     Terminliste
    if(strpos($menues[$men]['name'],'minliste')>0):
      #     Defaultdaten
-     $von='';
+     $von=$heute;
      if(!empty($ab)):
        $arr=explode('.',$ab);
        $von=intval($arr[0]).'.'.intval($arr[1]).'.'.intval($arr[2]);
