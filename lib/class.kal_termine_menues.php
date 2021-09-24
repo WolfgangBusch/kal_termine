@@ -28,7 +28,7 @@ class kal_termine_menues {
 #         kal_blaettern_tage($datum,$kont)
 #         kal_terminblatt($termin,$datum,$ruecklinks)
 #   Monatsmenue
-#         kal_monatsmenue($katids,$mon,$jahr,$modus)
+#         kal_monatsmenue($kid,$katids,$mon,$jahr,$modus)
 #   Monats-/Wochen-/Tagesblatt
 #         kal_monatsblatt($katids,$mon,$jahr)
 #         kal_wochenblatt($katids,$kw,$jahr)
@@ -42,9 +42,9 @@ class kal_termine_menues {
 #   Termin-Filtermenue
 #         kal_such($katids,$jahr,$kid,$suchen,$vorher)
 #   Menuewechsel
-#         kal_menue($mennr)
+#         kal_menue($selkid,$mennr)
 #         kal_spielmenue()
-#         kal_menue_intern($mennr,$spieltermine)
+#         kal_menue_intern($selkid,$mennr,$spieltermine)
 #
 public static function kal_define_menues() {
    #   Rueckgabe der moeglichen Startmenues in der Reihenfolge:
@@ -102,15 +102,14 @@ public static function kal_link($par,$mennr,$linktext,$modus) {
    #   $modus          <=0: es wird statt des Links nur der Linktext zurueck gegeben
    #                        <0: der Linktext wird mittels Stylesheet formatiert
    #                   >0:  es wird ein Link zurueck gegeben
-   #                        =1: Linktext in Normalschrift
-   #                        >1: Linktext fett und groesser (class="kal_boldbig")
+   #                        ==1: Linktext in Normalschrift
+   #                        ==2: Linktext fett&groesser (class="kal_boldbig", fuer das Blaettern)
+   #                        >=3: Linktext fett (class="kal_bold", fuer die Terminliste)
    #
    if($modus==0) return $linktext;
    if($modus<0)  return '<span class="kal_transparent kal_basecol kal_boldbig">'.$linktext.'</span>';
    #
-   $action='';
-   if(rex::isBackend()) $action=' action="'.$_SERVER['REQUEST_URI'].'"';
-   $str='    <form style="display:inline;" method="post" onsubmit=""'.$action.'>';
+   $str='    <form method="post">';
    $arr=explode('&',$par);
    for($i=0;$i<count($arr);$i=$i+1):
       $brr=explode('=',$arr[$i]);
@@ -118,7 +117,8 @@ public static function kal_link($par,$mennr,$linktext,$modus) {
                 <input type="hidden" name="'.$brr[0].'" value="'.$brr[1].'" />';
       endfor;
    $big='';
-   if($modus>1) $big=' kal_boldbig';
+   if($modus==2) $big=' kal_boldbig';
+   if($modus>=3) $big=' kal_bold';
    $str=$str.'
                 <input type="hidden" name="'.KAL_MENUE.'" value="'.$mennr.'" />
                 <button type="submit" class="kal_transparent kal_linkbutton'.$big.'">'.$linktext.'</button>
@@ -140,7 +140,7 @@ public static function kal_blaettern_basis() {
    $heute=kal_termine_kalender::kal_heute();
    $mon=substr($heute,3,2);
    $jahr=substr($heute,6);
-   $linktext='&wedgeq;';
+   $linktext='<i class="fa fa-calendar"></i>';
    #
    $title=' title="'.$monate[intval($mon)].' '.$jahr.'"';
    $lp=KAL_MONAT.'='.$mon.'&'.KAL_JAHR.'='.$jahr;
@@ -157,16 +157,12 @@ public static function kal_blaettern_suche() {
    #      self::kal_link($par,$mennr,$linktext,$modus)
    #      kal_termine_kalender::kal_heute()
    #
-   # --- kein Link auf das Suchmenue bei der Terminverwaltung
-   if(rex::isBackend() and
-     strpos($_SERVER['REQUEST_URI'],'page='.PACKAGE.'/example')<=0) return;
-   #
    $lnkmod=2;
    $menues=self::kal_define_menues();
    #
    $heute=kal_termine_kalender::kal_heute();
    $jahr=substr($heute,6);
-   $linktext='<span class="kal_rotate">&#9740;</span>';
+   $linktext='<i class="fa fa-search"></i>';
    #
    $title=' title="Suche im Jahre '.$jahr.'"';
    $lp=KAL_JAHR.'='.$jahr;
@@ -201,13 +197,13 @@ public static function kal_blaettern_jahre($mon,$jahr,$kont) {
    # --- vorheriges Jahr
    if($kont<=-1):
      $jahrneu=$jahr-1;
-     $linktext='&laquo;';
+     $linktext='<i class="fa fa-angle-double-left"></i>';
      endif;
    #
    # --- folgendes Jahr
    if($kont>=1):
      $jahrneu=$jahr+1;
-     $linktext='&raquo;';
+     $linktext='<i class="fa fa-angle-double-right"></i>';
      endif;
    #
    # --- weitere Linkparameter
@@ -255,7 +251,7 @@ public static function kal_blaettern_monate($mon,$jahr,$kont) {
        $monneu=$monneu+12;
        $jahrneu=$jahr-1;
        endif;
-     $linktext='&lt;';
+     $linktext='<i class="fa fa-angle-left"></i>';
      endif;
    #
    # --- aktueller Monat Monatsmenue/Monatsblatt
@@ -273,7 +269,7 @@ public static function kal_blaettern_monate($mon,$jahr,$kont) {
        $monneu=$monneu-12;
        $jahrneu=$jahr+1;
        endif;
-     $linktext='&gt;';
+     $linktext='<i class="fa fa-angle-right"></i>';
      endif;
    #
    # --- weitere Linkparameter
@@ -327,7 +323,7 @@ public static function kal_blaettern_wochen($kw,$jahr,$kont) {
        $kwneu=kal_termine_kalender::kal_montag_kw($von);
        $jahrneu=$jahrneu-1;
        endif;
-     $linktext='&lt;';
+     $linktext='<i class="fa fa-angle-left"></i>';
      endif;
    #
    # --- aktuelle Woche
@@ -354,7 +350,7 @@ public static function kal_blaettern_wochen($kw,$jahr,$kont) {
        $kwneu=kal_termine_kalender::kal_montag_kw($von);
        if($kwneu<$kw) $jahrneu=$jahrneu+1;
        endif;
-     $linktext='&gt;';
+     $linktext='<i class="fa fa-angle-right"></i>';
      endif;
    $bis=kal_termine_kalender::kal_datum_vor_nach($von,6);
    #
@@ -398,7 +394,7 @@ public static function kal_blaettern_tage($datum,$kont) {
    # --- vorheriger Tag
    if($kont==intval(-1)):
      $datumneu=kal_termine_kalender::kal_datum_vor_nach($datum,-1);
-     $linktext='&lt;';
+     $linktext='<i class="fa fa-angle-left"></i>';
      endif;
    #
    # --- aktueller Tag
@@ -411,14 +407,14 @@ public static function kal_blaettern_tage($datum,$kont) {
      $lnkmod=1;
      endif;
    if($kont==3):   // Terminblatt
-     $linktext='&lt;';
+     $linktext='<i class="fa fa-angle-left"></i>';
      $lnkmod=2;
      endif;
    #
    # --- folgender Tag
    if($kont==1):
      $datumneu=kal_termine_kalender::kal_datum_vor_nach($datum,1);
-     $linktext='&gt;';
+     $linktext='<i class="fa fa-angle-right"></i>';
      endif;
    #
    # --- weitere Linkparameter
@@ -484,7 +480,11 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
 <div class="'.CSS_TERMBLATT.'">
 <table class="kal_table kal_box">
     <tr><td class="kopf">
-            '.$ueber[0].'&nbsp;&nbsp;'.$ueber[1].'</td>
+            <table class="kal_transparent"><tr>
+                <td>'.$ueber[0].'</td>
+                <td>&nbsp;</td>
+                <td>'.$ueber[1].'</td>
+            </tr></table></td>
         <td class="kopf">';
    #
    # --- return, falls kein Termin angegeben ist
@@ -500,7 +500,7 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    #
    # --- Termindaten
    $name=$termin[COL_NAME];
-   $datum=$termin[COL_DATUM];
+   $datum=$termin[COL_DATUM];            
    $pid=$termin[COL_PID];
    $dauer=$termin[COL_TAGE];
    $arr=explode('.',$datum);
@@ -532,9 +532,10 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    $warnung='';
    #     Wiederholungstermine
    if($termin[COL_WOCHEN]>0):
+     $ter=kal_termine_tabelle::kal_select_termin_by_pid($pid);
+     $strdat=$ter[COL_DATUM];
      $warnung='<b>wöchentlich</b>, '.$termin[COL_WOCHEN].' Wochen, ab '.$strdat;
      if(!empty($ueber[1])):
-       $ter=kal_termine_tabelle::kal_select_termin_by_pid($pid);
        $dat=$ter[COL_DATUM];
        $arr=explode('.',$dat);
        $dat=intval($arr[0]).'.'.intval($arr[1]).'.'.$arr[2];
@@ -545,8 +546,6 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    #     Folgetermine
    if($dauer>1):
      $warnung='<b>mehrtägig</b>, '.$dauer.' Tage, ab '.$strdat;
-     if(!empty($ueber[1])) $str=$str.'<br/>
-            ('.$warnung.')';
      endif;
    $seite=$seite.'
     <tr><th>Termin:</th>
@@ -634,12 +633,16 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    }
 #
 #----------------------------------------- Monatsmenue
-public static function kal_monatsmenue($katids,$mon,$jahr,$modus=1) {
+public static function kal_monatsmenue($kid,$katids,$mon,$jahr,$modus=1) {
    #   Rueckgabe des HTML-Codes zur Ausgabe eines Kalendermenues fuer einen Monat
    #   eines Jahres. Falls der Monat oder das Jahr nicht angegeben sind, wird der
    #   aktuelle Monat angenommen. Die Tage, an denen Termine anstehen, werden durch
    #   Schraffur markiert. Die Ausgabe des Kalendermenues erfolgt im aktuellen
    #   Browserfenster.
+   #   $kid            Beruecksichtigung der Termine aller erlaubten Kategorien oder
+   #                   nur der Termine ener einzelnen Kategorie
+   #                   =0 oder =SPIEL_KATID: Termine aller erlaubten Kategorien
+   #                   >0: nur Termine der Kategorie $kid
    #   $katids         Array der fuer den Redakteur erlaubten Kategorie-Ids
    #                   (Nummerierung ab 1, Spieldaten: alle Kategorien)
    #   $mon            Nummer des Monats eines Jahres
@@ -661,7 +664,7 @@ public static function kal_monatsmenue($katids,$mon,$jahr,$modus=1) {
    #      self::kal_blaettern_jahre($mon,$jahr,$kont)
    #      self::kal_blaettern_monate($mon,$jahr,kont)
    #      self::kal_blaettern_wochen($kw,$jahr,$kont)
-   #      self::kal_blaettern_tage($datum,$kont)
+   #      self::kal_blaettern_suche()
    #      self::kal_link($par,$mennr,$linktext,$modus)
    #      kal_termine_kalender::kal_heute()
    #      kal_termine_kalender::kal_monate()
@@ -711,8 +714,14 @@ public static function kal_monatsmenue($katids,$mon,$jahr,$modus=1) {
    $dat1='01.'.$strmon.'.'.$strjahr;
    $dat2=$anztage.'.'.$strmon.'.'.$strjahr;
    $termine=array();
-   if($modus>0)
-     $termine=kal_termine_tabelle::kal_get_termine($dat1,$dat2,$katids,1);
+   if($modus>0):
+     if($kid>0 and $kid!=SPIEL_KATID):
+       $kids=array(1=>$kid);
+       else:
+       $kids=$katids;
+       endif;
+     $termine=kal_termine_tabelle::kal_get_termine($dat1,$dat2,$kids,1);
+     endif;
    #
    # --- Tage markieren, an denen ein Termin vorhanden ist (Schraffur)
    for($k=1;$k<=count($termine);$k=$k+1):
@@ -875,33 +884,37 @@ $string.$kopf.$zeilen.'
    }
 #
 #----------------------------------------- Monats-/Wochen-/Tagesblatt
-public static function kal_monatsblatt($katids,$mon,$jahr) {
+public static function kal_monatsblatt($kid,$katids,$mon,$jahr) {
    if(empty($mon) or empty($jahr)):
      $heute=kal_termine_kalender::kal_heute();
      $mon=substr($heute,3,2);
      $jahr=substr($heute,6);
      endif;
-   return self::kal_mowotablatt($katids,$mon,'',$jahr,'');
+   return self::kal_mowotablatt($kid,$katids,$mon,'',$jahr,'');
    }
-public static function kal_wochenblatt($katids,$kw,$jahr) {
+public static function kal_wochenblatt($kid,$katids,$kw,$jahr) {
    if(empty($kw) or empty($jahr)):
      $heute=kal_termine_kalender::kal_heute();
      $kw=intval(kal_termine_kalender::kal_kw($heute));
      $jahr=intval(substr($heute,6));
      endif;
-   return self::kal_mowotablatt($katids,'',$kw,$jahr,'');
+   return self::kal_mowotablatt($kid,$katids,'',$kw,$jahr,'');
    }
-public static function kal_tagesblatt($katids,$datum) {
+public static function kal_tagesblatt($kid,$katids,$datum) {
    if(empty($datum)) $datum=kal_termine_kalender::kal_heute();
-   return self::kal_mowotablatt($katids,'','','',$datum);
+   return self::kal_mowotablatt($kid,$katids,'','','',$datum);
    }
-public static function kal_mowotablatt($katids,$mon,$kw,$jahr,$datum) {
+public static function kal_mowotablatt($kid,$katids,$mon,$kw,$jahr,$datum) {
    #   Rueckgabe des HTML-Codes zur Ausgabe eines Kalenderblatts fuer entweder
    #   - einen Kalendermonat (nicht leer: $mon, $jahr, leer: $kw, $datum) oder
    #   - eine Kalenderwoche  (nicht leer: $kw, $jahr,  leer: $mon, $datum ) oder
    #   - einen einzelnen Tag (nicht leer: $datum,      leer: $mon, $kw, $jahr)
    #   Falls alle 4 Datumsparameter leer sind, wird der heutige Tag als
    #   einzelner Tag angenommen.
+   #   $kid            Beruecksichtigung der Termine aller erlaubten Kategorien oder
+   #                   nur der Termine ener einzelnen Kategorie
+   #                   =0 oder =SPIEL_KATID: Termine aller erlaubten Kategorien
+   #                   >0: nur Termine der Kategorie $kid
    #   $katids         Array der fuer den Redakteur erlaubten Kategorie-Ids
    #                   (Nummerierung ab 1, Spieldaten: alle Kategorien)
    #   $mon            Nummer des Monats eines Jahres im Format 'mm' oder 'm'
@@ -917,6 +930,11 @@ public static function kal_mowotablatt($katids,$mon,$kw,$jahr,$datum) {
    #      self::kal_stundenleiste()
    #      self::kal_define_menues()
    #      self::kal_link($par,$mennr,$linktext,$modus)
+   #      self::kal_blaettern_basis()
+   #      self::kal_blaettern_monate($strmon,$jahr,$kont)
+   #      self::kal_blaettern_wochen($kw,$jahr,$kont)
+   #      self::kal_blaettern_tage($datum,$kont)
+   #      self::kal_blaettern_suche()
    #      kal_termine_config::kal_define_stundenleiste()
    #      kal_termine_kalender::kal_standard_datum($datum)
    #      kal_termine_kalender::kal_heute()
@@ -938,6 +956,13 @@ public static function kal_mowotablatt($katids,$mon,$kw,$jahr,$datum) {
    $menues=self::kal_define_menues();
    for($j=1;$j<=count($menues);$j=$j+1)
       if(strpos($menues[$j]['name'],'gesblatt')>0) $men=$j;   // Menue-Nr. Tagesblatt
+   #
+   # --- Kategorien
+   if($kid>0 and $kid!=SPIEL_KATID):
+     $kids=array(1=>$kid);
+     else:
+     $kids=$katids;
+     endif;
    #
    # --- falls ein Einzeltermin gemeint ist, werden Monat und Jahr ermittelt
    if(empty($mon) and empty($kw)):
@@ -965,7 +990,7 @@ public static function kal_mowotablatt($katids,$mon,$kw,$jahr,$datum) {
         if(strlen($tag)<2) $tag='0'.$tag;
         $dat[$i]=$tag.'.'.$strmon.'.'.$strjahr;
         endfor;
-     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[$end],$katids,1);
+     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[$end],$kids,1);
      endif;
    #     Kalenderwoche
    if(!empty($kw) and !empty($jahr)):
@@ -973,12 +998,12 @@ public static function kal_mowotablatt($katids,$mon,$kw,$jahr,$datum) {
      $dat[1]=kal_termine_kalender::kal_kw_montag($kw,$strjahr);
      #     restliche Tage der Woche als Datum
      for($i=2;$i<=7;$i=$i+1) $dat[$i]=kal_termine_kalender::kal_datum_vor_nach($dat[1],$i-1);
-     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[7],$katids,1);
+     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[7],$kids,1);
      endif;
    #     Einzeldatum
    if(!empty($datum)):
      $dat[1]=$stdatum;
-     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[1],$katids,1);
+     $term=kal_termine_tabelle::kal_get_termine($dat[1],$dat[1],$kids,1);
      endif;
    #
    # --- Ruecklinks und Ueberschriften
@@ -1324,7 +1349,7 @@ public static function kal_termin_titel($termin) {
    }
 #
 #----------------------------------------- Termin-Filtermenue
-public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
+public static function kal_such($kid,$katids,$jahr,$suchen,$vorher) {
    #   Rueckgabe des HTML-Codes fuer ein Menue zur Filterung der Termine eines
    #   Kalenderjahres (maximal 4 Jahre vor und 2 Jahre nach dem aktuellen Jahr,
    #   wie unten festgelegt (*)). Die Termine gehören zu einer oder mehreren
@@ -1334,12 +1359,14 @@ public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
    #   - Beschraenkung auf die Termine ab dem heutigen Datum
    #   Die Bedingungen werden ueber die Parameter $kid, $suchen, $vorher definiert
    #   und gelten zugleich.
+   #   $kid            Beruecksichtigung der Termine aller erlaubten Kategorien oder
+   #                   nur der Termine ener einzelnen Kategorie
+   #                   =0 oder =SPIEL_KATID: Termine aller erlaubten Kategorien
+   #                   >0: nur Termine der Kategorie $kid
    #   $katids         Array der fuer den Redakteur erlaubten Kategorie-Ids
    #                   (Nummerierung ab 1, Spieldaten: alle Kategorien)
    #   $jahr           Kalenderjahr, auf das sich die Suche bezieht
    #                   falls leer, wird das aktuelle Jahr angenommen
-   #   $kid            Id der im Menue ausgewaehlten Kategorie,
-   #                   falls leer/0, werden alle Kategorien angenommen
    #   $suchen         im Menue eingegebener Suchbegriff (unabhaengig von
    #                   Gross-/Kleinschreibung), der Begriff wird in diesen
    #                   Termin-Parametern gesucht:
@@ -1354,15 +1381,13 @@ public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
    #      KAL_VORHER     gemaess $vorher
    #   benutzte functions:
    #      self::kal_define_menues()
-   #      kal_termine_config::kal_allowed_terminkategorien()
-   #      kal_termine_config::kal_get_terminkategorien()
+   #      self::kal_blaettern_basis()
    #      kal_termine_kalender::kal_heute()
    #      kal_termine_kalender::kal_monate()
    #      kal_termine_tabelle::kal_get_termine($von,$bis,$katids,$kontif)
-   #      kal_termine_tabelle::kal_get_spielkategorien()
    #      kal_termine_tabelle::kal_datum_standard_mysql($datum)
-   #      kal_termine_formulare:kal_select_kategorie($name,$kid,$katids,$all)
-   #      kal_termine_formulare::kal_terminliste($termin)
+   #      kal_termine_formulare::kal_select_kategorie($name,$kid,$katids,$all)
+   #      kal_termine_formulare::kal_terminliste($termin,$datum_as_link)
    #
    # --- (*) Festlegung der betrachteten Kalenderjahre
    #     Anzahl der Jahre vor/nach dem aktuellen Jahr: $jvor/$jnach
@@ -1454,12 +1479,13 @@ public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
     <tr><th class="th"></th>
         <td><input type="hidden" name="'.KAL_MENUE.'" value="'.$men.'" />
             <button type="submit" class="kal_col5 kal_linkbutton filter_button">
-            <b>Filtern der Termine</b></button></td></tr>
+            <b>Filtern der Termine</b></button>
+            </form></td></tr>
 </table>';
    #
    # --- Herausfiltern der Termine, die zur gewaehlten Kategorie gehoeren ($term)
    $term=array();
-   if(($kid>0 and $kid<SPIEL_KATID) or $kid>SPIEL_KATID):
+   if($kid>0 and $kid!=SPIEL_KATID):
      $m=0;
      for($i=1;$i<=$nztermin;$i=$i+1):
         if($termin[$i][COL_KATID]==$kid):
@@ -1517,7 +1543,7 @@ public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
      if($nztermin==1) $ter='Termin';
      $string=$string.'<u>'.$nztermin.' '.$ter.' gefunden:</u><br/>
     <div class="liste">'.
-        kal_termine_formulare::kal_terminliste($termin).'
+        kal_termine_formulare::kal_terminliste($termin,TRUE).'
     </div>';
      endif;
    $string=$string.'
@@ -1526,17 +1552,21 @@ public static function kal_such($katids,$jahr,$kid,$suchen,$vorher) {
    return $string;
    }
 #----------------------------------------- Menuewechsel
-public static function kal_menue($mennr) {
-   return self::kal_menue_intern($mennr,FALSE);
+public static function kal_menue($selkid,$mennr) {
+   return self::kal_menue_intern($selkid,$mennr,FALSE);
    }
 public static function kal_spielmenue() {
    $menues=self::kal_define_menues();
    for($i=1;$i<=count($menues);$i=$i+1)
       if(strpos($menues[$i]['name'],'natsmenü')>0) $menmom=$i;   // Monats-Menuenummer
-   return self::kal_menue_intern($menmom,TRUE);
+   return self::kal_menue_intern(SPIEL_KATID,$menmom,TRUE);
    }
-public static function kal_menue_intern($mennr,$spieltermine) {
+public static function kal_menue_intern($selkid,$mennr,$spieltermine) {
    #   Rueckgabe des HTML-Codes zur Anzeige des gewaehlten Menues.
+   #   $selkid         Beruecksichtigung der Termine aller erlaubten Kategorien oder
+   #                   nur der Termine ener einzelnen Kategorie
+   #                   =0 oder =SPIEL_KATID: Termine aller erlaubten Kategorien
+   #                   >0: nur Termine der Kategorie $selkid
    #   $mennr          Nummer des ersten anzuzeigenden Menues (Startmenue),
    #                   wird nur benutzt, wenn der Wert von $_POST[KAL_MENUE]
    #                   (noch) leer ist.
@@ -1547,23 +1577,29 @@ public static function kal_menue_intern($mennr,$spieltermine) {
    #                   sonst:  das Menue wird mit echten Terminen gestartet
    #   benutzte functions:
    #      self::kal_define_menues()
-   #      self::kal_monatsmenue($katids,$mon,$jahr,$modus)
-   #      self::kal_monatsblatt($katids,$monat,$jahr)
-   #      self::kal_wochenblatt($katids,$kw,$jahr)
-   #      self::kal_tagesblatt($katids,$datum)
+   #      self::kal_monatsmenue($kid,katids,$mon,$jahr,$modus)
+   #      self::kal_monatsblatt($kid,$katids,$monat,$jahr)
+   #      self::kal_wochenblatt($kid,$katids,$kw,$jahr)
+   #      self::kal_tagesblatt($kid,$katids,$datum)
    #      self::kal_terminblatt($termin,$datum,$ruecklinks)
-   #      self::kal_such($katids,$jahr,$kid,$suchen,$vorher)
-   #      kal_termine_kalender::kal_heute()
-   #      kal_termine_kalender::kal_kw($datum)
+   #      self::kal_such($kid,$katids,$jahr,$suchen,$vorher)
+   #      kal_termine_config::kal_allowed_terminkategorien()
    #      kal_termine_tabelle::kal_get_termine($von,$bis,$katids,$kontif)
+   #      kal_termine_tabelle::kal_get_spielkategorien()
    #
    # --- Spieldaten oder Datenbankdaten
+   $katids=array();
    if($spieltermine):
      $kats=kal_termine_tabelle::kal_get_spielkategorien();
-     $katids=array();
      for($i=0;$i<count($kats);$i=$i+1) $katids[$i+1]=$kats[$i]['id'];
      else:
-     $katids=kal_termine_config::kal_allowed_terminkategorien();
+     #     einzelne Kategorie / alle Kategorien
+     $kids=kal_termine_config::kal_allowed_terminkategorien();
+     if($selkid>0):
+       $katids[1]=$kids[$selkid];
+       else:
+       $katids=$kids;
+       endif;
      endif;
    #
    # --- Menuenummern
@@ -1582,20 +1618,20 @@ public static function kal_menue_intern($mennr,$spieltermine) {
    $kw     ='';
    $jahr   ='';
    $datum  ='';
-   $kid    =0;
    $suchen ='';
    $vorher ='';
    $men    =0;
    $pid    =0;
-   if(!empty($_POST[KAL_MONAT]))     $monat  =$_POST[KAL_MONAT];
-   if(!empty($_POST[KAL_KW]))        $kw     =$_POST[KAL_KW];
-   if(!empty($_POST[KAL_JAHR]))      $jahr   =$_POST[KAL_JAHR];
-   if(!empty($_POST[KAL_DATUM]))     $datum  =$_POST[KAL_DATUM];
-   if(!empty($_POST[KAL_KATEGORIE])) $kid    =$_POST[KAL_KATEGORIE];
-   if(!empty($_POST[KAL_SUCHEN]))    $suchen =$_POST[KAL_SUCHEN];
-   if(!empty($_POST[KAL_VORHER]))    $vorher =$_POST[KAL_VORHER];
-   if(!empty($_POST[KAL_MENUE]))     $men    =$_POST[KAL_MENUE];
-   if(!empty($_POST[KAL_PID]))       $pid    =$_POST[KAL_PID];
+   $kid    =$selkid;
+   if(!empty($_POST[KAL_MONAT]))    $monat =$_POST[KAL_MONAT];
+   if(!empty($_POST[KAL_KW]))       $kw    =$_POST[KAL_KW];
+   if(!empty($_POST[KAL_JAHR]))     $jahr  =$_POST[KAL_JAHR];
+   if(!empty($_POST[KAL_DATUM]))    $datum =$_POST[KAL_DATUM];
+   if(!empty($_POST[KAL_SUCHEN]))   $suchen=$_POST[KAL_SUCHEN];
+   if(!empty($_POST[KAL_VORHER]))   $vorher=$_POST[KAL_VORHER];
+   if(isset($_POST[KAL_MENUE]))     $men   =$_POST[KAL_MENUE];
+   if(isset($_POST[KAL_PID]))       $pid   =$_POST[KAL_PID];
+   if(isset($_POST[KAL_KATEGORIE])) $kid   =$_POST[KAL_KATEGORIE];
    #
    # --- Startmenue
    if($men<=0 and $mennr>0) $men=$mennr;
@@ -1603,19 +1639,19 @@ public static function kal_menue_intern($mennr,$spieltermine) {
    #
    # --- Monatsmenue
    if($men==$menmom)
-     return self::kal_monatsmenue($katids,$monat,$jahr,1);
+     return self::kal_monatsmenue($kid,$katids,$monat,$jahr,1);
    #
    # --- Monatsblatt
    if($men==$menmob)
-     return self::kal_monatsblatt($katids,$monat,$jahr);
+     return self::kal_monatsblatt($kid,$katids,$monat,$jahr);
    #
    # --- Wochenblatt
    if($men==$menwob)
-     return self::kal_wochenblatt($katids,$kw,$jahr);
+     return self::kal_wochenblatt($kid,$katids,$kw,$jahr);
    #
    # --- Tagesblatt
    if($men==$mentab)
-     return self::kal_tagesblatt($katids,$datum);
+     return self::kal_tagesblatt($kid,$katids,$datum);
    #
    # --- Terminblatt
    if($men==$menteb):
@@ -1628,7 +1664,7 @@ public static function kal_menue_intern($mennr,$spieltermine) {
    #
    # --- Filtermenue
    if($men==$menfil)
-     return self::kal_such($katids,$jahr,$kid,$suchen,$vorher);
+     return self::kal_such($kid,$katids,$jahr,$suchen,$vorher);
    }
 }
 ?>

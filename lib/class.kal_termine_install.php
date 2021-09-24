@@ -71,6 +71,8 @@ public static function kal_create_tables() {
    #      self::kal_generate_katids($term)
    #      self::kal_generated_katids($kats)
    #      kal_termine_config::kal_define_tabellenspalten()
+   #      kal_termine_config::kal_default_config()
+   #      kal_termine_config::kal_set_config($settings)
    #
    $cols=kal_termine_config::kal_define_tabellenspalten();
    $keys=array_keys($cols);
@@ -179,10 +181,10 @@ public static function define_modules() {
    #      $mod[$i]['output']  source of the module's output part
    #                          ($i = 1, 2, ...)
    #
-   $name  =array();
-   $in    =array();
-   $out   =array();
-   $indent=array();
+   $name =array();
+   $in   =array();
+   $out  =array();
+   $ident=array();
    #
    # --- first module
    $name[1]='Termine verwalten ('.PACKAGE.')';
@@ -200,13 +202,15 @@ echo kal_termine_module::kal_manage_termine();
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage)
+$kid=REX_VALUE[4];
+echo kal_termine_module::kal_terminmenue_in($men,$von,$anztage,$kid);
 ?>';
    $out[2]='<?php
 $men=REX_VALUE[1];
 $von=REX_VALUE[2];
 $anztage=REX_VALUE[3];
-echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage);
+$kid=REX_VALUE[4];
+echo kal_termine_module::kal_terminmenue_out($men,$von,$anztage,$kid);
 ?>';
    $ident[2]='kal_termine_module::kal_terminmenue';
    #

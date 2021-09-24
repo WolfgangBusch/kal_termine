@@ -138,10 +138,13 @@ public static function kal_ausgabe_tabellenstruktur() {
       $form=$arr[0];
       $bedg=$cols[$keys[$i]][3];
       $beme='';
-      if($form=='date') $beme='(1)';
-      if($form=='time') $beme='(2)';
-      if($keys[$i]==COL_WOCHEN) $beme='(*)';
-      if($keys[$i]==COL_KATID) $beme='(**)';
+      if($form=='text' or $form=='varchar') $beme='1.';
+      if($form=='date') $beme='2.';
+      if($form=='time') $beme='3.';
+      if($keys[$i]==COL_WOCHEN) $beme='4.';
+      if($keys[$i]==COL_KATID)  $beme='5.';
+      if($form=='varchar' and substr($keys[$i],0,4)=='text') $beme='6./1.';
+      if($form=='time'    and substr($keys[$i],0,4)=='zeit') $beme='6./3.';
       $string=$string.'
     <tr><td class="indent"><tt>'.$keys[$i].'</tt></td>
         <td class="indent">'.$inha.'</td>
@@ -152,30 +155,23 @@ public static function kal_ausgabe_tabellenstruktur() {
      endfor;
    $string=$string.'
 </table><br/>
-<table class="kal_table">
-    <tr><td class="indent head" colspan="2">Hinweise:</td></tr>
-    <tr><td class="indent">(1)</td>
-        <td class="indent">Datumsformat: <tt>tt.mm.yyyy</tt>
-            (wird für MySQL in das Format <tt>yyyy-mm-tt</tt> gewandelt)</td></tr>
-    <tr><td class="indent">(2)</td>
-        <td class="indent">Zeitformat: <tt>hh:mm</tt>
-            (wird für MySQL in das Format <tt>hh:mm:ss</tt> gewandelt)</td></tr>
-    <tr><td class="indent">(*)</td>
-        <td class="indent"><tt>'.COL_WOCHEN.'</tt> gibt an, wie oft der
-            betreffende Termin wöchentlich wiederkehrt</td></tr>
-    <tr><td class="indent">(**)</td>
-        <td class="indent"><tt>'.COL_KATID.'</tt> ist der Schlüssel für die
-            Kategorie gemäß Konfiguration</td></tr>
-    <tr><td class="indent" colspan="2">
-            Mit <tt>'.COL_ZEIT2.'/'.COL_TEXT2.', ... , '.COL_ZEIT5.'/'.COL_TEXT5.'</tt>
-            kann die Veranstaltung zeitlich untergliedert werden.</td></tr>
-    <tr><td class="indent" colspan="2">
-            Texte (<tt>varchar</tt> bzw. <tt>text</tt>)
-            können auch HTML-Code enthalten.</td></tr>
-    <tr><td class="indent" colspan="2">
-            Wöchentlich wiederkehrende Termine können <tt>nicht zugleich mehrtägig</tt>
-            sein.</td></tr>
-</table>
+<div class="indent"><b>Hinweise:</b></div>
+<ol>
+    <li><tt>varchar</tt> bzw. <tt>text</tt>: &nbsp; diese Texte
+        können auch HTML-Code (z.B. Links) enthalten.</li>
+    <li>Datumsformat: &nbsp; <tt>tt.mm.yyyy</tt> &nbsp; (wird für MySQL
+        in das Format <tt>yyyy-mm-tt</tt> gewandelt).</li>
+    <li>Zeitformat: &nbsp; <tt>hh:mm</tt> &nbsp; (wird für MySQL in das
+        Format <tt>hh:mm:ss</tt> gewandelt).</li>
+    <li><tt>'.COL_WOCHEN.'</tt>: &nbsp; gibt an, wie oft der
+        betreffende Termin zusätzlich wöchentlich wiederkehrt;<br/>
+        wöchentlich wiederkehrende Termine können <i>nicht zugleich
+        mehrtägig</i> sein.</li>
+    <li><tt>'.COL_KATID.'</tt>: &nbsp; Id der Kategorie gemäß
+        Konfiguration (= Nummer in der Reihenfolge).</li>
+    <li><tt>'.COL_ZEIT2.'/'.COL_TEXT2.', ... , '.COL_ZEIT5.'/'.COL_TEXT5.'</tt>:
+        &nbsp; für eine evtl. zeitliche Untergliederung.</li>
+</ol>
 </div>
 ';
    return $string;
@@ -369,7 +365,6 @@ public static function kal_define_css() {
    #   Rueckgabe der Quelle einer Stylesheet-Datei
    #   basierend auf den konfigurierten Farben fuer die Kalendermenues
    #   benutzte functions:
-   #      self::kal_define_stundenleiste()
    #      self::kal_farben()
    #      self::kal_hatch_gen($dif,$bgcolor)
    #
@@ -426,12 +421,11 @@ public static function kal_define_css() {
 
 /*   Allgemeines   */
 .kal_linkbutton { cursor:pointer; text-align:left; }
+.kal_bold { font-weight:bold; color:'.$kalcol[2].' !important; }
 .kal_boldbig { font-size:1.2em; font-weight:bold; }
 .kal_transparent { margin:0; padding:0; border:none; color:inherit; background-color:transparent; }
 .kal_table { background-color:inherit; }
 .kal_box { '.$form_col[1].' }
-.kal_rotate { margin:0 0 0.1em 0; text-align:center; font-size:1.2em; font-weight:bold;
-    display:inline-block; transform:rotate(120deg); }
 .kal_100pro { width:100%; }
 .kal_basecol { color:'.$kalcol[1].'; }
 .kal_fail { color:red; }
@@ -468,6 +462,60 @@ public static function kal_define_css() {
     .termlist_th { float:left; padding:0.6em 0 0 0; text-align:left; white-space:normal; }
     .termlist_td { float:left; padding:0 0 0 1em; min-width:'.$tl_width.'em; }
     }
+/*   Terminliste, ggf. Farbmarkierung nach Kategorien   */
+/*   Zum Beispiel:
+  .termlist_border01 { border-left:solid 3px rgb(255,0,0); }
+  .termlist_border02 { border-left:solid 3px rgb(255,255,0); }
+  .termlist_border03 { border-left:solid 3px rgb(0,255,0); }
+  .termlist_border04 { border-left:solid 3px rgb(0,0,255); }*/
+.termlist_border01 { border-left:none; }
+.termlist_border02 { border-left:none; }
+.termlist_border03 { border-left:none; }
+.termlist_border04 { border-left:none; }
+.termlist_border05 { border-left:none; }
+.termlist_border06 { border-left:none; }
+.termlist_border07 { border-left:none; }
+.termlist_border08 { border-left:none; }
+.termlist_border09 { border-left:none; }
+.termlist_border10 { border-left:none; }
+.termlist_border11 { border-left:none; }
+.termlist_border12 { border-left:none; }
+.termlist_border13 { border-left:none; }
+.termlist_border14 { border-left:none; }
+.termlist_border15 { border-left:none; }
+.termlist_border16 { border-left:none; }
+.termlist_border17 { border-left:none; }
+.termlist_border18 { border-left:none; }
+.termlist_border19 { border-left:none; }
+.termlist_border20 { border-left:none; }
+.termlist_border21 { border-left:none; }
+.termlist_border22 { border-left:none; }
+.termlist_border23 { border-left:none; }
+.termlist_border24 { border-left:none; }
+.termlist_border25 { border-left:none; }
+.termlist_border26 { border-left:none; }
+.termlist_border27 { border-left:none; }
+.termlist_border28 { border-left:none; }
+.termlist_border29 { border-left:none; }
+.termlist_border30 { border-left:none; }
+.termlist_border31 { border-left:none; }
+.termlist_border32 { border-left:none; }
+.termlist_border33 { border-left:none; }
+.termlist_border34 { border-left:none; }
+.termlist_border35 { border-left:none; }
+.termlist_border36 { border-left:none; }
+.termlist_border37 { border-left:none; }
+.termlist_border38 { border-left:none; }
+.termlist_border39 { border-left:none; }
+.termlist_border40 { border-left:none; }
+.termlist_border41 { border-left:none; }
+.termlist_border42 { border-left:none; }
+.termlist_border43 { border-left:none; }
+.termlist_border44 { border-left:none; }
+.termlist_border45 { border-left:none; }
+.termlist_border46 { border-left:none; }
+.termlist_border47 { border-left:none; }
+.termlist_border48 { border-left:none; }
 
 /*   Monatsmenue   */
 .'.CSS_MONMENUE.' { }
@@ -554,14 +602,34 @@ public static function kal_define_css() {
 /*   Formulare im Backend   */
 .'.CSS_CONFIG.' { }
 .'.CSS_CONFIG.' h4 { text-align:center; }
+.'.CSS_CONFIG.' ol { margin-left:1em; }
+.'.CSS_CONFIG.' ol li { padding-left:0.5em; }
 .'.CSS_CONFIG.' th { text-align:center; }
 .'.CSS_CONFIG.' .head { text-align:left; font-weight:bold; }
-.'.CSS_CONFIG.' .indent { padding:0.1em 0.1em 0.1em 1.5em; white-space:nowrap; }
+.'.CSS_CONFIG.' .indent { padding:0.1em 0.1em 0.1em 1.5em; vertical-align:top; white-space:nowrap; }
 .'.CSS_CONFIG.' .undent { padding:0.1em 0.1em 0.1em 0.25em; white-space:nowrap; }
 .'.CSS_CONFIG.' .number { padding:0.25em 1em 0.25em 0.25em; text-align:right; }
 .'.CSS_CONFIG.' .inpint { width:4em; padding:0 0.25em 0 0.25em; text-align:right; }
 .'.CSS_CONFIG.' .inptxt { width:14em; padding:0 0.25em 0 0.25em; }
-';
+
+/*   Awesome-Font vom AddOn be_style, die benutzten Icons   */
+@font-face { font-family:"FontAwesome";
+    src:url("../be_style/fonts/fontawesome-webfont.eot?v=4.7.0");
+    src:url("../be_style/fonts/fontawesome-webfont.eot?#iefix&v=4.7.0") format("embedded-opentype"),
+    url("../be_style/fonts/fontawesome-webfont.woff2?v=4.7.0") format("woff2"),
+    url("../be_style/fonts/fontawesome-webfont.woff?v=4.7.0") format("woff"),
+    url("../be_style/fonts/fontawesome-webfont.ttf?v=4.7.0") format("truetype"),
+    url("../be_style/fonts/fontawesome-webfont.svg?v=4.7.0#fontawesomeregular") format("svg");
+    font-weight:normal; font-style:normal; }
+.fa { display:inline-block; font:normal normal normal 14px/1 FontAwesome;
+    font-size:inherit; text-rendering:auto; -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale; }
+.fa-calendar:before { content:"\f073"; }
+.fa-search:before   { content:"\f002"; }
+.fa-angle-double-left:before  { content:"\f100"; }
+.fa-angle-double-right:before { content:"\f101"; }
+.fa-angle-left:before  { content:"\f104"; }
+.fa-angle-right:before { content:"\f105"; }';
    return $string;
    }
 public static function kal_write_css() {
