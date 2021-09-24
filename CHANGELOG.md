@@ -1,4 +1,34 @@
 # kal_termine
+<h4>Version 3.4.1</h4>
+<ul>
+    <li>Bisher konnte jeder Redakteur die Kalendermenüs
+        nur mit allen Terminen aus allen Terminkategorien
+        aus seinem Verantwortungsbereich zugleich unterlegen.
+        Ab jetzt kann er die Menüs auf jede einzelne seiner
+        Kategorien beschränken. D.h. Jede Terminkategorie
+        stellt einen eigenständigen Terminkalender dar.</li>
+    <li>Auch im Backend, d.h. bei der Terminverwaltung, ist
+        jetzt das Suchmenü verwendbar. Die Datumsangabe in
+        der Terminliste ist als Link auf das entsprechende
+        Tagesblatt ausgebildet.</li>
+    <li>In der Terminliste können jetzt Termine entsprechend
+        ihrer Kategorie markiert werden, z.B. durch Farben.
+        Die Markierung erfolgt über CSS-Klassen für den linken
+        Rand der rechten Tabellenspalte. Der Default ist 'none',
+        d.h. keine Markierung. Die zugehörigen Klassen werden
+        sinnvollerweise vor einem Block, der mit dem Modul
+        'Termine anzeigen' erzeugt wird, geeignet definiert.<br/>
+        Das Einbringen einer entsprechenden Farbpalette über
+        ein $GLOBALS-Array (vergl. Version 3.3.1) ist nicht
+        mehr möglich.</li>
+    <li>Die Icons in den Kalendermenüs sind durch Icons aus
+        dem Awesome-Font ersetzt.</li>
+    <li>Das Eingabeformular für den Ersatztermin eines
+        Wiederholungstermins enthält nun bereits das
+        gewählte Datum.</li>
+    <li>Zwei kleine Fehler sind behoben (im Suchmenü bzw. im
+        Terminblatt).</li>
+</ul>
 <h4>Version 3.4</h4>
 <ul>
     <li>Redakteuren kann jetzt Verwaltung und Ausgabe von
