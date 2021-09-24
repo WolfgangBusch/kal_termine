@@ -64,10 +64,12 @@ Kategorien werden automatisch (im Abschnitt \'Extras\' jeder Rolle)
 definiert. Zudem wird je Kategorie automatisch eine Rolle
 angelegt, in der das Recht zu ihrer Nutzung bereits markiert ist.
 Diese Aktionen erfolgen in der Datei <tt>boot.php</tt> des AddOns.<br/> 
-Auf diese Weise können einzelne Kategorien oder Gruppen von
-Kategorien als unabhängige Terminkalender genutzt werden.
-Andererseits kann eine Terminkategorie auch von mehreren Redakteuren
-verwaltet werden.</div>
+Ein Redakteur kann jede der ihm zugewiesenen Kategorien einzeln
+als unabhängigen Terminkalender anbieten. Alternativ kann er
+auch alle seine Kategorien zu einem gemeinsamen Terminkalender
+zusammenfassen.<br/>
+Andererseits kann eine einzelne Terminkategorie auch von mehreren
+Redakteuren verwaltet werden.</div>
 
 <div><br/><b>Sonstige Hinweise</b></div>
 <ul '.$stx.'>
@@ -79,12 +81,21 @@ verwaltet werden.</div>
         (Bezeichnung, Datum, Kategorie) und darf selbst kein
         Wiederholungstermin und nicht mehrtägig sein.</li>
     <li>In der Terminliste (und nur dort!) können <code '.$sty.'>
-        Kategorien farbig markiert</code> werden, die eine optische
-        Zuordnung zur Kategorie unterstützen. Die Farben muss der
-        Anwender als nummeriertes Array (Nummerierung ab 1)<br/>
-        <tt '.$stx.'>$GLOBALS[\''.PACKAGE.'\'][\'terminliste\']</tt><br/>
-        bereitstellen, z.B. im Ausgabeteil des Moduls \'Termine
-        anzeigen\' oder im Seiten-Template.</li>
+        Termine entsprechend ihrer Kategorien farbig markiert</code>
+        werden, um eine optische Zuordnung zu Kategorien zu
+        unterstützen. Die Markierung erfolgt über CSS-Klassen
+        (<tt>termliste_border01, termliste_border02, ...</tt>
+        für Kategorie 1, 2, ...) für den linken Rand der rechten
+        Tabellenspalte. Der Default <tt> \'{ none; }\'</tt>
+        (keine Markierung) kann durch Neu-Definition
+        überschrieben werden: als &lt;style&gt;-Block vor
+        einem \'Termine anzeigen\'-Block oder in einer
+        richtig platzierten eigenen Stylesheet-Datei.</li>
+    <li>Die Icons in den Kalendermenüs sind dem <code '.$sty.'>
+        Awesome-Font</code> entnommen. Der Zugriff darauf ist
+        in der Stylesheet-Datei definiert, wobei der URL auf
+        die entsprechenden Font-Dateien im AddOn
+        <code '.$sty.'>be_style</code> verweist.</li>
 </ul>
 <br/>
 ';
