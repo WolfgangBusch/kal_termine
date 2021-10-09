@@ -211,14 +211,14 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid) {
    #     Terminliste
    if(strpos($menues[$men]['name'],'minliste')>0):
      #     Defaultdaten
-     $von=$heute;
+     $von='';
      if(!empty($ab)):
        $arr=explode('.',$ab);
        $von=intval($arr[0]).'.'.intval($arr[1]).'.'.intval($arr[2]);
        endif;
      $defanz=$nztage;
      $anz=$anztage;
-     if($anz<=0) $anz=$defanz;
+     if($anz<=0) $anz='';
      $abtxt='Eingabe im Format <tt>tt.mm.jjjj</tt> (Default: der heutige Tag)';
      $zrtxt='Eingabe der Anzahl Tage (inkl. Startdatum, Default: '.$defanz.')';
      endif;
@@ -342,9 +342,14 @@ public static function kal_terminmenue_out($mennr,$ab,$anztage,$kid) {
    # --- Parameterueberprefung
    $men=$mennr;
    if(empty($men)) $men=$menmom;
-   $von=kal_termine_kalender::kal_standard_datum($ab);
-   if(empty($von)) $von=kal_termine_kalender::kal_heute();
-   $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anztage-1));
+   if(empty($ab)):
+     $von=kal_termine_kalender::kal_heute();
+     else:
+     $von=kal_termine_kalender::kal_standard_datum($ab);
+     endif;
+   $anz=$anztage;
+   if(empty($anz)) $anz=365;   // nur bei der Terminliste moeglich
+   $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anz-1));
    #     alle oder genau eine Kategorie
    $katids=kal_termine_config::kal_allowed_terminkategorien();
    if($kid<=0):
