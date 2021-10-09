@@ -1,4 +1,10 @@
 # kal_termine
+<h4>Version 3.4.2</h4>
+<ul>
+    <li>Im Modul 'Termine anzeigen' werden jetzt im Falle der
+        Terminliste die Default-Werte Startdatum und Dauer
+        korrekt berücksichtigt.</li>
+</ul>
 <h4>Version 3.4.1</h4>
 <ul>
     <li>Bisher konnte jeder Redakteur die Kalendermenüs
