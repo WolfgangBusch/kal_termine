@@ -1,10 +1,9 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
+ * @version Juni 2022
+ */
 $my_package=$this->getPackageId();
 $basedir=rex_path::addon($my_package);
 require_once $basedir.'lib/class.kal_termine_install.php';

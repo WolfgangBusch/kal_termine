@@ -1,4 +1,18 @@
 # kal_termine
+<h4>Version 3.4.4</h4>
+<ul>
+    <li>Ein Fehler im Zusammenhang mit der zeitlichen Sortierung
+        der Termine ist korrigiert. Bei Terminen mit gleichem
+        Datum und gleicher Startzeit wurde nur einer von diesen
+        angezeigt.</li>
+</ul>
+<h4>Version 3.4.3</h4>
+<ul>
+    <li>Die Ausgabe der Terminliste erfolgt jetzt nicht nur
+        in der Reihenfolge des Datums, sondern ist bei gleichem
+        Datum auch nach Uhrzeit des Beginns der Termine
+        sortiert.</li>
+</ul>
 <h4>Version 3.4.2</h4>
 <ul>
     <li>Im Modul 'Termine anzeigen' werden jetzt im Falle der
@@ -23,7 +37,7 @@
         Rand der rechten Tabellenspalte. Der Default ist 'none',
         d.h. keine Markierung. Die zugehörigen Klassen werden
         sinnvollerweise vor einem Block, der mit dem Modul
-        'Termine anzeigen' erzeugt wird, geeignet definiert.<br/>
+        'Termine anzeigen' erzeugt wird, geeignet definiert.<br>
         Das Einbringen einer entsprechenden Farbpalette über
         ein $GLOBALS-Array (vergl. Version 3.3.1) ist nicht
         mehr möglich.</li>
@@ -173,27 +187,27 @@
         Termintabelle 'rex_kal_termine' nun die zusätzlichen Spalten 'tage'
         und 'wochen'. Erstere enthält die Anzahl der aufeinander folgenden
         Tage der Veranstaltung, Letztere die Anzahl der wöchentlichen
-        Wiederholungen.<br/>
+        Wiederholungen.<br>
         Mit dem Upgrade auf Version 3 erhalten alle vorhandenen Termine
         die Spaltenwerte tage=1 (eintägiger Termin) und wochen=0 (keine
         wöchentliche Wiederholung).</li>
     <li>Die Termintabelle enthält jetzt anstelle der Spalte 'kategorie' mit
         der Bezeichnung der Terminkategorie eine Spalte 'kat_id' mit der Id
         der Terminkategorie. Die zugehörige Kategoriebezeichnung wird nur
-        noch als Konfigurationsparameter abgelegt.<br/>
+        noch als Konfigurationsparameter abgelegt.<br>
         Mit dem Upgrade auf Version 3 wird die Tabelle entsprechend
         angepasst. Die Reihenfolge, in der die vorhandenen Kategorien in
         der Termintabelle auftreten, liefert die Werte der Kategorie-Ids
         (1, 2, ...).</li>
     <li>Die meisten Konfigurationsparameter müssen mit Version 3 neu
-        definiert werden.<br/>
+        definiert werden.<br>
         Die Farbtöne zur Darstellung der Termin- und Kalendermenüs werden
         jetzt auf Basis einer einzigen Grundfarbe generiert. Nur noch diese
         Grundfarbe ist zu konfigurieren; sie entspricht der bisherigen
-        ersten Farbe ('dunkle Schrift-/Rahmenfarbe').<br/>
+        ersten Farbe ('dunkle Schrift-/Rahmenfarbe').<br>
         Die Parameter zur halbgrafischen Darstellung des Uhrzeit-Bereichs
         bei Tagesterminen enthalten zunächst Default-Werte und müssen
-        angepasst werden.<br/>
+        angepasst werden.<br>
         Standardmäßig wird mit einer Neuinstallation jetzt nur genau eine
         Kategorie mit der Bezeichnung 'Allgemein' angelegt. Die vorhandenen
         Kategoriebezeichnungen werden in der neuen Konfiguration ergänzt.</li>

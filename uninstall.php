@@ -1,11 +1,8 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
-#
-# --- Konfigurationsdaten loeschen
+ * @version Juni 2022
+ */
 rex_config::removeNamespace($this->getPackageId());
 ?>
