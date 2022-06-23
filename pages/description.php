@@ -1,19 +1,16 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
-#
-# --- Beschreibung
-$string='
-<div><br/>Ein Termin ist normalerweise ein Zeitabschnitt an einem
+ * @version Juni 2022
+ */
+ ?>
+<div><br>Ein Termin ist normalerweise ein Zeitabschnitt an einem
 einzelnen Tag. Er kann aber auch als Zeitbereich vereinbart werden,
 der sich über mehrere Tage erstreckt, oder als Zeitabschnitt eines
 Tages, der sich wöchentlich wiederholt.</div>
 
-<div><br/>Die Terminverwaltung beinhaltet diese Funktionen:</div>
+<div><br>Die Terminverwaltung beinhaltet diese Funktionen:</div>
 <ul>
     <li>Eintragung eines Termins samt zugehörigen Daten in die Datenbanktabelle</li>
     <li>Löschung eines Termins</li>
@@ -36,6 +33,3 @@ Zeitabschnitt, das Monatsmenü zusätzlich zum gleichen Monat im Vor- oder Folge
 Zudem sind sie untereinander verlinkt, sodass man von einem zum anderen wechseln
 kann. Die Kalenderfunktionen liefern in Form von tooltips gesetzliche und
 christliche Feiertage.</div>
-';
-echo $string;
-?>

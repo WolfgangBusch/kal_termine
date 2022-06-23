@@ -1,16 +1,15 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
+ * @version Juni 2022
+ */
 $stx='style="padding-left:30px;"';
 $sty='style="color:rgb(0,120,0); background-color:rgb(242,249,244);"';
 #
 # --- Details
 $string='
-<div><br/><b>Erste Schritte zum Aufbau eines Terminkalenders</b></div>
+<div><br><b>Erste Schritte zum Aufbau eines Terminkalenders</b></div>
 <ol '.$stx.'>
     <li>In einer ersten Testphase sollte in einem neuen Artikel
         ein Block mit dem <b>Modul</b> <code>Termine verwalten</code>
@@ -29,7 +28,7 @@ $string='
         der konkrete Aufbau der Terminverwaltung anschließen:
         <ul '.$stx.'>
             <li>Anpassung der <code '.$sty.'>Menüfarben</code>
-                an das Site-Design:<br/>
+                an das Site-Design:<br>
                 Es wird eine Grundfarbe ausgewählt. Ausgehend von
                 dieser werden hellere ähnliche Farbtöne sowie
                 eine Komplementärfarbe verwendet. - Die RGB-Werte
@@ -38,12 +37,12 @@ $string='
                 können.</li>
             <li>Anpassung der <code '.$sty.'>Stundenleiste</code>
                 im Monats- bzw. Wochen- oder Tagesblatt
-                (relevant nur für Desktop-Displays):<br/>
-                Die Gesamtbreite wird in Pixel angegeben.<br/>
+                (relevant nur für Desktop-Displays):<br>
+                Die Gesamtbreite wird in Pixel angegeben.<br>
                 Der darzustellende Zeitbereich kann auf weniger
                 als 24 Stunden eingeschränkt werden, z.B. auf
                 <tt>9:00 - 22:00</tt> Uhr.</li>
-            <li>Definition von <code '.$sty.'>Terminkategorien</code>:<br/>
+            <li>Definition von <code '.$sty.'>Terminkategorien</code>:<br>
                 Jede Kategorie kann jederzeit nachträglich umbenannt
                 werden, da nicht ihre Bezeichnung, sondern ihre Id
                 (= Nummer in der Konfiguration) in der Termintabelle
@@ -53,25 +52,25 @@ $string='
                 einzeln gelöscht werden.</li>
         </ul></li>
 </ol>
-<div><br/><b>Zuweisung von Terminkategorien an Redakteure</b></div>
+<div><br><b>Zuweisung von Terminkategorien an Redakteure</b></div>
 <div '.$stx.'>Damit ein Redakteur den Terminkalender nutzen kann,
 muss ihm <code>für jede Kategorie eine Benutzerrolle</code> zugewiesen
 werden, in der das <code>Recht auf Nutzung der Kategorie</code>
 ausgewiesen ist. Außerdem braucht er den Zugriff auf die beiden
-Module des AddOns.<br/>
+Module des AddOns.<br>
 Die Rechte zur Verwaltung und Ausgabe von Terminen der konfigurierten
 Kategorien werden automatisch (im Abschnitt \'Extras\' jeder Rolle)
 definiert. Zudem wird je Kategorie automatisch eine Rolle
 angelegt, in der das Recht zu ihrer Nutzung bereits markiert ist.
-Diese Aktionen erfolgen in der Datei <tt>boot.php</tt> des AddOns.<br/> 
+Diese Aktionen erfolgen in der Datei <tt>boot.php</tt> des AddOns.<br> 
 Ein Redakteur kann jede der ihm zugewiesenen Kategorien einzeln
 als unabhängigen Terminkalender anbieten. Alternativ kann er
 auch alle seine Kategorien zu einem gemeinsamen Terminkalender
-zusammenfassen.<br/>
+zusammenfassen.<br>
 Andererseits kann eine einzelne Terminkategorie auch von mehreren
 Redakteuren verwaltet werden.</div>
 
-<div><br/><b>Sonstige Hinweise</b></div>
+<div><br><b>Sonstige Hinweise</b></div>
 <ul '.$stx.'>
     <li>Um einen einzelnen aus einer Reihe von wöchentlich
         wiederkehrenden Terminen zu modifizieren, muss ein
@@ -97,7 +96,7 @@ Redakteuren verwaltet werden.</div>
         die entsprechenden Font-Dateien im AddOn
         <code '.$sty.'>be_style</code> verweist.</li>
 </ul>
-<br/>
+<br>
 ';
 echo $string;
 ?>
