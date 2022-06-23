@@ -1,10 +1,9 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
+ * @version Juni 2022
+ */
 class kal_termine_kalender {
 #
 #----------------------------------------- Inhaltsuebersicht
@@ -646,7 +645,7 @@ public static function kal_ostersonntag($jahr,$kont=0) {
    $datum=$tag.'.'.$monat.'.'.$jahr;
    if($kont==1):
      $strr='
-<div><hr/>
+<div><hr>
 <table cellpadding="0" cellspacing="0">
     <tr><td align="right">0) &nbsp; </td><td>Jahr:</td>
         <td align="right"><u>'.$jahr.':</u></td></tr>
@@ -677,7 +676,7 @@ public static function kal_ostersonntag($jahr,$kont=0) {
     <tr><td align="right">12) &nbsp; </td><td>Datum des Ostersonntags: &nbsp; </td>
         <td align="right"><u>'.$datum.'</u></td></tr>
 </table>
-<hr/></div>';
+<hr></div>';
      else:
      $strr='';
      endif;

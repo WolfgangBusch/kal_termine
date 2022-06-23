@@ -1,11 +1,9 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
-#
+ * @version Juni 2022
+ */
 class kal_termine_module {
 #
 #----------------------------------------- Inhaltsuebersicht
@@ -90,7 +88,7 @@ public static function kal_manage_termine() {
    $str='
 <div align="center">
 <h3>Termine verwalten</h3>
-<p align="left">Die <b>Eingabe</b> eines Termins erfolgt im zugehörigen <b>Tagesblatt</b>.<br/>
+<p align="left">Die <b>Eingabe</b> eines Termins erfolgt im zugehörigen <b>Tagesblatt</b>.<br>
 <b>Korrektur</b>, <b>Löschung</b> oder <b>Kopie</b> eines Termins sind im zugehörigen <b>Terminblatt</b> möglich.</p>
 <div>&nbsp;</div>';
    #
@@ -102,7 +100,7 @@ public static function kal_manage_termine() {
      $act=$action;
      if($tagesblatt)  $act=ACTION_INSERT;
      if($terminblatt) $act= ACTION_SELECT;
-     $str=$str.'<br/>'.kal_termine_formulare::kal_action($act,$pid);
+     $str=$str.'<br>'.kal_termine_formulare::kal_action($act,$pid);
      $str=$str.'</form>';
      #
      else:
@@ -242,7 +240,7 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid) {
         <td class="left2">
 '.self::kal_terminmenue_select('REX_INPUT_VALUE[1]',$men).'</td>
         <td class="pad"><b>'.$titel.'</b>
-            Der Default-Zeitraum enthält jeweils den heutigen Tag.<br/>
+            Der Default-Zeitraum enthält jeweils den heutigen Tag.<br>
         '.$links.'</td></tr>
     <tr><th colspan="2"></th>
         <td class="pad">Anpassung der Menü-Charakterisierung und des Zeitraums: &nbsp;'.$block.'</td></tr>';
@@ -254,13 +252,13 @@ public static function kal_terminmenue_in($men,$ab,$anztage,$kid) {
      endif;
    $str=$str.'
     <tr><th class="left2">Termine ab:</th>
-        <td><input type="text" name="REX_INPUT_VALUE[2]" value="'.$von.'" class="date right"'.$ro.' /></td>
+        <td><input type="text" name="REX_INPUT_VALUE[2]" value="'.$von.'" class="date right"'.$ro.'></td>
         <td class="pad">'.$abtxt.'</td></tr>';
    #
    # --- Zeitraum in Anzahl Tage
    $str=$str.'
     <tr><th class="left2">Anzahl Tage:</th>
-        <td><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.' /></td>
+        <td><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.'></td>
         <td class="pad">'.$zrtxt.'</td></tr>';
    #
    # --- Beschraenkung auf eine Kategorie

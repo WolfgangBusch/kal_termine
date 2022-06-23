@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
+ * @version Juni 2022
 */
 define ('PACKAGE',         $this->getPackageId());
 define ('TAB_NAME',        'rex_'.PACKAGE);
@@ -154,7 +154,7 @@ public static function kal_ausgabe_tabellenstruktur() {
 ';
      endfor;
    $string=$string.'
-</table><br/>
+</table><br>
 <div class="indent"><b>Hinweise:</b></div>
 <ol>
     <li><tt>varchar</tt> bzw. <tt>text</tt>: &nbsp; diese Texte
@@ -164,7 +164,7 @@ public static function kal_ausgabe_tabellenstruktur() {
     <li>Zeitformat: &nbsp; <tt>hh:mm</tt> &nbsp; (wird für MySQL in das
         Format <tt>hh:mm:ss</tt> gewandelt).</li>
     <li><tt>'.COL_WOCHEN.'</tt>: &nbsp; gibt an, wie oft der
-        betreffende Termin zusätzlich wöchentlich wiederkehrt;<br/>
+        betreffende Termin zusätzlich wöchentlich wiederkehrt;<br>
         wöchentlich wiederkehrende Termine können <i>nicht zugleich
         mehrtägig</i> sein.</li>
     <li><tt>'.COL_KATID.'</tt>: &nbsp; Id der Kategorie gemäß
@@ -715,11 +715,11 @@ public static function kal_config_form($readsett) {
     <tr><td class="indent">
             <div class="indent kal_col1">'.$coltxt[1].'</div></td>
         <td class="indent">
-            <input class="inpint" type="text" name="red"   value="'.$col['red'].'" /></td>
+            <input class="inpint" type="text" name="red"   value="'.$col['red'].'"></td>
         <td class="undent">
-            <input class="inpint" type="text" name="green" value="'.$col['green'].'" /></td>
+            <input class="inpint" type="text" name="green" value="'.$col['green'].'"></td>
         <td class="undent">
-            <input class="inpint" type="text" name="blue"  value="'.$col['blue'].'" /></td></tr>';
+            <input class="inpint" type="text" name="blue"  value="'.$col['blue'].'"></td></tr>';
    #
    # --- restliche Farben
    for($i=2;$i<=count($farben);$i=$i+1):
@@ -738,15 +738,15 @@ public static function kal_config_form($readsett) {
             Darstellung des Uhrzeit-Bereichs bei Tagesterminen:</td></tr>
     <tr><td class="indent">Start-Uhrzeit &nbsp; <i>(ganze Zahl)</i>:</td>
         <td class="indent">
-            <input class="inpint" type="text" name="'.STD_BEG_UHRZEIT.'" value="'.$readsett[STD_BEG_UHRZEIT].'" /></td>
+            <input class="inpint" type="text" name="'.STD_BEG_UHRZEIT.'" value="'.$readsett[STD_BEG_UHRZEIT].'"></td>
         <td colspan="2"><tt>&nbsp;:00 Uhr</tt></td></tr>
     <tr><td class="indent">End-Uhrzeit &nbsp; <i>(ganze Zahl)</i>:</td>
         <td class="indent">
-            <input class="inpint" type="text" name="'.STD_END_UHRZEIT.'" value="'.$readsett[STD_END_UHRZEIT].'" /></td>
+            <input class="inpint" type="text" name="'.STD_END_UHRZEIT.'" value="'.$readsett[STD_END_UHRZEIT].'"></td>
         <td colspan="2"><tt>&nbsp;:00 Uhr</tt></td></tr>
     <tr><td class="indent">Gesamtbreite &nbsp; <i>(ganze Zahl, zwischen '.MIN_ANZ_PIXEL.' und '.MAX_ANZ_PIXEL.')</i>:</td>
         <td class="indent">
-            <input class="inpint" type="text" name="'.STD_ANZ_PIXEL.'" value="'.$readsett[STD_ANZ_PIXEL].'" /></td>
+            <input class="inpint" type="text" name="'.STD_ANZ_PIXEL.'" value="'.$readsett[STD_ANZ_PIXEL].'"></td>
         <td colspan="2"><tt>&nbsp;Pixel</tt></td></tr>';
    #
    # --- Formular, Terminkategorien
@@ -760,7 +760,7 @@ public static function kal_config_form($readsett) {
         $string=$string.'
     <tr><td class="indent">'.$i.'</td>
         <td class="indent" colspan="3">
-            <input class="inptxt" type="text" name="'.$key.'" value="'.$set.'" /></td></tr>';
+            <input class="inptxt" type="text" name="'.$key.'" value="'.$set.'"></td></tr>';
         $anz=$anz+1;
         endif;
       endfor;
@@ -772,10 +772,10 @@ public static function kal_config_form($readsett) {
     <tr><td class="indent">
             '.$i.' &nbsp; <i>(hier kann eine neue Kategorie angefügt werden)</i></td>
         <td class="indent" colspan="3">
-            <input class="inptxt" type="text" name="'.$key.'" value="" /></td></tr>
+            <input class="inptxt" type="text" name="'.$key.'" value=""></td></tr>
     <tr valign="top">
         <td class="indent">
-            <i>Zum <b>Entfernen</b> der <b>letzten</b> Kategorien:</i><br/>
+            <i>Zum <b>Entfernen</b> der <b>letzten</b> Kategorien:</i><br>
             &nbsp; &nbsp; (<u>Vorsicht:</u> zugehörige Termine werden <b>nicht</b> mit entfernt!)</td>
         <td class="indent" colspan="3">
             <i>entsprechende Felder leeren</i></td></tr>';
@@ -786,10 +786,10 @@ public static function kal_config_form($readsett) {
    $spbut='speichern';
    $sptit='Parameter und css-Stylesheet '.$spbut;
    $string=$string.'
-    <tr><td><br/>
+    <tr><td><br>
             <button class="btn btn-update" type="submit" name="reset" value="reset"
                     title="'.$retit.'">'.$rebut.' und speichern</button></td>
-        <td class="indent" colspan="3"><br/>
+        <td class="indent" colspan="3"><br>
             <button class="btn btn-save"   type="submit" name="save"  value="save"
                     title="'.$sptit.'">'.$spbut.'</button></td></tr>
 </table>

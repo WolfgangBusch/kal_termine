@@ -3,7 +3,7 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
+ * @version Juni 2022
 */
 define ('ACTION_START',   'START');
 define ('ACTION_INSERT',  'INSERT');
@@ -240,7 +240,7 @@ public static function kal_action($action,$pid) {
    #
    # --- Return mit Submit-Button Abbrechen
    if(empty($action) or $action==ACTION_START) return '
-<div><br/><input type="hidden" name="'.ACTION_NAME.'" value="'.ACTION_START.'" />
+<div><br><input type="hidden" name="'.ACTION_NAME.'" value="'.ACTION_START.'">
 <button class="btn btn-save" type="submit">Abbrechen</button></div>
 ';
    #
@@ -258,7 +258,7 @@ public static function kal_action($action,$pid) {
    # --- Radio-Button 'Abbrechen' ...
    $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_START.'" /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_START.'"></td>
         <td class="td_einf">&nbsp; Abbrechen</td></tr>';
    #
    if($action!=ACTION_SELECT):
@@ -269,28 +269,28 @@ public static function kal_action($action,$pid) {
      if($action==ACTION_INSERT):
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_INSERT.'"'.$check.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_INSERT.'"'.$check.'></td>
         <td class="td_einf">&nbsp; neuen Termin eintragen</td></tr>';
        endif;
      #     Radio-Button 'Loeschen'
      if($action==ACTION_DELETE):
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_DELETE.'"'.$check.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_DELETE.'"'.$check.'></td>
         <td class="td_einf">&nbsp; Termin löschen</td></tr>';
        endif;
      #     Radio-Button 'Korrigieren'
      if($action==ACTION_UPDATE):
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_UPDATE.'"'.$check.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_UPDATE.'"'.$check.'></td>
         <td class="td_einf">&nbsp; Termin korrigieren</td></tr>';
        endif;
      #     Radio-Button 'Kopieren'
      if($action==ACTION_COPY):
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_COPY.'"'.$check.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_COPY.'"'.$check.'></td>
         <td class="td_einf">&nbsp; Termin kopieren (als Einzeltermin)</td></tr>';
        endif;
      else:
@@ -301,21 +301,21 @@ public static function kal_action($action,$pid) {
      if($action==ACTION_DELETE) $checkd=' checked="checked"';
      $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_DELETE.'"'.$checkd.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_DELETE.'"'.$checkd.'></td>
         <td class="td_einf">&nbsp; Termin löschen</td></tr>';
      #     Radio-Button 'Korrigieren'
      $checku='';
      if($action==ACTION_UPDATE) $checku=' checked="checked"';
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_UPDATE.'"'.$checku.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_UPDATE.'"'.$checku.'></td>
         <td class="td_einf">&nbsp; Termin korrigieren</td></tr>';
      #     Radio-Button 'Kopieren'
      $checkc='';
      if($action==ACTION_COPY)   $checkc=' checked="checked"';
        $str=$str.'
     <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_COPY.'"'.$checkc.' /></td>
+        <td class="td_einf"><input type="radio" name="'.ACTION_NAME.'" value="'.ACTION_COPY.'"'.$checkc.'></td>
         <td class="td_einf">&nbsp; Termin kopieren (als Einzeltermin)</td></tr>';
      endif;
    #
@@ -323,9 +323,9 @@ public static function kal_action($action,$pid) {
    $str=$str.'
     <tr><th class="th_einf left"></th>
         <td class="td_einf">
-            <input type="hidden" name="'.PID_NAME.'"  value="'.$pid.'" />
-            <input type="hidden" name="'.KAL_DATUM.'" value="'.$datum.'" />
-            <input type="hidden" name="'.CALL_NUM.'"  value="'.$call_num.'" /></td>
+            <input type="hidden" name="'.PID_NAME.'"  value="'.$pid.'">
+            <input type="hidden" name="'.KAL_DATUM.'" value="'.$datum.'">
+            <input type="hidden" name="'.CALL_NUM.'"  value="'.$call_num.'"></td>
         <td class="td_einf martop">&nbsp; <button class="btn btn-save" type="submit">Durchführen</button></td></tr>';
    $str=$str.'
 </table>
@@ -440,7 +440,7 @@ public static function kal_eingabeformular() {
         if($type=='time') $class='time right';
         if(substr($type,0,3)=='int') $class='int right';
         $zeile=$zeile.'
-        <td class="td_einf"><input name="'.VALUE_NAME.$sti.'" value="'.$value[$k].'" class="'.$class.'" />'.$form.'</td></tr>';
+        <td class="td_einf"><input name="'.VALUE_NAME.$sti.'" value="'.$value[$k].'" class="'.$class.'">'.$form.'</td></tr>';
         endif;
       $str=$str.$zeile;
       endfor;
@@ -581,7 +581,7 @@ public static function kal_prepare_action($action,$pid,$datum,$call_num,$error,$
 </div>
 ';
      # --- Ausgabe der Radio-Buttons (Korrigieren / Abbruch) und Submit-Button
-     $str=$str.'<br/>'.self::kal_action($nextaction,$pid).'</form>
+     $str=$str.'<br>'.self::kal_action($nextaction,$pid).'</form>
 ';
      else:
      $call_num=2;
@@ -658,12 +658,12 @@ public static function kal_eingeben() {
          if($pidneu>0):
            $msg='<span class="kal_msg">Der Termin wurde neu angelegt</span>';
            $str=$str.'
-<div>'.$msg.'<br/>&nbsp;</div>
+<div>'.$msg.'<br>&nbsp;</div>
 '.kal_termine_menues::kal_menue(0,0);
            else:
            $error=$pidneu;
            $str=$str.'
-<div>'.$error.'<br/>&nbsp;</div>';
+<div>'.$error.'<br>&nbsp;</div>';
            endif;
          endif;
        endif;
@@ -741,12 +741,12 @@ public static function kal_korrigieren() {
          if(empty($ret)):
            $msg='<span class="kal_msg">Der Termin wurde korrigiert</span>';
            $str=$str.'
-<div>'.$msg.'<br/>&nbsp;</div>
+<div>'.$msg.'<br>&nbsp;</div>
 '.kal_termine_menues::kal_menue(0,0);
            else:
            $error='<span class="kal_fail">Der Termin konnte nicht korrigiert werden</span>';
            $str=$str.'
-<div>'.$error.'<br/>&nbsp;</div>';
+<div>'.$error.'<br>&nbsp;</div>';
            endif;
          endif;
        endif;
@@ -827,11 +827,11 @@ public static function kal_kopieren() {
          if($pidneu>0):
            $msg='<span class="kal_msg">Der Termin wurde als Kopie neu angelegt</span>';
            $str=$str.'
-<div>'.$msg.'<br/>&nbsp;</div>';
+<div>'.$msg.'<br>&nbsp;</div>';
            else:
            $error=$pidneu;
            $str=$str.'
-<div>'.$error.'<br/>&nbsp;</div>';
+<div>'.$error.'<br>&nbsp;</div>';
            endif;
          $str=$str.'
 '.kal_termine_menues::kal_menue(0,0);
@@ -922,14 +922,14 @@ public static function kal_loeschen() {
         </td></tr>';
        if(!empty($error)) $str=$str.'
     <tr><th class="left"></th>
-        <td><br/>'.$error.'</td></tr>';
+        <td><br>'.$error.'</td></tr>';
        $str=$str.'
 </table>
 </div>
 ';
        #     Ausgabe der Radio-Buttons (Loeschen / Abbruch) und Submit-Button
        $_POST[CALL_NUM]=2;
-       $str=$str.'<br/>'.self::kal_action($action,$pid).'</form>
+       $str=$str.'<br>'.self::kal_action($action,$pid).'</form>
 ';
        #
        else:
@@ -947,7 +947,7 @@ public static function kal_loeschen() {
        #
        #     Erfolgsmeldung ausgeben
        if(!empty($msg)) $str=$str.'
-<div>'.$msg.'<br/>&nbsp;</div>';
+<div>'.$msg.'<br>&nbsp;</div>';
        #
        # --- zurueck zum Startmenue
        $str=$str.'
@@ -1166,25 +1166,25 @@ public static function kal_zusatzzeiten_string($termin) {
    if(!empty($termin[COL_ZEIT2])):
      $zeit=$termin[COL_ZEIT2];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
-     $zusatz=$zusatz.'<br/>
+     $zusatz=$zusatz.'<br>
             '.$zeit.' Uhr: '.$termin[COL_TEXT2];
      endif;
    if(!empty($termin[COL_ZEIT3])):
      $zeit=$termin[COL_ZEIT3];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
-     $zusatz=$zusatz.'<br/>
+     $zusatz=$zusatz.'<br>
             '.$zeit.' Uhr: '.$termin[COL_TEXT3];
      endif;
    if(!empty($termin[COL_ZEIT4])):
      $zeit=$termin[COL_ZEIT4];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
-     $zusatz=$zusatz.'<br/>
+     $zusatz=$zusatz.'<br>
             '.$zeit.' Uhr: '.$termin[COL_TEXT4];
      endif;
    if(!empty($termin[COL_ZEIT5])):
      $zeit=$termin[COL_ZEIT5];
      if(substr($zeit,0,1)=='0') $zeit=substr($zeit,1);
-     $zusatz=$zusatz.'<br/>
+     $zusatz=$zusatz.'<br>
             '.$zeit.' Uhr: '.$termin[COL_TEXT5];
      endif;
    return $zusatz;

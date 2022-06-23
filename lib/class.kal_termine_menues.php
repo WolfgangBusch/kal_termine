@@ -1,10 +1,9 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
+ * @version Juni 2022
+ */
 define ('KAL_MONAT'     , 'MONAT');
 define ('KAL_KW'        , 'KW');
 define ('KAL_JAHR'      , 'JAHR');
@@ -114,13 +113,13 @@ public static function kal_link($par,$mennr,$linktext,$modus) {
    for($i=0;$i<count($arr);$i=$i+1):
       $brr=explode('=',$arr[$i]);
       if(!empty($brr[1])) $str=$str.'
-                <input type="hidden" name="'.$brr[0].'" value="'.$brr[1].'" />';
+                <input type="hidden" name="'.$brr[0].'" value="'.$brr[1].'">';
       endfor;
    $big='';
    if($modus==2) $big=' kal_boldbig';
    if($modus>=3) $big=' kal_bold';
    $str=$str.'
-                <input type="hidden" name="'.KAL_MENUE.'" value="'.$mennr.'" />
+                <input type="hidden" name="'.KAL_MENUE.'" value="'.$mennr.'">
                 <button type="submit" class="kal_transparent kal_linkbutton'.$big.'">'.$linktext.'</button>
                 </form>';
    return $str;
@@ -539,7 +538,7 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
        $dat=$ter[COL_DATUM];
        $arr=explode('.',$dat);
        $dat=intval($arr[0]).'.'.intval($arr[1]).'.'.$arr[2];
-       $str=$str.'<br/>
+       $str=$str.'<br>
             ('.$warnung.')';
        endif;
      endif;
@@ -555,16 +554,16 @@ public static function kal_terminblatt($termin,$datum,$ruecklinks) {
    # --- eventuelle bis zu 4 Zusatzzeiten
    $z='';
    if(!empty($termin[COL_ZEIT2]))
-     $z=$z.'<br/>
+     $z=$z.'<br>
             '.$termin[COL_ZEIT2].'&nbsp;Uhr: &nbsp; '.$termin[COL_TEXT2];
    if(!empty($termin[COL_ZEIT3]))
-     $z=$z.'<br/>
+     $z=$z.'<br>
             '.$termin[COL_ZEIT3].'&nbsp;Uhr: &nbsp; '.$termin[COL_TEXT3];
    if(!empty($termin[COL_ZEIT4]))
-     $z=$z.'<br/>
+     $z=$z.'<br>
             '.$termin[COL_ZEIT4].'&nbsp;Uhr: &nbsp; '.$termin[COL_TEXT4];
    if(!empty($termin[COL_ZEIT5]))
-     $z=$z.'<br/>
+     $z=$z.'<br>
             '.$termin[COL_ZEIT5].'&nbsp;Uhr: &nbsp; '.$termin[COL_TEXT5];
    if(!empty($z)) $seite=$seite.$z;
    $seite=$seite.'</td></tr>';
@@ -1090,7 +1089,7 @@ public static function kal_mowotablatt($kid,$katids,$mon,$kw,$jahr,$datum) {
       $cont='';
       for($k=1;$k<=count($termin[$i]);$k=$k+1):
          if($k>=2) $cont=$cont.'
-            <hr/>';
+            <hr>';
          $cont=$cont.$content[$i][$k];
          endfor;
       $title='title="'.$shdat.'"';
@@ -1452,7 +1451,7 @@ public static function kal_such($kid,$katids,$jahr,$suchen,$vorher) {
    $string=$string.'
     <tr><th class="th">Stichwort:</th>
         <td class="td kal_col6">
-            <input name="'.KAL_SUCHEN.'" type="text" value="'.$suchen.'" class="stichwort kal_col5" /></td></tr>';
+            <input name="'.KAL_SUCHEN.'" type="text" value="'.$suchen.'" class="stichwort kal_col5"></td></tr>';
    #
    # --- Auswahlmaske: nur aktuelle Termine beruecksichtigen
    if($vorher=='vorher'):
@@ -1466,9 +1465,9 @@ public static function kal_such($kid,$katids,$jahr,$suchen,$vorher) {
     <tr valign="top">
         <th class="th">Aktualität:</th>
         <td class="td kal_col6">
-            <input type="radio" name="'.KAL_VORHER.'" value=""'.$chk1.' />
-            <span class="small">nur zukünftige</span><br/>
-            <input type="radio" name="'.KAL_VORHER.'" value="vorher"'.$chk2.' />
+            <input type="radio" name="'.KAL_VORHER.'" value=""'.$chk1.'>
+            <span class="small">nur zukünftige</span><br>
+            <input type="radio" name="'.KAL_VORHER.'" value="vorher"'.$chk2.'>
             <span class="small">auch abgelaufene</span></td></tr>';
    #
    # --- Menue-Nr. als hidden-Parameter und Submit-Button
@@ -1477,7 +1476,7 @@ public static function kal_such($kid,$katids,$jahr,$suchen,$vorher) {
       if(strpos($menues[$i]['name'],'iltermenü')>0) $men=$i;  // Filtermenue
    $string=$string.'
     <tr><th class="th"></th>
-        <td><input type="hidden" name="'.KAL_MENUE.'" value="'.$men.'" />
+        <td><input type="hidden" name="'.KAL_MENUE.'" value="'.$men.'">
             <button type="submit" class="kal_col5 kal_linkbutton filter_button">
             <b>Filtern der Termine</b></button>
             </form></td></tr>
@@ -1535,13 +1534,13 @@ public static function kal_such($kid,$katids,$jahr,$suchen,$vorher) {
    #
    # --- Ausgabe der gesuchten Termine
    $string=$string.'
-<div class="left anzahl"><br/>';
+<div class="left anzahl"><br>';
    if($nztermin<=0):
      $string=$string.'+++++ keine entsprechenden Termine gefunden';
      else:
      $ter='Termine';
      if($nztermin==1) $ter='Termin';
-     $string=$string.'<u>'.$nztermin.' '.$ter.' gefunden:</u><br/>
+     $string=$string.'<u>'.$nztermin.' '.$ter.' gefunden:</u><br>
     <div class="liste">'.
         kal_termine_formulare::kal_terminliste($termin,TRUE).'
     </div>';
@@ -1573,7 +1572,7 @@ public static function kal_menue_intern($selkid,$mennr,$spieltermine) {
    #                   >0: wird als Startmenue-Nummer benutzt,
    #                       falls die Zahl einem der Menues entspricht
    #                   =0/leer/falsch: als Startmenue wird das Monatsmenue genommen
-   #   $spielmenue     =TRUE:  das Menue wird mit Spielterminen gestartet
+   #   $spielermine    =TRUE:  das Menue wird mit Spielterminen gestartet
    #                   sonst:  das Menue wird mit echten Terminen gestartet
    #   benutzte functions:
    #      self::kal_define_menues()

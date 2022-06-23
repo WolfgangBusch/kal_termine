@@ -1,11 +1,9 @@
 <?php
-/**
- * Terminkalender Addon
+/* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version September 2021
-*/
-#
+ * @version Juni 2022
+ */
 class kal_termine_tabelle {
 #
 #----------------------------------------- Inhaltsuebersicht
@@ -391,6 +389,8 @@ public static function kal_select_termine($von,$bis,$katids) {
       endfor;
    return $termin;
    }
+public static function kal_beginn_differenz($beg1,$beg2) {
+   }
 public static function kal_vorherige_wiederholungstermine($von,$bis,$katids) {
    #   Rueckgabe von woechentlich wiederkehrenden Terminen (Wiederholungstermine,
    #   $term[$i][COL_WOCHEN]>0) einer oder mehrerer Kategorien, deren Basistermine
@@ -689,7 +689,7 @@ public static function kal_get_termine_all($von,$bis,$katids,$kontif) {
      $term3=self::kal_get_spieltermine($stvon,$stbis,$katids);   // Spieldaten
      else:
      $term3=self::kal_select_termine($stvon,$stbis,$katids);   // Datenbankdaten
-     endif;
+      endif;
    #
    # --- interne Wiederholungstermine
    $term4=self::kal_interne_wiederholungstermine($term3,$stvon,$stbis,$katids);
@@ -731,14 +731,17 @@ public static function kal_get_termine_all($von,$bis,$katids,$kontif) {
         $termin[$m]=$term5[$i];
         endfor;
    #
-   # --- Termin-Array fuer Sortierung nach Datum aufbereiten: $termin --> $dat
-   $dat=array();
+   # --- Termin-Array fuer Sortierung nach Datum/Uhrzeit(Beginn) aufbereiten:
+   #     $termin --> $dat und $dat wird sortiert
+   $keys=array();
+   $vals=array();
    for($i=1;$i<=count($termin);$i=$i+1):
-      $datum=$termin[$i][COL_DATUM];
-      $datsql=self::kal_datum_standard_mysql($datum);
-      $dat1=array($datsql.':'.$i=>$termin[$i]);
-      $dat=array_merge($dat,$dat1);
+      $datsql=self::kal_datum_standard_mysql($termin[$i][COL_DATUM]);
+      $timsql=$termin[$i][COL_BEGINN];
+      $keys[$i-1]=$datsql.' '.$timsql.' '.$i;
+      $vals[$i-1]=$termin[$i];
       endfor;
+   $dat=array_combine($keys,$vals);
    #
    # --- Sortierung nach Datum
    ksort($dat);
@@ -747,21 +750,14 @@ public static function kal_get_termine_all($von,$bis,$katids,$kontif) {
    if(count($dat)<=0) return array();
    $keys=array_keys($dat);
    $term=array();
-   for($i=0;$i<count($keys);$i=$i+1):
-      $key=$keys[$i];
-      $arr=explode(':',$key);
-      $datsql=$arr[0];
-      $k=$i+1;
-      $term[$k]=$dat[$key];
-      $term[$k][COL_DATUM]=self::kal_datum_mysql_standard($datsql);
-      endfor;
+   for($i=0;$i<count($keys);$i=$i+1) $term[$i+1]=$dat[$keys[$i]];
    return $term;
    }
 public static function kal_subst_wiederholungstermine($termin) {
    #   Herausfiltern von woechentlich wiederkehrenden Terminen eines
    #   Termin-Arrays, fuer die ein Einzeltermin als Ersatz vorhanden ist.
    #   Der Ersatztermin muss in diesen Parametern mit dem gegebenen Termin
-   #   uebereinstimmen: CAL_DATUM, COL_NAME, COL_KATID
+   #   uebereinstimmen: COL_DATUM, COL_NAME, COL_KATID
    #   Ausserdem muss der Ersatztermin ein echter Einzeltermin sein, d.h.
    #   d.h. sein Parameterwert von COL_TAGE muss <=1 sein.
    #   Rueckgabe eines entsprechend gefilterten Teil-Arrays.
@@ -808,7 +804,7 @@ public static function kal_get_termine($von,$bis,$katids,$kontif) {
    #     entsprechende Einzeltermine als Ersatztermine vorhanden sind.
    #   Parameter gemaess function kal_get_termine_all()
    #   benutzte functions:
-   #      self::kal_get_termine($von,$bis,$katids,$kontif)
+   #      self::kal_get_termine_all($von,$bis,$katids,$kontif)
    #      self::kal_subst_wiederholungstermine($termin)
    #
    $termin=self::kal_get_termine_all($von,$bis,$katids,$kontif);
