@@ -4,6 +4,5 @@
  * @package redaxo5
  * @version März 2024
  */
-$my_package=$this->getPackageId();
-require_once rex_path::addon($my_package).'/help.php';
+echo kal_termine::kal_ausgabe_tabellenstruktur();
 ?>

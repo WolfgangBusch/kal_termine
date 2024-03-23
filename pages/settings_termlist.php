@@ -4,6 +4,5 @@
  * @package redaxo5
  * @version März 2024
  */
-$my_package=$this->getPackageId();
-require_once rex_path::addon($my_package).'/help.php';
+kal_termine_config::kal_config_termlist();
 ?>
