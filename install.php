@@ -2,25 +2,28 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version Juni 2022
+ * @version März 2024
  */
-$my_package=$this->getPackageId();
-$basedir=rex_path::addon($my_package);
+$addon=$this->getPackageId();
+$basedir=rex_path::addon($addon);
+require_once $basedir.'lib/class.kal_termine.php';
 require_once $basedir.'lib/class.kal_termine_install.php';
-require_once $basedir.'lib/class.kal_termine_config.php';
 #
-# --- Erzeugen der AddOn-Tabellen, falls sie nicht schon existieren
-kal_termine_install::kal_create_tables();
+# --- Erzeugen der Termintabelle, falls sie nicht schon existiert
+kal_termine_install::create_table();
+#     mit Version 3.5 wird eine Spalte 'monate' in rex_kal_termine ergaenzt
+      kal_termine_install::add_column_monate();
 #
 # --- Erzeugen/Aktualisieren der Module
 kal_termine_install::build_modules();
 #
 # --- ggf. zu Anfang eine Default-Konfiguration einrichten
-$settings=kal_termine_config::kal_get_config();
+$settings=kal_termine::kal_get_config();
 if(count($settings)<=0):
-  $settings=kal_termine_config::kal_default_config();
-  kal_termine_config::kal_set_config($settings);
+  $settings=$addon::kal_default_config();
+  $addon::kal_set_config($settings);
   endif;
 #     zugehoeriges CSS-File schreiben
-kal_termine_config::kal_write_css();
+$config=$addon.'_config';
+$config::kal_write_css();
 ?>

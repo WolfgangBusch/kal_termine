@@ -1,5 +1,5 @@
 package:  kal_termine
-version:  '3.4.4'
+version:  '3.5'
 author:   Wolfgang Busch
 supportpage: redaxo.org/support/community/
 
@@ -8,12 +8,13 @@ page:
     perm:  kal_termine[]
     icon:  rex-icon fa-calendar
     subpages:
-        introduction:    { title: 'translate:introduction' }
-        description:     { title: 'translate:description' }
-        details:         { title: 'translate:details' }
-        table_structure: { title: 'translate:table_structure' }
-        example:         { title: 'translate:example' }
-        settings:        { title: 'translate:settings' }
+        introduction:      { title: 'translate:introduction' }
+        description:       { title: 'translate:description' }
+        details:           { title: 'translate:details' }
+        table:             { title: 'translate:table' }
+        example:           { title: 'translate:example' }
+        settings:          { title: 'translate:settings' }
+        settings_termlist: { title: 'translate:settings_termlist' }
 
 requires:
     redaxo: ^5.3.0

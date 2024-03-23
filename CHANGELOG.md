@@ -1,4 +1,32 @@
 # kal_termine
+<h4>Version 3.5</h4>
+<ul>
+    <li>Es können jetzt auch monatlich wiederkehrende Termine
+        definiert werden, die auf den jeweils gleichen Wochentag
+        eines Monats fallen. Z.B. 1. Freitag im Monat oder 2.
+        Sonntag im Monat. Diese Termine können auch mehrtägig sein,
+        z.B. das jeweils 3. Wochenende (Sa/So) im Monat.</li>
+    <li>Bisher durften wöchentlich wiederkehrende Termine nicht
+        mehrtägig sein. Diese Beschränkung ist entfallen. Jetzt
+        sind also z.B. Wochenendtermine (Samstag/Sonntag) möglich,
+        die sich wöchentlich wiederholen.</li>
+    <li>Die farbige Markierung von Terminen nach unterschiedlichen 
+        Kategorien in der Terminliste ist jetzt konfigurierbar,
+        bleibt aber optional. Eine zugehörige Farbpalette steht
+        als Default-Angebot zur Verfügung, kann aber durch eine
+        eigene Farbpalette in Form einer Datei im AddOn-Ordner
+        /vendor ersetzt werden.</li>
+    <li>Bei Entfernung einer Terminkategorie werden jetzt auch
+        die Termine entfernt, die zu dieser Kategorie gehören.
+        Auch die Benutzerrolle zur Nutzung dieser Kategorie wird
+        jetzt entfernt.</li>
+    <li>Das Stylesheet wird (bei der Installation und bei Änderung
+        der Konfiguration) jetzt nur noch in den Assets-Ordner des
+        AddOns geschrieben. Entsprechend wird der Ordner /assets
+        im AddOn-Ordner nicht mehr benötigt.</li>
+    <li>Die globalen Variablen sind durch Klassenkonstanten
+        ersetzt.</li>
+</ul>
 <h4>Version 3.4.4</h4>
 <ul>
     <li>Ein Fehler im Zusammenhang mit der zeitlichen Sortierung
