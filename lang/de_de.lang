@@ -1,9 +1,10 @@
 # addon:kal_termine
 #   package
-kal_termine                 = Terminkalender
-kal_termine_introduction    = Einführung
-kal_termine_description     = Beschreibung
-kal_termine_details         = Details
-kal_termine_table_structure = Tabellenstruktur
-kal_termine_example         = Beispiel
-kal_termine_settings        = Konfiguration
+kal_termine                   = Terminkalender
+kal_termine_introduction      = Einführung
+kal_termine_description       = Beschreibung
+kal_termine_details           = Details
+kal_termine_table             = Tabelle
+kal_termine_example           = Beispiel
+kal_termine_settings          = Konfiguration
+kal_termine_settings_termlist = Terminliste
