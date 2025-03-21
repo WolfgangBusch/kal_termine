@@ -2,7 +2,7 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
-rex_config::removeNamespace($this->getPackageId());
+cms_interface::config_removeNamespace();
 ?>

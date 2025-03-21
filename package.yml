@@ -1,12 +1,12 @@
 package:  kal_termine
-version:  '3.5'
+version:  '3.7'
 author:   Wolfgang Busch
 supportpage: redaxo.org/support/community/
 
 page:
     title: 'translate:kal_termine'
     perm:  kal_termine[]
-    icon:  rex-icon fa-calendar
+    icon:  rex-icon fa-calendar-days
     subpages:
         introduction:      { title: 'translate:introduction' }
         description:       { title: 'translate:description' }

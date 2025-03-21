@@ -1,6 +1,51 @@
 # kal_termine
+<h4>Version 3.7</h4>
+<ul>
+    <li>Das Suchmenü ist jetzt umgebaut zu einer Terminübersicht im
+        Smartphone-Design. Es kann alternativ zum Monatsmenü als
+        Startmenü des Terminkalenders dienen.</li>
+    <li>Das Eingabemenü für Termine ist umgebaut. Die Festlegung
+        der Text-, Datums- und Zeitangaben erfolgt jetzt durch Klicks
+        in Untermenüs (Textarea, Monatsmenü, grafisches Stunden- und 
+        Minutenmenü). Die Felder für die Zusatzzeiten müssen für
+        Eingaben vorher aufgeklappt werden, sie sind per Default
+        ausgeblendet.</li>
+    <li>In den Monats-/Wochen-/Tagesblättern sowie im Terminblatt
+        führen die Rücklinks auf das Monatsmenü jetzt auf den
+        zugehörigen Monat, nicht mehr auf den aktuellen Monat</li>
+    <li>Beim Experimentieren mit den Spieldaten können jetzt auch
+        die Eingabeformulare für neue oder zu korrigierende Termine
+        durchlaufen werden. Eine Speicherung von Spieldaten ist
+        dabei natürlich nicht möglich.</li>
+    <li>Die Konfiguration der farbigen Markierung von Terminen nach
+        unterschiedlichen Kategorien in der Terminliste ist jetzt
+        reduziert auf zwei Varianten (linker Rand oder vollständiger
+        Rahmen). Sie wird auch auf die neue Terminübersicht angewandt.</li>
+    <li>Die Beschränkung nach oben für die RGB-Parameter der Grundfarbe
+        ist entfallen. Dadurch ändern sich die daraus abgeleiteten
+        Farben geringfügig. Außerdem ist die Anzahl der abgeleiteten
+        Farben um eine reduziert.</li>
+    <li>Die Breite der Monats-/Wochen-/Tagesblatt-Menüs hängt jetzt
+        nur noch von der Breite der Stundenleiste ab. Der zugehörige
+        Konfigurationsparameter ist entfallen. Außerdem haben diese
+        Menüs jetzt ein responsives Design.</li>
+    <li>Für die Awesome-Font-Symbole wird jetzt eine aktuelle Version
+        von fontawesome.com eingebunden (derzeit Version 6). Die
+        zugehörige Stylesheet-Datei muss nun zusätzlich im HTML-Header
+        eingebunden werden (.../kal_termine/fontawesome/css/all.css).</li>
+</ul>
+<h4>Version 3.6</h4>
+<ul>
+    <li>Wenn eine bestehende Terminkategorie entfernt wird, können
+        jetzt die zugehörigen Termine optional gelöscht werden.</li>
+    <li>Jetzt wird die Konfiguration der Terminliste nicht mehr
+        geändert, wenn die Grundkonfiguration auf Defaultwerte
+        zurück gesetzt wird.</li>
+</ul>
 <h4>Version 3.5</h4>
 <ul>
+    <li>Ab jetzt ist die Auswahl der Startmenüs beschränkt auf das
+        Monatsmenü, das Suchmenü und die Terminliste.</li>
     <li>Es können jetzt auch monatlich wiederkehrende Termine
         definiert werden, die auf den jeweils gleichen Wochentag
         eines Monats fallen. Z.B. 1. Freitag im Monat oder 2.

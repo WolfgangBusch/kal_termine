@@ -20,9 +20,9 @@ einzelnen Tages sein. Er kann aber auch aus mehreren Zeitabschnitten bestehen,
 die sich auf mehrere Tage verteilen:</div>
 <div>
  - auf mehrere aufeinander folgende Tage oder<br>
- - auf genau einen Wochentag über mehrere Wochen oder<br>
- - auf genau einen Wochentag über mehrere Monate (z.B. jeden 2. Freitag im Monat).<br>
+ - auf einen festen Wochentag [1] über mehrere Wochen oder<br>
+ - auf einen festen Wochentag [1] über mehrere Monate (z.B. den 2. Freitag im Monat).<br>
 </div>
-<div>Wöchentlich oder monatlich wiederkehrende Termine können sich darüber hinaus
-auch auf mehrere aufeinander folgende Tage verteilen (Wochenenden [Sa+So] über einige
-Wochen oder ein festes Wochenende im Monat über einige Monate).</div>
+<div>[1] Wöchentlich oder monatlich wiederkehrende Termine können sich darüber hinaus
+auch über mehrere aufeinander folgende Tage erstrecken (z.B. Wochenenden [Sa+So]
+über einige Wochen oder ein festes Wochenende im Monat über einige Monate).</div>
