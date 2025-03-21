@@ -2,23 +2,22 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
 class kal_termine_kalender {
 #
-#----------------------------------------- Inhaltsuebersicht
-#   Basisfunktionen
+#----------------------------------------- Methoden
+#   Basismethoden
 #      kal_heute()
 #      kal_monate()
 #      kal_wochentage()
 #      kal_monatstage($jahr)
-#      kal_jahrestage($jahr1,$jahr2)
+#         kal_jahrestage_intern($jahr1,$jahr2)
 #      kal_standard_datum($datum)
-#      kal_standard_uhrzeit($uhrz)
 #      kal_wotag($datum)
 #      kal_wochentag($datum)
 #      kal_wotag_nr($wt)
-#   weitere Funktionen
+#   weitere Methoden
 #      kal_datum1_vor_datum2($datum1,$datum2)
 #      kal_datumsdifferenz($datum1,$datum2)
 #      kal_noch_tage($datum)
@@ -26,28 +25,28 @@ class kal_termine_kalender {
 #      kal_datum_vor_nach($datum,$anztage)
 #      kal_wotag_im_monat($datum)
 #      kal_gleicher_wotag_im_folgemonat($datum)
-#   Kalenderwochen-Funktionen
+#   Kalenderwochen-Methoden
 #      kal_montag_kw($montag)
 #      kal_first_montag($jahr)
 #      kal_kw_montag($kw,$jahr)
 #      kal_montag_vor($datum)
 #      kal_kw($datum)
-#   Feiertage-Funktionen
+#   Feiertage-Methoden
 #      kal_ostersonntag($jahr,$kont)
 #      kal_unbewegliche_feiertage($jahr)
 #      kal_bewegliche_feiertage($jahr)
 #      kal_feiertage($jahr)
 #      kal_datum_feiertag($datum)
 #
-#----------------------------------------- Basisfunktionen
+#----------------------------------------- Basismethoden
 public static function kal_heute() {
-   #   Rueckgabe des aktuellen Datums im Format 'tt.mm.yyyy'
+   #   Rueckgabe des aktuellen Datums im Format 'tt.mm.yyyy'.
    #
    return date('d.m.Y');
    }
 public static function kal_monate() {
-   #   Rueckgabe der Monatsnamen eines Jahres
-   #   als nummeriertes Array, beginnend bei 1
+   #   Rueckgabe der Monatsnamen eines Jahres als nummeriertes Array,
+   #   beginnend bei 1.
    #
    $mon=array(
         1=>'Januar', 2=>'Februar', 3=>'März', 4=>'April',
@@ -56,15 +55,14 @@ public static function kal_monate() {
    return $mon;
    }
 public static function kal_wochentage() {
-   #   Rueckgabe der Wochentags-Kuerzel
-   #   als nummeriertes Array, beginnend bei 1
+   #   Rueckgabe der Wochentags-Kuerzel als nummeriertes Array, beginnend bei 1.
    #
    $wday=array(1=>'Mo', 2=>'Di', 3=>'Mi', 4=>'Do', 5=>'Fr', 6=>'Sa', 7=>'So');
    return $wday;
    }
 public static function kal_monatstage($jahr)  {
-   #   Rueckgabe der Anzahl Tage der Monate eines Jahres
-   #   als nummeriertes Array, beginnend bei 1
+   #   Rueckgabe der Anzahl Tage der Monate eines Jahres als nummeriertes Array,
+   #   beginnend bei 1.
    #   Schaltjahre werden beruecksichtigt
    #
    $tage=array(1=>31, 2=>28, 3=>31,  4=>30,  5=>31,  6=>30,
@@ -87,14 +85,12 @@ public static function kal_monatstage($jahr)  {
    if($je==$ja) $tage[2]=29;
    return $tage;
    }
-public static function kal_jahrestage($jahr1,$jahr2) {
-   #   Rueckgabe der Anzahl Tage in einer Folge von aufeinander
-   #   folgenden Jahren, Schaltjahre werden beruecksichtigt
+public static function kal_jahrestage_intern($jahr1,$jahr2) {
+   #   Rueckgabe der Anzahl Tage in einer Folge von aufeinander folgenden Jahren,
+   #   Schaltjahre werden beruecksichtigt.
    #   $jahr1          erstes Jahr, Jahreszahl im Format 'yyyy')
    #   $jahr2          letztes Jahr, Jahreszahl im Format 'yyyy')
    #   Die Rueckgabezahl ist immer positiv, auch wenn $jahr2<$jahr1
-   #   benutzte functions:
-   #      self::kal_monatstage($jahr)
    #
    $jadif=$jahr2-$jahr1;
    #
@@ -126,11 +122,9 @@ public static function kal_jahrestage($jahr1,$jahr2) {
    return $tagjahre;
    }
 public static function kal_standard_datum($datum) {
-   #   Rueckgabe eines Datum im Standardformat 'tt.mm.yyyy'.
-   #   Falls das gegebene Datum nicht 2 Punkte (.) enthaelt,
-   #   werden Monat '00' und Jahr '0000' zurueck gegeben
-   #   $datum          eingegebenes Datum in evtl.
-   #                   verkuerztem Format bis hin zu 't.m.yy'
+   #   Rueckgabe eines Datum im Standardformat 'tt.mm.yyyy'. Falls das gegebene
+   #   Datum nicht 2 Punkte (.) enthaelt, werden Monat '00' und Jahr '0000'
+   #   zurueck gegeben.
    #
    $arr=explode('.',$datum);
    #   Tag
@@ -156,52 +150,31 @@ public static function kal_standard_datum($datum) {
      endif;
    return $ta.'.'.$mo.'.'.$ja;
    }
-public static function kal_standard_uhrzeit($uhrz) {
-   #   Rueckgabe einer Zeitangabe im Standardformat 'hh:mm'
-   #   $uhrz           eingegebene Uhrzeit in evtl. verkuerztem Format
-   #                   bis hin zu 'h', 'h:', ':3' ...
-   #
-   $arr=explode(':',$uhrz);
-   #   Stunde
-   $std=$arr[0];
-   if(strlen($std)==1) $std='0'.$std;
-   if(strlen($std)==0) $std='00';
-   $min='';
-   if(!empty($arr[1])) $min=$arr[1];
-   if(strlen($min)==1) $min='0'.$min;
-   if(strlen($min)==0) $min='00';
-   return $std.':'.$min;
-   }
 public static function kal_wotag($datum) {
-   #   Rueckgabe des Wochentages (2-Zeichen-Kuerzel) eines Datums
+   #   Rueckgabe des Wochentages (2-Zeichen-Kuerzel) eines Datums.
    #   $datum          gegebenes Datum im Format 'tt.mm.yyyy'
    #                   auch akzeptiert: verkuerzte Formate bis hin zu 't.m.yy'
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_wochentage();
    #
    # --- Formatierung des Eingabedatums
    $date=self::kal_standard_datum($datum);
    $arr=explode('.',$date);
-   $it=intval($arr[0]);             // Tag
-   $im=intval($arr[1]);             // Monat
-   $ja=intval($arr[2]);             // Jahr
+   $it=intval($arr[0]);   // Tag
+   $im=intval($arr[1]);   // Monat
+   $ja=intval($arr[2]);   // Jahr
    #
-   # --- Bestimmung der Wochentagsnummer (0=Sonntag)
+   # --- Bestimmung der Wochentagsnummer: (0,1,2,...,6)=(So,Mo,Di,...,Sa)
    $dat=getdate(mktime(0,0,0,$im,$it,$ja));
    $wdat=$dat['wday'];
-   if($wdat<=0) $wdat=7;
+   if($wdat<=0) $wdat=7;   // So -> 7
    #
    # --- Wochentagskuerzel
    $wday=self::kal_wochentage();
    return $wday[$wdat];
    }
 public static function kal_wochentag($datum) {
-   #   Rueckgabe des Wochentages (im Klartext) eines Datums
+   #   Rueckgabe des Wochentages (im Klartext) eines Datums.
    #   $datum          gegebenes Datum im Format 'tt.mm.yyyy'
    #                   auch akzeptiert: verkuerzte Formate bis hin zu 't.m.yy'
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
    #
    # --- Formatierung des Eingabedatums
    $date=self::kal_standard_datum($datum);
@@ -225,12 +198,10 @@ public static function kal_wochentag($datum) {
    if($wdat==7) return 'Sonntag';
    }
 public static function kal_wotag_nr($wt) {
-   #   Rueckgabe der Wochentags-Nummer zu einem Wochentagskuerzel,
-   #   bei falschem Wochentagskuerzel wird der Wert 0 zurueckgegeben
+   #   Rueckgabe der Wochentags-Nummer zu einem Wochentagskuerzel, bei falschem
+   #   Wochentagskuerzel wird der Wert 0 zurueckgegeben.
    #   $wt             gegebenes Wochentagskuerzel, passend zu den
-   #                   Rueckgaben der Funktion kal_wochentage()
-   #   benutzte functions:
-   #      self::kal_wochentage();
+   #                   Rueckgaben der Methode kal_wochentage()
    #
    $nr=0;
    $wot=self::kal_wochentage();
@@ -243,13 +214,11 @@ public static function kal_wotag_nr($wt) {
    return $nr;
    }
 #
-#----------------------------------------- weitere Funktionen
+#----------------------------------------- weitere Methoden
 public static function kal_datum1_vor_datum2($datum1,$datum2) {
    #   Entscheidung, ob ein Datum vor einem anderen Datum liegt.
    #   $datum1         gegebenes erstes Datum im Format 'tt.tt.yyyy'
    #   $datum2         gegebenes zweites Datum im Format 'tt.tt.yyyy'
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
    #
    # --- Formatierung der Datumsangaben
    $date1=self::kal_standard_datum($datum1);
@@ -265,10 +234,6 @@ public static function kal_datumsdifferenz($datum1,$datum2)  {
    #   verkuerzten Format bis hin zu 't.m.yy') angegeben werden
    #   $datum1         erstes Datum
    #   $datum2         zweites Datum
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_monatstage($jahr),
-   #      self::kal_jahrestage($jahr1,$jahr2)
    #
    # --- Umsetzen der Datumsangaben auf Standardformat
    $dat1=self::kal_standard_datum($datum1);
@@ -302,8 +267,8 @@ public static function kal_datumsdifferenz($datum1,$datum2)  {
    #
    # --- ggf. mehr als 1 Jahr Differenz: $tagjahre hinzu addieren
    $tagjahre=0;
-   if($jahr2-$jahr1> 1) $tagjahre=self::kal_jahrestage($jahr1+1,$jahr2-1);
-   if($jahr2-$jahr1<-1) $tagjahre=self::kal_jahrestage($jahr2+1,$jahr1-1);
+   if($jahr2-$jahr1> 1) $tagjahre=self::kal_jahrestage_intern($jahr1+1,$jahr2-1);
+   if($jahr2-$jahr1<-1) $tagjahre=self::kal_jahrestage_intern($jahr2+1,$jahr1-1);
    $monatstage=0;
    #
    # --- beide Tage in unterschiedlichen Jahren
@@ -321,12 +286,9 @@ public static function kal_datumsdifferenz($datum1,$datum2)  {
      endif;
    }
 public static function kal_noch_tage($datum) {
-   #   Rueckgabe der Anzahl Tage von einem gegebenen Datum
-   #   bis zum Ende des Jahres
+   #   Rueckgabe der Anzahl Tage von einem gegebenen Datum bis zum Ende des
+   #   Jahres.
    #   $datum          gegebenes Datum im Format 'tt.tt.yyyy'
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_monatstage($jahr)
    #
    # --- Formatierung des Datums
    $date=self::kal_standard_datum($datum);
@@ -343,12 +305,9 @@ public static function kal_noch_tage($datum) {
    return $ntbis;
    }
 public static function kal_schon_tage($datum) {
-   #   Rueckgabe der Anzahl Tage vom Anfang des Jahres
-   #   bis zu einem gegebenen Datum
+   #   Rueckgabe der Anzahl Tage vom Anfang des Jahres bis zu einem gegebenen
+   #   Datum.
    #   $datum          gegebenes Datum im Format 'tt.mm.yyyy'
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_monatstage($jahr)
    #
    # --- Formatierung des Datums
    $date=self::kal_standard_datum($datum);
@@ -365,16 +324,13 @@ public static function kal_schon_tage($datum) {
    return $ntseit;
    }
 public static function kal_datum_vor_nach($datum,$anztage) {
-   #   Rueckgabe des Datums einer Anzahl von Tagen vor/nach einem Datum
-   #   Das zurueck gegebene Datum ist im Standardformat 'tt.mm.yyyy'
+   #   Rueckgabe des Datums einer Anzahl von Tagen vor/nach einem Datum.
+   #   Das zurueck gegebene Datum ist im Standardformat 'tt.mm.yyyy'.
    #   $datum          Ausgangsdatum im Format 'tt.mm.yyyy'
    #                   (moeglich auch verkuerzte Formate bis 't.m.yy')
    #   $anztage        >0: Anzahl Tage nach dem Datum
    #                   <0: Anzahl Tage vor    dem Datum
    #                   =0: Es wird das Datum $datum zurueck gegeben
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_monatstage($jahr)
    #
    if($anztage==0) return $datum;
    #
@@ -487,13 +443,10 @@ public static function kal_datum_vor_nach($datum,$anztage) {
    return self::kal_standard_datum($neutag.'.'.$neumonat.'.'.$neujahr);
    }
 public static function kal_wotag_im_monat($datum) {
-   #   Bestimmung des Wochentags eines vorgegeben Datums und Bestimmung, 
-   #   ob das Datum der 1., 2., 3., 4. oder 5. Wochentag im betreffenden
-   #   Monat ist.
+   #   Bestimmung des Wochentags eines vorgegeben Datums und Bestimmung, ob das
+   #   Datum der 1., 2., 3., 4. oder 5. Wochentag im betreffenden Monat ist.
    #   $datum          Ausgangsdatum im Format 'tt.mm.yyyy'
    #                   (moeglich auch verkuerzte Formate bis 't.m.yy')
-   #   benutze functions:
-   #      self::kal_standard_datum($datum)
    #
    $dat=self::kal_standard_datum($datum);
    $tag=intval(substr($dat,0,2));
@@ -509,10 +462,6 @@ public static function kal_gleicher_wotag_im_folgemonat($datum) {
    #   Rueckgabe des Datums im Standardformat.
    #   $datum          Ausgangsdatum im Format 'tt.mm.yyyy'
    #                   (moeglich auch verkuerzte Formate bis 't.m.yy')
-   #   benutzte functions:
-   #      self::kal_wotag_im_monat($datum)
-   #      self::kal_datum_vor_nach($datum,$anztage)
-   #      self::kal_monate()
    #
    # --- Nummer des Wochentages
    $nr=self::kal_wotag_im_monat($datum);
@@ -527,19 +476,14 @@ public static function kal_gleicher_wotag_im_folgemonat($datum) {
    return $datfm;
    }
 #
-#----------------------------------------- Kalenderwochen-Funktionen
+#----------------------------------------- Kalenderwochen-Methoden
 public static function kal_montag_kw($montag) {
-   #   Rueckgabe der Kalenderwoche (Nr.) zum Datum des ersten
-   #   Tages der Woche (also eines Montags)
+   #   Rueckgabe der Kalenderwoche (Nr.) zum Datum des ersten Tages der Woche
+   #   (also eines Montags).
    #   $montag         Datum des ersten Tages im Format 'tt.mm.yyyy'
    #                   moeglich ist auch ein verkuerztes Format bis
    #                   hin zu 't.m.yy'
    #   Rueckgabe 0, falls das vorgegebene Datum kein Montag ist
-   #   benutzte functions:
-   #      self::kal_standard_datum($datum)
-   #      self::kal_schon_tage($datum)
-   #      self::kal_wotag($datum),
-   #      self::kal_jahrestage($jahr1,$jah2)
    #
    # --- Formatierung des Datums
    $datum=self::kal_standard_datum($montag);
@@ -550,7 +494,7 @@ public static function kal_montag_kw($montag) {
    #
    # --- Spezialfall 1. Kalenderwoche
    $jahr=intval(substr($datum,6));
-   $jt=self::kal_jahrestage($jahr,$jahr);
+   $jt=self::kal_jahrestage_intern($jahr,$jahr);
    if($jt-$ntseit<4 or $ntseit<4) return 1;
    #
    # --- Berechnung der Kalenderwoche
@@ -562,14 +506,11 @@ public static function kal_montag_kw($montag) {
    return $kw;
    }
 public static function kal_first_montag($jahr) {
-   #   Rueckgabe des Datums des Montags, mit dem die
-   #   erste Woche  eines Jahres beginnt
+   #   Rueckgabe des Datums des Montags, mit dem die erste Woche  eines Jahres
+   #   beginnt.
    #   $jahr           Jahr, in der die Kalenderwoche liegt
    #                   im Format 'yyyy'  (akzeptiert wird auch 'yy',
    #                   wobei dann '20' vorne ergaenzt wird)
-   #   benutzte functions:
-   #      self::kal_wotag($datum)
-   #      self::kal_wotag_nr($wt)
    #
    $strjahr=$jahr;
    if(strlen($strjahr)==2) $strjahr='20'.$strjahr;
@@ -586,17 +527,14 @@ public static function kal_first_montag($jahr) {
    return $tag.'.'.$mon.'.'.$strjahr;
    }
 public static function kal_kw_montag($kw,$jahr) {
-   #   Rueckgabe des Datums des Montags, mit dem eine
-   #   vorgegebene Kalenderwoche eines Jahres beginnt
+   #   Rueckgabe des Datums des Montags, mit dem eine vorgegebene Kalenderwoche
+   #   eines Jahres beginnt.
    #   $kw             Nummer der Kalenderwoche (<=53)
    #                   falls die 53. Kalenderwoche nicht existiert, wird der Montag
    #                   der ersten Kalenderwoche des Folgejahres zurueckgegeben
    #   $jahr           Jahr, in der die Kalenderwoche liegt
    #                   im Format 'yyyy'  (akzeptiert wird auch 'yy',
    #                   wobei dann '20' vorne ergaenzt wird)
-   #   benutzte functions:
-   #      self::kal_first_montag($jahr)
-   #      self::kal_datum_vor_nach($datum,$anztage)
    #
    # --- Jahreszahl formatieren
    $strjahr=$jahr;
@@ -610,13 +548,9 @@ public static function kal_kw_montag($kw,$jahr) {
    return self::kal_datum_vor_nach($montag1,$anztage);
    }
 public static function kal_montag_vor($datum) {
-   #   Rueckgabe des ersten Datums in der Woche (Montag)
-   #   zu einem vorgegebenen Datum
+   #   Rueckgabe des ersten Datums in der Woche (Montag) zu einem vorgegebenen
+   #   Datum.
    #   $datum          vorgegebenes Datum im Format 'tt.mm.yyyy'
-   #   benutzte functions:
-   #      self::kal_wotag($datum)
-   #      self::kal_wotag_nr($wt)
-   #      self::kal_datum_vor_nach($datum,$nzahl)
    #
    $wt=self::kal_wotag($datum);
    $wtnr=self::kal_wotag_nr($wt);
@@ -624,21 +558,17 @@ public static function kal_montag_vor($datum) {
    return $montag;
    }
 public static function kal_kw($datum) {
-   #   Rueckgabe der Kalenderwoche (Nr.), zu der ein
-   #   vorgegebenes Datum gehoert
+   #   Rueckgabe der Kalenderwoche (Nr.), zu der ein vorgegebenes Datum gehoert.
    #   $datum          vorgegebenes Datum im Format 'tt.mm.yyyy'
-   #   benutzte functions:
-   #      self::kal_montag_vor($datum)
-   #      self::kal_montag_kw($montag)
    #
    $montag=self::kal_montag_vor($datum);
    return self::kal_montag_kw($montag);
    }
 #
-#----------------------------------------- Feiertage-Funktionen
+#----------------------------------------- Feiertage-Methoden
 public static function kal_ostersonntag($jahr,$kont=0) {
-   #   Rueckgabe des Datums fuer den Ostersonntag eines Jahres
-   #   (Algorithmus nach Gauss/Kinkelin, vergl. Osterformel bei Wikipedia)
+   #   Rueckgabe des Datums fuer den Ostersonntag eines Jahres (Algorithmus nach
+   #   Gauss/Kinkelin, vergl. Osterformel bei Wikipedia).
    #   $jahr           Jahreszahl (4-stellig)
    #   $kont           =1:    Testausgabe von Zwischenergebnissen
    #                   sonst: keine Testausgaben
@@ -651,7 +581,7 @@ public static function kal_ostersonntag($jahr,$kont=0) {
    $d = (19*$a+$m)%30;
    $r = intval(($d + intval($a/11))/29);
    $og = 21 + $d + $r;
-   $sz = 7 - (intval($jahr) + intval($jahr)/4 + $s)%7;
+   $sz = 7 - (intval($jahr) + intval($jahr/4) + $s)%7;
    $oe = 7 - ($og - $sz)%7;
    $osm = $og + $oe;
    $os=$osm;
@@ -668,34 +598,76 @@ public static function kal_ostersonntag($jahr,$kont=0) {
      $strr='
 <div><hr>
 <table cellpadding="0" cellspacing="0">
-    <tr><td align="right">0) &nbsp; </td><td>Jahr:</td>
-        <td align="right"><u>'.$jahr.':</u></td></tr>
-    <tr><td align="right">1) &nbsp; </td><td>Säkularzahl: &nbsp; </td>
-        <td align="right">'.$k.'</td></tr>
-    <tr><td align="right">2) &nbsp; </td><td>säkulare Mondschaltung: &nbsp; </td>
-        <td align="right">'.$m.'</td></tr>
-    <tr><td align="right">3) &nbsp; </td><td>säkulare Sonnenschaltung: &nbsp; </td>
-        <td align="right">'.$s.'</td></tr>
-    <tr><td align="right">4) &nbsp; </td><td>säkulare Sonnenschaltung: &nbsp; </td>
-        <td align="right">'.$a.'</td></tr>
-    <tr><td align="right">5) &nbsp; </td><td>Keim für den ersten Vollmond im Frühling &nbsp; </td>
-        <td align="right">'.$a.'</td></tr>
-    <tr><td align="right">6) &nbsp; </td><td>kalendarische Korrekturgröße: &nbsp; </td>
-        <td align="right">'.$r.'</td></tr>
-    <tr><td align="right">7) &nbsp; </td><td>Ostergrenze: &nbsp; </td>
-        <td align="right">'.$og.'</td></tr>
-    <tr><td align="right">8) &nbsp; </td><td>erster Sonntag im März: &nbsp; </td>
-        <td align="right">'.$sz.'</td></tr>
-    <tr><td align="right">9) &nbsp; </td><td>Entfernung des Ostersonntags von der Ostergrenze: &nbsp; </td>
-        <td align="right">'.$oe.'</td></tr>
-    <tr><td align="right">10) &nbsp; </td><td>Tag des Ostersonntags als Märzdatum: &nbsp; </td>
-        <td align="right">'.$osm.'</td></tr>
-    <tr><td align="right">11) &nbsp; </td><td>Tag des Ostersonntags: &nbsp; </td>
-        <td align="right">'.$os.'</td></tr>
-    <tr><td align="right">12) &nbsp; </td><td>Monat des Ostersonntags: &nbsp; </td>
-        <td align="right">'.$mon.'</td></tr>
-    <tr><td align="right">12) &nbsp; </td><td>Datum des Ostersonntags: &nbsp; </td>
-        <td align="right"><u>'.$datum.'</u></td></tr>
+    <tr><td align="right">
+            0) &nbsp; </td>
+        <td>Jahr:</td>
+        <td align="right">
+            <u>'.$jahr.':</u></td></tr>
+    <tr><td align="right">
+            1) &nbsp; </td>
+        <td>Säkularzahl: &nbsp; </td>
+        <td align="right">
+            '.$k.'</td></tr>
+    <tr><td align="right">
+            2) &nbsp; </td>
+        <td>säkulare Mondschaltung: &nbsp; </td>
+        <td align="right">
+            '.$m.'</td></tr>
+    <tr><td align="right">
+            3) &nbsp; </td>
+        <td>säkulare Sonnenschaltung: &nbsp; </td>
+        <td align="right">
+            '.$s.'</td></tr>
+    <tr><td align="right">
+            4) &nbsp; </td>
+        <td>säkulare Sonnenschaltung: &nbsp; </td>
+        <td align="right">
+            '.$a.'</td></tr>
+    <tr><td align="right">
+            5) &nbsp; </td>
+        <td>Keim für den ersten Vollmond im Frühling &nbsp; </td>
+        <td align="right">
+            '.$a.'</td></tr>
+    <tr><td align="right">
+            6) &nbsp; </td>
+        <td>kalendarische Korrekturgröße: &nbsp; </td>
+        <td align="right">
+            '.$r.'</td></tr>
+    <tr><td align="right">
+            7) &nbsp; </td>
+        <td>Ostergrenze: &nbsp; </td>
+        <td align="right">
+            '.$og.'</td></tr>
+    <tr><td align="right">
+            8) &nbsp; </td>
+        <td>erster Sonntag im März: &nbsp; </td>
+        <td align="right">
+            '.$sz.'</td></tr>
+    <tr><td align="right">
+            9) &nbsp; </td>
+        <td>Entfernung des Ostersonntags von der Ostergrenze: &nbsp; </td>
+        <td align="right">
+            '.$oe.'</td></tr>
+    <tr><td align="right">
+            10) &nbsp; </td>
+        <td>Tag des Ostersonntags als Märzdatum: &nbsp; </td>
+        <td align="right">
+            '.$osm.'</td></tr>
+    <tr><td align="right">
+            11) &nbsp; </td>
+        <td>Tag des Ostersonntags: &nbsp; </td>
+        <td align="right">
+            '.$os.'</td></tr>
+    <tr><td align="right">
+            12) &nbsp; </td>
+        <td>Monat des Ostersonntags: &nbsp; </td>
+        <td align="right">
+            '.$mon.'</td></tr>
+    <tr><td align="right">
+            12) &nbsp; </td>
+        <td>Datum des Ostersonntags: &nbsp; </td>
+        <td align="right">
+            <u>'.$datum.'</u></td></tr>
 </table>
 <hr></div>';
      else:
@@ -704,40 +676,34 @@ public static function kal_ostersonntag($jahr,$kont=0) {
    return $strr.$datum;
    }
 public static function kal_unbewegliche_feiertage($jahr) {
-   #   Rueckgabe der gesetzlichen Feiertage fuer ein Jahr
-   #   als nummeriertes Array, beginnend bei 1 in der Form:
+   #   Rueckgabe der gesetzlichen Feiertage fuer ein Jahr als nummeriertes Array,
+   #   beginnend bei 1 in der Form:
    #                   $ft[$i]['datum']   Datum des Feiertages
    #                   $ft[$i]['name']    Bezeichnung des Feiertages
    #   $jahr           vorgegebenes Jahr
    #   die Feiertage sind jedes Jahr an demselben Datum
    #
-   $tage=array();
-   $tage[1]['datum']='01.01.'.$jahr;
-   $tage[1]['name'] ='Neujahr';
-   $tage[2]['datum']='01.05.'.$jahr;
-   $tage[2]['name'] ='Tag der Arbeit';
-   $tage[3]['datum']='03.10.'.$jahr;
-   $tage[3]['name'] ='Tag der deutschen Einheit';
-   $tage[4]['datum']='01.11.'.$jahr;
-   $tage[4]['name'] ='Allerheiligen';
-   $tage[5]['datum']='25.12.'.$jahr;
-   $tage[5]['name'] ='1. Weihnachtstag';
-   $tage[6]['datum']='26.12.'.$jahr;
-   $tage[6]['name'] ='2. Weihnachtstag';
+   $key1='datum';
+   $key2='name';
+   $tage=array(
+      1=>array($key1=>'01.01.'.$jahr, $key2=>'Neujahr'),
+      2=>array($key1=>'01.05.'.$jahr, $key2=>'Tag der Arbeit'),
+      3=>array($key1=>'03.10.'.$jahr, $key2=>'Tag der deutschen Einheit'),
+      4=>array($key1=>'31.10.'.$jahr, $key2=>'Reformationstag'),
+      5=>array($key1=>'01.11.'.$jahr, $key2=>'Allerheiligen'),
+      6=>array($key1=>'25.12.'.$jahr, $key2=>'1. Weihnachtstag'),
+      7=>array($key1=>'26.12.'.$jahr, $key2=>'2. Weihnachtstag'));
    return $tage;
    }
 public static function kal_bewegliche_feiertage($jahr) {
-   #   Rueckgabe der beweglichen kirchlichen Feiertage im Jahr,
-   #   die mit Ostersonntag verknuepft sind:
-   #   Karfreitag, Ostersonntag, Ostermontag, Himmelfahrt,
-   #   Pfingstsonntag, Pfingstmontag, Allerheiligen
+   #   Rueckgabe der beweglichen kirchlichen Feiertage im Jahr, die mit
+   #   Ostersonntag verknuepft sind:
+   #      Karfreitag, Ostersonntag, Ostermontag, Himmelfahrt, Pfingstsonntag,
+   #      Pfingstmontag, Allerheiligen
    #   als nummeriertes Array, Elemente 1, 2, 3, 4, 5, 6, 7 in der Form:
    #                   $ft[$i]['datum']   Datum des Feiertages
    #                   $ft[$i]['name']    Bezeichnung des Feiertages
    #   $jahr           Jahreszahl
-   #   benutzte functions:
-   #      self::kal_ostersonntag($jahr,$kont)
-   #      self::kal_datum_vor_nach($datum,anztage)
    #
    # --- Ostersonntag
    $ostersonntag=self::kal_ostersonntag($jahr,0);
@@ -761,15 +727,11 @@ public static function kal_bewegliche_feiertage($jahr) {
    return $bew;
    }
 public static function kal_feiertage($jahr) {
-   #   Rueckgabe aller (unbeweglichen und beweglichen)
-   #   Feiertage im Jahr, als nummeriertes Array,
-   #   beginnend bei 1 (nach Datum sortiert) in der Form:
+   #   Rueckgabe aller (unbeweglichen und beweglichen) Feiertage im Jahr, als
+   #   nummeriertes Array, beginnend bei 1 (nach Datum sortiert) in der Form:
    #                   $ft[$i]['datum']   Datum des Feiertages
    #                   $ft[$i]['name']    Bezeichnung des Feiertages
    #   $jahr           Jahreszahl
-   #   benutzte functions:
-   #      self::kal_unbewegliche_feiertage($jahr)
-   #      self::kal_bewegliche_feiertage($jahr)
    #
    # --- unbewegliche Feiertage
    $uf=self::kal_unbewegliche_feiertage($jahr);
@@ -802,12 +764,10 @@ public static function kal_feiertage($jahr) {
    return $ft;
    }
 public static function kal_datum_feiertag($datum) {
-   #   Falls ein vorgegebenes Datum ein Feiertag ist,
-   #   wird die Bezeichnung des Feiertages zurueck gegeben
+   #   Falls ein vorgegebenes Datum ein Feiertag ist, wird die Bezeichnung des
+   #   Feiertages zurueck gegeben.
    #   $datum          vorgegebenes Datum im Standardformat
    #                   'tt.mm.yyyy'
-   #   benutzte functions:
-   #      self::kal_feiertage($jahr)
    #
    $jahr=substr($datum,6);
    $ft=self::kal_feiertage($jahr);

@@ -3,39 +3,35 @@
  * Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
 */
 #
 class kal_termine_formulare extends kal_termine_menues {
 #
-#----------------------------------------- Inhaltsuebersicht
-#   Terminformulare
+#----------------------------------------- Methoden
+#   Basismethoden
 #      kal_proof_termin($termin)
-#      kal_action($action,$pid)
-#      kal_eingabeformular()
-#      kal_prepare_action($action,$pid,$datum,$call_num)
-#      kal_eingeben()
-#      kal_korrigieren()
-#      kal_kopieren()
-#      kal_loeschen()
+#   Text- und Uhrzeitformular
+#      kal_uhrmap($imgmapid,$canvid,$uhrwid)
+#      kal_uhrzeitformular($keyuhr,$uhrzeit,$scrwid)
+#      kal_textformular($keytxt,$text)
+#   Terminformulare
+#      kal_eingabeform($termin,$action,$kid,$error)
+#      kal_funktionsleiste($termin,$men,$action,$kid,$pid)
+#      kal_eingabeformular($action,$kid,$pid,$keyneu,$valneu)
+#      kal_loeschformular($pid)
 #
 #----------------------------------------- Konstanten
 const this_addon=kal_termine::this_addon;   // Name des AddOns
 #
-#----------------------------------------- Terminformulare
+#----------------------------------------- Basismethoden
 public static function kal_proof_termin($termin) {
-   #   Ueberpruefen der Felder eines Termin-Arrays auf
+   #   Ueberpruefen der Felder eines Termin-Arrays, u.a. auf
    #   - leere Pflichtfelder
-   #   - Format und Zahlen der Datumsangabe
-   #   - Format und Zahlen der Zeitangaben
+   #   - Einhaltung der Restriktionen
    #   $termin         Termindaten in Form eines assoziativen Arrays
-   #   Rueckgabe entsprechender Fehlermeldungen (rote Schrift)
-   #   leere Ruckgabe, falls kein Fehler vorliegt
-   #   benutzte functions
-   #      $addon::kal_define_tabellenspalten()
-   #      kal_termine_kalender::kal_monatstage($jahr)
-   #      kal_termine_kalender::kal_monate()
-   #      kal_termine_kalender::kal_wochentag($datum)
+   #   Rueckgabe entsprechender Fehlermeldungen in farbiger Schrift
+   #   (<span class="kal_fail">...</span>). Andernfalls leere Ruckgabe.
    #
    $addon=self::this_addon;
    $cols=$addon::kal_define_tabellenspalten();
@@ -47,451 +43,906 @@ public static function kal_proof_termin($termin) {
    $keywch=$addon::TAB_KEY[7];   // wochen
    $keymon=$addon::TAB_KEY[8];   // monate
    $datum =$termin[$keydat];
-   $tage  =$termin[$keytag];
    $wochen=$termin[$keywch];
    $monate=$termin[$keymon];
    #
    $vor='<span class="kal_fail">';
    #
-   # --- Pruefen der Restriktionen
+   # --- Pruefen der Pflichtfelder und der Restriktionen
    for($i=0;$i<count($keys);$i=$i+1):
       $key=$keys[$i];
-      if($key==$keypid) continue;   // pid wird nicht geprueft
+      $restr=$cols[$key][3];
+      if(empty($restr)) continue;
       $name=$cols[$key][1];
-      $pflicht=$cols[$key][3];
-      $error=$vor.'Das Terminfeld <tt>\''.$name.'\'</tt> muss <tt>\''.$pflicht.'\'</tt> sein</span>';
-      #     Veranstaltungsname und -datum nicht leer
-      if(($key==$keynam or $key==$keydat) and empty($termin[$key]))
-        return $error;
-      #     Dauer in Tagen >=1
-      if($key==$keytag and $tage<1)
-        return $error;
-      #     Wiederholung in Anzahl Wochen >=0
-      if($key==$keywch and !empty($wochen) and $wochen<0)
-        return $error;
-      endfor;
-   #
-   # --- Pruefen der Datumsangabe: Standardformat
-   $errdat1=$vor.'Datumsangabe \'<tt>'.$datum.
-            '</tt>\': hat kein Standardformat \'<tt>'.$cols[$keydat][2].'</tt>\'</span>';
-   $arr=explode('.',$datum);
-   if(count($arr)<>3) return $errdat1;
-   #
-   # --- Pruefen der Datumsangabe: Jahreszahl
-   $jahr=$arr[2];
-   $errdat2=$vor.'Datumsangabe \'<tt>'.$datum.
-            '</tt>\': falsche Jahreszahl</span>';
-   if((strlen($jahr)>4 or intval($jahr)<=0) and $jahr!='00') return $errdat2;
-   #
-   # --- Pruefen der Datumsangabe: Monatszahl
-   $mon=intval($arr[1]);
-   $errdat3=$vor.'Datumsangabe \'<tt>'.$datum.
-            '</tt>\': Monatszahl nicht zwischen 1 und 12</span>';
-   if($mon<1 or $mon>12) return $errdat3;
-   #
-   # --- Pruefen der Datumsangabe: Tageszahl
-   $tag=intval($arr[0]);
-   $mtage=kal_termine_kalender::kal_monatstage($jahr);
-   $mt=$mtage[$mon];
-   $mon=kal_termine_kalender::kal_monate();
-   $moname=$mon[$monat];
-   $errdat4=$vor.'Datumsangabe \'<tt>'.$datum.
-            '</tt>\': Tageszahl im '.$moname.' nicht zwischen 1 und '.$mt.'</span>';
-   if($tag<1 or $tag>$mt) return $errdat4;
-   #
-   # --- Schleife ueber die Zeitangaben
-   for($i=0;$i<count($keys);$i=$i+1):
-      $key=$keys[$i];
-      $arr=explode(' ',$cols[$key][0]);
-      if($arr[0]!='time' or empty($termin[$key])) continue;
-      #
-      # --- Pruefen der Zeitangaben: Standardformat
+      if(str_contains($name,'Wiederholung')) $name=$name.' '.$cols[$key][2];
       $val=$termin[$key];
-      $errtim1=$vor.'Zeitangabe \'<tt>'.$val.'</tt>\': hat kein Standardformat \'<tt>'.$cols[$key][2].'</tt>\'</span>';
-      $arr=explode(':',$val);
-      if(count($arr)>2) return $errtim1;
-      #
-      # --- Pruefen der Zeitangaben: Stundenzahl
-      $std=intval($arr[0]);
-      $errtim2=$vor.'Zeitangabe \'<tt>'.$val.'</tt>\': Stundenzahl nicht zwischen 0 und 23</span>';
-      if($std<0 or $std>23 or ($std==0 and $arr[0]!='' and $arr[0]!='0' and $arr[0]!='00'))
-        return $errtim2;
-      #
-      # --- Pruefen der Zeitangaben: Minutenzahl
-      $strmin='';
-      $min=0;
-      if(count($arr)==2):
-        $strmin=$arr[1];
-        $min=intval($strmin);
-        endif;
-      $errtim3=$vor.'Zeitangabe \'<tt>'.$val.'</tt>\': Minutenzahl nicht zwischen 0 und 59</span>';
-      if($min<0 or $min>59 or ($min==0 and $strmin!='' and $strmin!='0' and $strmin!='00'))
-        return $errtim3;
+      if((str_contains($restr,'nicht leer') and empty($val))     or
+         (str_contains($restr,'&gt;0')      and intval($val)<=0) or
+         (str_contains($restr,'&ge;1')      and intval($val)<1)  or
+         (str_contains($restr,'&ge;0')      and intval($val)<0)    )
+        return $vor.'Das Feld <tt>\''.$name.'\'</tt> muss <tt>\''.$restr.'\'</tt> sein</span>';
       endfor;
+   #
+   # --- nicht zugleich woechentliche und monatliche Wiederholung
+   $e1=$cols[$keywch][1].' '.$cols[$keywch][2];
+   $e2=$cols[$keymon][1].' '.$cols[$keymon][2];
+   if($wochen>0 and $monate>0)
+     return $vor.'Nicht zugleich <tt>\'&gt;0\'<tt>: \''.$e1.'\'</tt> und <tt>\''.$e2.'\'</tt></span>';
    #
    # --- Ueberpruefen, dass beim monatl. Termin kein 5. Wochentag auftritt
    if($monate>0):
      if(intval(substr($datum,0,2))>28):
        $wotag=kal_termine_kalender::kal_wochentag($datum);
-       $errmon=$vor.'monatlicher Termin, Datum \''.$datum.'\': Tageszahl &gt;28 (wäre 5. '.$wotag.')</span>';
-       return $errmon;
+       return $vor.'monatlicher Termin, Datum \''.$datum.'\': Tageszahl &gt;28 (wäre 5. '.$wotag.')</span>';
        endif;
      endif;
-   #
-   return '';
    }
-public static function kal_action($action,$pid) {
-   #   Rueckgabe des HTML-Codes einer 2-spaltigen Tabelle fuer ein Aktionsformular
-   #   (kein Formularanfang/-ende enthalten). Es enthaelt einen oder mehrere Radio-
-   #   Buttons fuer die Auswahl der gewuenschten Aktion und einen Durchfuehren-Button.
-   #   Der erste Radio-Button ermoeglicht jeweils den Abbruch der Aktion.
-   #   $action         erste Aktion, die zur Auswahl steht.
-   #                   ='':            Abbruch
-   #                   =$addon::ACTION_INSERT: ein neuer Termin einzutragen
-   #                   =$addon::ACTION_DELETE: ein Termin zu geloeschen
-   #                   =$addon::ACTION_UPDATE: ein Termin zu korrigieren
-   #                   =$addon::ACTION_COPY:   ein Termin zu kopieren
-   #                   =$addon::ACTION_SELECT: neben dem Abbruch 3 Aktionen
-   #                       zur Auswahl:
-   #                          $addon::ACTION_DELETE
-   #                          $addon::ACTION_UPDATE
-   #                          $addon::ACTION_COPY
-   #   $pid            Id des Termins, der geloescht/korrigiert/kopiert werden soll
-   #   Mit Durchfuehrung der Aktion werden diese POST-Parameter uebergeben:
-   #                   $addon::ACTION_NAME=$addon::ACTION_START  (Abbruch)      oder
-   #                   $addon::ACTION_NAME=$addon::ACTION_INSERT (neuer Termin) oder
-   #                   $addon::ACTION_NAME=$addon::ACTION_UPDATE (korrigieren)  oder
-   #                   $addon::ACTION_NAME=$addon::ACTION_DELETE (loeschen)     oder
-   #                   $addon::ACTION_NAME=$addon::ACTION_COPY   (kopieren)
-   #                      in den letzten 3 Faellen zusaetzlich:
-   #                   $addon::PID_NAME =$pid                      (hidden)
-   #                   $addon::KAL_DATUM=$_POST[$addon::KAL_DATUM] (hidden)
+#
+#----------------------------------------- Text- und Uhrzeitformular
+public static function kal_textformular($keytxt,$text) {
+   #   Rueckgabe eines HTML-Formulars zur Eingabe eines Fliesstextes in ein Inputfeld.
+   #   Das Formular muss ausserhalb dieser function mit '<form...>' und '</form>'
+   #   eingerahmt werden.
+   #   $keytxt         Id des Ziel-Inputfeldes
+   #   $text           vorbelegter Text, Wert des Ziel-Inputfeldes
    #
    $addon=self::this_addon;
    #
-   # --- Return mit Submit-Button Abbrechen
-   if(empty($action) or $action==$addon::ACTION_START) return '
-<div><br><input type="hidden" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_START.'">
-<button class="btn btn-save" type="submit">Abbrechen</button></div>
-';
+   # --- Parameter fuer das einrahmende Eingabeformular
+   $hidden='';
+   $cols=$addon::kal_define_tabellenspalten();
+   $keys=array_keys($cols);
+   for($i=0;$i<count($keys);$i=$i+1):
+      $key=$keys[$i];
+      $val=$addon::kal_post_in($key);
+      $typ=$cols[$key][0];
+      $typ=explode(' ',$typ)[0];
+      $typ=explode('(',$typ)[0];
+      if($typ=='varchar' or $typ=='text') $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'" id="'.$key.'">';
+      if($typ!='varchar' and $typ!='text' and !empty($val)) $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'">';
+      endfor;
+   $action=$addon::kal_post_in($addon::ACTION_NAME);
+   $pid   =$addon::kal_post_in($addon::KAL_PID,'int');
+   $hidden=$hidden.'
+    <input  type="hidden" name="'.$addon::ACTION_NAME.'" value="'.$action.'">
+    <input  type="hidden" name="'.$addon::KAL_PID.'" value="'.$pid.'">';
    #
-   # --- POST-Parameter einlesen
-   $call_num=1;
-   if(!empty($_POST[$addon::CALL_NUM])) $call_num=$_POST[$addon::CALL_NUM];
-   $datum='';
-   if(!empty($_POST[$addon::KAL_DATUM])) $datum=$_POST[$addon::KAL_DATUM];
+   # --- Menue-Nr. des Eingabeformulars
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1)
+      if(strpos($menues[$i]['name'],'gabeform')>0)  $menins=$i;  // Eingabeformular
    #
-   # --- Formular
+   # --- Eingabefeld
    $str='
-<div class="'.$addon::CSS_EINFORM.'">
+<!---------- Textformular ----------------------------------------->
+<div align="center">
+<form method="post">'.$hidden.'
+<textarea id="textarea" rows="10" class="form_text kal_normal" autofocus>'.$text.'</textarea>';
+   #
+   # --- Menue darunter
+   $str=$str.'
+<br>
 <table class="kal_table">';
-   #
-   # --- Radio-Button 'Abbrechen' ...
+   #     abbrechen, zurueck zum Eingabeformular
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig">
+        abbrechen
+    </button>';
    $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_START.'"></td>
-        <td class="td_einf">&nbsp; Abbrechen</td></tr>';
-   #
-   if($action!=$addon::ACTION_SELECT):
-     #
-     # --- ... und ein weiterer Radion-Button
-     $check=' checked';
-     #     Radio-Button 'Eintragen'
-     if($action==$addon::ACTION_INSERT):
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_INSERT.'"'.$check.'></td>
-        <td class="td_einf">&nbsp; neuen Termin eintragen</td></tr>';
-       endif;
-     #     Radio-Button 'Loeschen'
-     if($action==$addon::ACTION_DELETE):
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_DELETE.'"'.$check.'></td>
-        <td class="td_einf">&nbsp; Termin löschen</td></tr>';
-       endif;
-     #     Radio-Button 'Korrigieren'
-     if($action==$addon::ACTION_UPDATE):
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_UPDATE.'"'.$check.'></td>
-        <td class="td_einf">&nbsp; Termin korrigieren</td></tr>';
-       endif;
-     #     Radio-Button 'Kopieren'
-     if($action==$addon::ACTION_COPY):
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_COPY.'"'.$check.'></td>
-        <td class="td_einf">&nbsp; Termin kopieren (als Einzeltermin)</td></tr>';
-       endif;
-     else:
-     #
-     # --- ... und 3 weitere Radio-Buttons
-     #     Radio-Button 'Loeschen'
-     $checkd='';
-     if($action==$addon::ACTION_DELETE) $checkd=' checked';
-     $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_DELETE.'"'.$checkd.'></td>
-        <td class="td_einf">&nbsp; Termin löschen</td></tr>';
-     #     Radio-Button 'Korrigieren'
-     $checku='';
-     if($action==$addon::ACTION_UPDATE) $checku=' checked';
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_UPDATE.'"'.$checku.'></td>
-        <td class="td_einf">&nbsp; Termin korrigieren</td></tr>';
-     #     Radio-Button 'Kopieren'
-     $checkc='';
-     if($action==$addon::ACTION_COPY)   $checkc=' checked';
-       $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf"><input type="radio" name="'.$addon::ACTION_NAME.'" value="'.$addon::ACTION_COPY.'"'.$checkc.'></td>
-        <td class="td_einf">&nbsp; Termin kopieren (als Einzeltermin)</td></tr>';
-     endif;
-   #
-   # --- Durchfuehren-Button und hidden Parameter
+    <tr><td>'.$link.'</td>';
+   #     Abstand
    $str=$str.'
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf">
-            <input type="hidden" name="'.$addon::PID_NAME.'"  value="'.$pid.'">
-            <input type="hidden" name="'.$addon::KAL_DATUM.'" value="'.$datum.'">
-            <input type="hidden" name="'.$addon::CALL_NUM.'"  value="'.$call_num.'"></td>
-        <td class="td_einf martop">&nbsp; <button class="btn btn-save" type="submit">Durchführen</button></td></tr>';
+        <td width="20">&nbsp;</td>';
+   #     OK
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig"
+            onclick="var text=document.getElementById(\'textarea\').value;
+                     document.getElementById(\''.$keytxt.'\').value=text;">
+        OK
+    </button>';
    $str=$str.'
+        <td>'.$link.'</td></tr>
 </table>
+</form>
 </div>
+<!---------- Ende Textformular ------------------------------------>
 ';
    return $str;
    }
-public static function kal_eingabeformular() {
-   #   Rueckgabe eines HTML-Formular zum Eintragen oder Korrigieren eines Termins in
-   #   der Datenbanktabelle in Form einer 2-spaltigen Tabelle (kein Formularanfang/
-   #   -ende enthalten, die erste Spalte der Tabelle hat eine feste Breite, passend
-   #   zu kal_action). Dabei werden die eingegebenen Datums- und Zeitangaben
-   #   weitestgehend standardisiert, d.h. in die Formate 'tt.mm.yyyy' bzw. 'hh:mm'
-   #   gebracht (kuerzest moegliche Eingabeformate: 't.m.yy' bzw. 'h').
+public static function kal_uhrmap($imgmapid,$canvid,$uhrwid) {
+   #   Rueckgabe einer Imagemap zum Bestimmen der Uhrzeit per Mausklick.
+   #   Der Klick schreibt die gewaehlte Stunde bzw. Minute zweiziffrig in ein
+   #   Inputfeld mit vorgegebener Id.
+   #   $imgmapid       =$addon::STUNDE:  Stundenziffernblatt oder
+   #                   =$addon::MINUTEN: Minutenziffernblatt
+   #                   Id des Inputfeldes fuer die erklickte Stunde/Minuten,
+   #                   zugleich Name/Id der Imagemap
+   #   $canvid         canvas-Id, im canvas wird der Zeiger auf die geklickte
+   #                   Stunde bzw. Minute grafisch dargestellt
+   #   $uhrwid         Breite (und Hoehe) der Ziffernblaetter in Anzahl Pixel
+   #
+   $addon=self::this_addon;
+   #
+   # --- Radius des Ziffernblatts
+   $radius=intval(0.5*$uhrwid);
+   $radzif=array();
+   $radsha=array();
+   $radzif[1]=0.82*$radius;     // Radius aeuserer Kranz
+   $radsha[1]=0.17*$radius;     // Shape-Radius im aeusseren Kranz
+   if($imgmapid==$addon::KAL_STUNDE):
+     $radzif[2]=0.51*$radius;   // Radius innerer Kranz
+     $radsha[2]=0.13*$radius;   // Shape-Radius in inneren Kranz
+     $picurl=cms_interface::url_assets().$addon::UHR_STD;
+     $step  =1;
+     else:
+     $picurl=cms_interface::url_assets().$addon::UHR_MIN;
+     $step  =5;
+     endif;
+   #
+   # --- Image
+   $canvid='canv_'.$imgmapid;
+   $str='
+<img src="'.$picurl.'" usemap="#'.$imgmapid.'" id="'.$imgmapid.'"  width="'.$uhrwid.'" height="'.$uhrwid.'">';
+   #
+   # --- Imagemap
+   $anz=12;                     // Anzahl der Ziffern/Shapes pro Kranz
+   $halb=$anz/2;
+   $farben=$addon::kal_farben();
+   $backcol=$farben[5]['rgb'];  // Hintergrundfarbe der angeklickten Shapes
+   $str=$str.'
+<map name="'.$imgmapid.'">';
+   for($k=1;$k<=count($radzif);$k=$k+1):
+      $radz=$radzif[$k];
+      $rads=$radsha[$k];
+      for($i=1;$i<=$anz;$i=$i+1):
+         $stri=$i*$step;
+         if($k>=2) $stri=$i+$anz;
+         if($stri<=9) $stri='0'.$stri;
+         if($stri=='60') $stri='00';   // Minuten
+         if($stri=='12') $stri='00';   // Stunden
+         if($stri=='24') $stri='12';   // Stunden
+         $alpha=$i*M_PI/$halb;
+         $x=$radius+$radz*sin($alpha);
+         $y=$radius-$radz*cos($alpha);
+         #     Inputfeld zur Aufnahme der erklickten Stunde/Minuten
+         $str=$str.'
+    <area shape="circle" coords="'.$x.', '.$y.', '.$rads.'" class="kal_linkbut"
+          onclick="var canvas=document.getElementById(\''.$canvid.'\');
+                   clearCanvas(canvas);
+                   drawCircleLine('.$x.','.$y.','.$rads.',\''.$backcol.'\',canvas);
+                   document.getElementById(\''.$imgmapid.'\').value=\''.$stri.'\';">';
+         endfor;
+      endfor;
+   $str=$str.'
+</map>
+';
+   return $str;
+   }
+public static function kal_uhrzeitformular($keyuhr,$uhrzeit,$scrwid) {
+   #   Rueckgabe eines HTML-Formulars zur Eingabe einer Uhrzeit in ein Inputfeld.
+   #   Das Formular muss ausserhalb dieser function mit '<form...>' und '</form>'
+   #   eingerahmt werden.
+   #   $keyuhr         Id des Ziel-Inputfeldes
+   #   $uhrzeit        vorbelegte Uhrzeit, Wert des Ziel-Inputfeldes
+   #   $scrwid         Viewport in Anzahl Pixel, ermittelt per Javascript
+   #                   (beim Aufruf des Uhrzeitformulars, kal_eingabeform()
+   #
+   $addon=self::this_addon;
+   $uhrwid=$addon::kal_uhrzeit_width($scrwid);   // Breite/Hoehe der Ziffernblaetter
+   #
+   # --- Parameter fuer das einrahmende Eingabeformular
+   $hidden='';
+   $cols=$addon::kal_define_tabellenspalten();
+   $keys=array_keys($cols);
+   for($i=0;$i<count($keys);$i=$i+1):
+      $key=$keys[$i];
+      $val=$addon::kal_post_in($key);
+      $typ=$cols[$key][0];
+      $typ=explode(' ',$typ)[0];
+      $typ=explode('(',$typ)[0];
+      if($typ=='time') $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'" id="'.$key.'">';
+      if($typ!='time' and !empty($val)) $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'">';
+      endfor;
+   $action=$addon::kal_post_in($addon::ACTION_NAME);
+   $pid   =$addon::kal_post_in($addon::KAL_PID,'int');
+   $hidden=$hidden.'
+    <input  type="hidden" name="'.$addon::ACTION_NAME.'" value="'.$action.'">
+    <input  type="hidden" name="'.$addon::KAL_PID.'" value="'.$pid.'">';
+   #
+   # --- Menue-Nr. des Eingabeformulars
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1)
+      if(strpos($menues[$i]['name'],'gabeform')>0)  $menins=$i;  // Eingabeformular
+   #
+   # --- Eingabefelder (Stunde und Minuten)
+   $arr=explode(':',$uhrzeit);
+   $hh=$arr[0];
+   $mm=$arr[1];
+   $std=$addon::KAL_STUNDE;
+   $min=$addon::KAL_MINUTEN;
+   $idstd='std_map';
+   $idmin='min_map';
+   $str='
+<!---------- Uhrzeitformular -------------------------------------->
+<style>
+    .kal_uhr_up { position:relative; top:-'.$uhrwid.'px; }
+</style>
+<div align="center">
+    <input id="'.$std.'" class="kal_uhr_feld form_readonly" name="'.$std.'" value="'.$hh.'" readonly>
+    <span class="kal_uhr_feld">&nbsp;:&nbsp;</span>
+    <input id="'.$min.'" class="kal_uhr_feld form_readonly" name="'.$min.'" value="'.$mm.'" readonly>
+</div>
+<br>
+<form method="post">'.$hidden;
+   #
+   # --- Stunden-Map
+   $canvid='canv_'.$std;
+   $str=$str.'
+             <!---------- Stunden-Map --------------->
+<div id="'.$idstd.'" align="center">
+<div class="kal_uhrline">
+<canvas id="'.$canvid.'" width="'.$uhrwid.'" height="'.$uhrwid.'"></canvas>
+<div class="kal_uhr_up">'.self::kal_uhrmap($std,$canvid,$uhrwid).'</div>
+</div>';
+   #
+   # --- Menue darunter
+   $str=$str.'
+             <!---------- Funktionsmenue darunter --->
+<br>
+<table class="kal_table kal_uhr_up">';
+   #     abbrechen, zurueck zum Eingabeformular
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig">
+        abbrechen
+    </button>';
+   $str=$str.'
+    <tr><td>'.$link.'</td>';
+   #     Abstand
+   $str=$str.'
+        <td width="20">&nbsp;</td>';
+   #     loeschen, in der Funktionsleiste vorhanden:
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig"
+            onclick="document.getElementById(\''.$keyuhr.'\').value=\'\';">
+        löschen
+    </button>';
+   $str=$str.'
+        <td>'.$link.'</td>';
+   #     Abstand
+   $str=$str.'
+        <td width="20">&nbsp;</td>';
+   #     OK
+   $link='
+<a class="kal_linkbut kal_bigbig kal_basecol" title="Stunden übernehmen und Minuten auswählen"
+   onclick="document.getElementById(\''.$idmin.'\').style.display=\'block\';
+            document.getElementById(\''.$idstd.'\').style.display=\'none\';">
+OK</a>';
+   $str=$str.'
+        <td>'.$link.'</td></tr>
+</table>
+</div>';
+   #
+   # --- Minuten-Map
+   $canvid='canv_'.$min;
+   $str=$str.'
+             <!---------- Minuten-Map --------------->
+<div id="'.$idmin.'" class="kal_hide" align="center">
+<div class="kal_uhrline">
+<canvas id="'.$canvid.'" width="'.$uhrwid.'" height="'.$uhrwid.'"></canvas>
+<div class="kal_uhr_up">'.self::kal_uhrmap($min,$canvid,$uhrwid).'</div>
+</div>';
+   #
+   # --- Menue darunter
+   $str=$str.'
+             <!---------- Funktionsmenue darunter --->
+<br>
+<table class="kal_table kal_uhr_up">';
+   #     abbrechen, zurueck zum Eingabeformular
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig">
+        abbrechen
+    </button>';
+     $str=$str.'
+    <tr><td>'.$link.'</td>';
+   #     Abstand
+   $str=$str.'
+        <td width="20">&nbsp;</td>';
+   #     OK
+   $link='
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_linkbut kal_transp kal_basecol kal_bigbig"
+            onclick="var std=document.getElementById(\''.$std.'\').value;
+                     var min=document.getElementById(\''.$min.'\').value;
+                     var uhrz=std+\':\'+min;
+                     if(!min || min.lenght===0) uhrz=std+\':00\';
+                     if(!std || std.length===0) uhrz=\'\';
+                     document.getElementById(\''.$keyuhr.'\').value=uhrz;">
+        OK
+    </button>';
+   $str=$str.'
+        <td>'.$link.'</td></tr>
+</table>
+</div>
+</form>
+<!---------- Ende Uhrzeitformular --------------------------------->
+';
+   return $str;
+   }
+#
+#----------------------------------------- Terminformulare
+public static function kal_eingabeform($termin,$action,$kid,$error) {
+   #   Rueckgabe eines HTML-Formular zum Eintragen oder Korrigieren eines Termins
+   #   in der Datenbanktabelle in Form einer 2-spaltigen Tabelle. Es ist kein
+   #   Formularanfang/-ende enthalten. Die erste Spalte der Tabelle hat aber eine
+   #   feste Breite, sodass die Tabelle nahtlos eregaenzt werden kann.
+   #   Falls die eingegebenen Daten formal korrekt sind, werden die Datums- und
+   #   Zeitangaben dabei weitestgehend standardisiert, d.h. in die Formate
+   #   'tt.mm.yyyy' bzw. 'hh:mm' gebracht.
    #   Mit Durchfuehrung der Aktion werden diese POST-Parameter uebergeben:
-   #   $addon::VALUE_NAME.$i  ($i=01,02,...,count($cols)-1, $cols=Tabellenspalten-Namen)
-   #   benutzte functions:
-   #      $addon::kal_select_kategorie($name,$kid,$katids,$all)
-   #      $addon::kal_define_tabellenspalten()
-   #      $addon::kal_allowed_terminkategorien()
-   #      kal_termine_tabelle::kal_standard_termin_intern($value,$cols)
+   #   $keys[$i]       ($keys = array_keys($cols), $i=1,2,...,count($keys)-1,
+   #                            $cols=Tabellenspalten-Namen, ohne pid)
+   #   $termin         Array eines Termins fuer das Eingabeformular
+   #   $action         Name der Aktion
+   #   $kid            Id einer Terminkategorie oder =0/$addon::SPIEL_KATID
+   #   $error          Fehlermeldung nach Eingabe von Daten
    #
    $addon=self::this_addon;
    $cols=$addon::kal_define_tabellenspalten();
    $keys=array_keys($cols);
+   $keypid=$keys[0];   // pid
+   $keykat=$keys[1];   // kat_id
+   $keydat=$keys[3];   // datum
+   $keytag=$keys[6];   // tage
+   $keywch=$keys[7];   // wochen
+   $keymon=$keys[8];   // monate
+   $heute=kal_termine_kalender::kal_heute();
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'natsmenü')>0)  $menmom=$i;  // Monatsmenue
+      if(strpos($menues[$i]['name'],'umsformu')>0)  $mendat=$i;  // Datumsformular
+      if(strpos($menues[$i]['name'],'zeitform')>0)  $menuhr=$i;  // Uhrzeitformular
+      if(strpos($menues[$i]['name'],'extformul')>0) $mentxt=$i;  // Textformular
+      endfor;
+   $pid  =$termin[$keypid];
+   $datum=$termin[$keydat];
    #
    # --- erlaubte Kategorien
-   $katids=$addon::kal_allowed_terminkategorien();
-   #
-   # --- Formulardaten aus den POST-Parametern uebernehmen (nach htmlentities(...))
-   $value=array();
-   for($i=1;$i<count($keys);$i=$i+1):
-      $sti=$i;
-      if($i<=9) $sti='0'.$i;
-      $value[$i]='';
-      $vni=$addon::VALUE_NAME.$sti;
-      if(!empty($_POST[$vni])) $value[$i]=htmlentities($_POST[$vni]);
-      endfor;
-   #
-   # --- Standardisierung der date- und time-Werte
-   $value=kal_termine_tabelle::kal_standard_termin_intern($value,$cols);
+   $katids=$addon::kal_allowed_terminkategorien($kid);
    #
    # --- Hinweis auf Pflichtfelder
    $str='
-<div class="'.$addon::CSS_EINFORM.'">
-<table class="kal_table">
-    <tr valign="top">
-        <th class="th_einf left">Eingabefelder:</th>
-        <th class="th_einf">Felder mit &nbsp * &nbsp; erfordern eine nicht-leere Eingabe (Pflichtfelder)</th></tr>';
+<div><b>Felder mit &nbsp;<big>*</big>&nbsp; sind auszufüllen</b></div>
+<table class="kal_table">';
    #
    # --- Schleife ueber die Formularzeilen
-   $star='<b>*</b> ';
-   for($i=1;$i<count($keys);$i=$i+1):
+   $hide=TRUE;
+   $zei=array();
+   $m=0;
+   for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
       $key=$keys[$i];
+      $val=$termin[$key];
       #
       # --- Zeilen-/Parameterdaten
       $type=$cols[$key][0];
          $type=explode(' ',$type)[0];
          $type=explode('(',$type)[0];
       $titel=$cols[$key][1];
-         if(str_contains($titel,'Kateg')) $titel='Kategorie';
       $restr=$cols[$key][3];
-         if(!empty($restr)) $restr=' &nbsp; <tt>'.$restr.'</tt>';
-      $form=$cols[$key][2];
-         if(!empty($form))  $form=' &nbsp; (<tt>'.$form.'</tt>)';
-         if($type=='time')  $form=' &nbsp; Uhr'.$form;
-         if(str_contains($restr,'&ge;')) $form=$restr.' &nbsp; '.$form;;
+         if(!empty($restr)) $restr=' &nbsp;'.$restr;
+      $format='';
+         if($type=='time') $format=' &nbsp;Uhr';
+         if(str_contains($restr,'&ge;')) $format=$restr;
+      $descr='';
+         if(str_contains($restr,'&ge;')):
+           $descr=' &nbsp;('.$cols[$key][2].')';
+           $title='';
+           if($key==$keytag) $title=$addon::TIP_TAGE;
+           if($key==$keywch) $title=$addon::TIP_WOCHEN;
+           if($key==$keymon) $title=$addon::TIP_MONATE;
+           $descr=' &nbsp;
+            <a class="kal_basecol kal_linkbut" title="'.$title.'"
+               onclick="alert(\''.$title.'\');">'.$descr.'</a>';
+           endif;
       #
-      # --- Ausgabe einer Zwischenzeile
-      if(str_contains($titel,'2, Beginn'))
-        $str=$str.'
-    <tr valign="top">
-        <th colspan="2" class="th_einf left">
-            Falls mehr als eine Uhrzeit angegeben werden soll:</th></tr>';
+      # --- Ausgabe einer Zwischenzeile (Link auf die Zusatzzeiten)
+      if(str_contains($titel,'Beginn 2')) $str=$str.'
+</table>';
       #
       # --- Pflichtfelder anzeigen
       $spname=$titel;
       if(str_contains($titel,'Kateg') or
-         str_contains($restr,'nicht leer')) $spname=$star.$titel;
+         str_contains($restr,'nicht leer')) $spname='<b>*</b>'.$spname;
       #
       # --- bei leerer Eingabe ggf. Defaults einfuegen
-      if(str_contains($titel,'Kateg')  and empty($value[$i])) $value[$i]=1;
-      if(str_contains($titel,'Tage')   and empty($value[$i])) $value[$i]=1;
-      if(str_contains($titel,'Wieder') and empty($value[$i])) $value[$i]=0;
+      if(str_contains($titel,'Kateg')  and empty($val)) $val=1;
+      if(str_contains($titel,'Tage')   and empty($val)) $val=1;
+      if(str_contains($titel,'Wieder') and empty($val)) $val=0;
       #
-      # --- Ausgabe einer Formularzeile
+      if($key==$keykat or $key==$keytag or $key==$keywch or $key==$keymon):
+        #
+        # --- Zeile mit der Kategorieauswahl, Anzahl Tage/Wochen/Monate
+        if($key==$keykat):
+          $wert=$addon::kal_select_kategorie($key,$val,$katids,FALSE);
+          else:
+          $wert=$addon::kal_select_anzahl($key,$val).$format.$descr;
+          endif;
+        else:
+        #
+        # --- sonstige Zeilen
+        $class='kal_normal kal_linkbut';
+        $wot='';
+        $min='';
+        $ro='';
+        $intype='text';
+        if($type=='varchar' or $type=='text')
+          $class='form_text form_text2 '.$class;
+        if($type=='date'):
+          $class='form_date form_right '.$class;
+          if(!empty($val)) $wot=kal_termine_kalender::kal_wotag($val).', ';
+          $ro=' readonly';
+          endif;
+        if($type=='time'):
+          $class='form_time form_right '.$class;
+          $ro=' readonly';
+          endif;
+        if($type=='int'):
+          $class='form_int form_right '.$class;
+          $intype='number';
+          if($key==$keytag) $min=' min="1"';
+          if($key==$keywch or $key==$keymon) $min=' min="0"';
+          endif;
+        #
+        # --- Inputfeld
+        if($type=='varchar' or $type=='text'):
+          $input='<div class="'.$class.'" name="'.$key.'" title="bearbeiten">'.$val.'</div>';
+          else:
+          $input='<input class="'.$class.'" type="'.$intype.'"'.$min.' name="'.$key.'" value="'.$val.'" title="bearbeiten"'.$ro.'>';
+          endif;
+        #     Inputfeld als Link (Texte)
+        if($type=='varchar' or $type=='text'):
+          $text_id='text_'.$i;
+          $input='
+            <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$mentxt.'" id="'.$text_id.'"
+                    class="kal_transp kal_normal kal_linkbut"
+                    onclick="var value=\''.$mentxt.'\'+\'_\'+\''.$key.'\'+\'_\'+\''.$val.'\';
+                             document.getElementById(\''.$text_id.'\').value=value;">
+                '.$input.'
+            </button>';
+          endif;
+        #     Inputfeld als Link (Datum)
+        if($type=='date'):
+          $mon=substr($datum,3,2);
+          $jahr=substr($datum,6);
+          #     Parameter fuer das Monatsmenue ($action und $pid fuer das
+          #     anschliessende Eingabemenue in der Funktionsleiste vorhanden)
+          $input='
+            <input  type="hidden" name="'.$addon::KAL_MONAT.'" value="'.$mon.'">
+            <input  type="hidden" name="'.$addon::KAL_JAHR.'" value="'.$jahr.'">
+            <input  type="hidden" name="'.$addon::KAL_MODUS.'" value="1">
+            <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menmom.'"
+                    class="kal_transp kal_normal kal_linkbut">
+                '.$input.'
+            </button>';
+          endif;
+        #     Inputfeld als Link (Uhrzeiten)
+        if($type=='time'):
+          $time_id='timeid_'.$i;
+          $input='
+            <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menuhr.'" id="'.$time_id.'"
+                    class="kal_transp kal_normal kal_linkbut"
+                    onclick="var value=\''.$menuhr.'\'+\'_\'+\''.$key.'\'+\'_\'+\''.$val.'\';
+                             value=value+\'_\'+screen.width;   // Display-Viewport
+                             document.getElementById(\''.$time_id.'\').value=value;">
+                '.$input.'
+            </button>';
+          endif;
+        $wert=$wot.$input.$format.$descr;
+        endif;
+      #
+      # --- Zeile zusammenbauen
       $zeile='
     <tr valign="top">
-        <td class="td_einf left">
-            '.$spname.':</td>';
-      $sti=$i;
-      if($i<=9) $sti='0'.$i;
-      $vni=$addon::VALUE_NAME.$sti;
-      if(str_contains($titel,'Kateg')):
-        $zeile=$zeile.'
-        <td class="td_einf right">
-            '.$addon::kal_select_kategorie($vni,$value[$i],$katids,FALSE).'</td></tr>';
+        <th class="form_th">
+            '.$spname.':</th>
+        <td>'.$wert.'</td></tr>';
+      if(substr($titel,0,1)==' '):
+        if(!empty($val)) $hide=FALSE;
+        $m=$m+1;
+        $zei[$m]=$zeile;
         else:
-        $class='text';
-        if($type=='date') $class='date right';
-        if($type=='time') $class='time right';
-        if(substr($type,0,3)=='int') $class='int right';
-        $zeile=$zeile.'
-        <td class="td_einf">
-            <input name="'.$vni.'" value="'.$value[$i].'" class="'.$class.'">'.$form.'</td></tr>';
+        $str=$str.$zeile;
         endif;
-      $str=$str.$zeile;
       endfor;
+   #
+   # --- Zeilen für die Zusatzzeiten
+   if($hide):
+     $class=' class="kal_hide"';
+     $class2='';
+     $link1='
+<a class="kal_black kal_linkbut"
+   onclick="document.getElementById(\'hidden\').style.display=\'none\';
+            document.getElementById(\'hidden_head\').style.display=\'block\';">
+<span title="Formular verkürzen und Zwischenzeiten verbergen" class="kal_updown"> &nbsp; '.$addon::AWE_VORMON.' &nbsp; </span></a>';
+     $link2='
+<a class="kal_black kal_linkbut"
+   onclick="document.getElementById(\'hidden\').style.display=\'block\';
+            document.getElementById(\'hidden_head\').style.display=\'none\';">
+<span title="Formular erweitern und Zwischenzeiten anzeigen" class="kal_updown"> &nbsp; '.$addon::AWE_NACHMON.' &nbsp; </span></a>';
+     else:
+     $class='';
+     $class2=' class="kal_hide"';
+     $link1='';
+     $link2='';
+     endif;
+   $head='<b>ggf. bis zu 4 Zwischenzeiten: &nbsp; </b> &nbsp;';
+   $str=$str.'
+<div class="form_empline">&nbsp;</div>
+<div id="hidden_head">'.$head.$link2.'</div>
+<div id="hidden"'.$class.'>
+<div'.$class2.'>'.$head.$link1.'</div>
+<table class="kal_table">';
+   for($m=1;$m<=count($zei);$m=$m+1) $str=$str.$zei[$m];
    $str=$str.'
 </table>
 </div>
 ';
    return $str;
    }
-public static function kal_prepare_action($action,$pid,$datum,$call_num) {
-   #   Hilfsfunktion zu den Funktionen zur Eingabe, Korrektur bzw. Kopie eines Termins.
-   #   Folgende Daten werden in dieser Reihenfolge zurueck gegeben, als nummeriertes
-   #   Arrays (Nummerierung ab 0):
-   #    - aktualisierter Wert von $call_num
-   #    - naechste Aktion ($nextaction=$action/$addon::ACTION_START)
-   #    - ggf. eine Fehlermeldung
-   #    - HTML-Code eines Formulars zur Eingabe/Korrektur/Kopie des Termins
-   #    - Array des aktualisierten Termins (ohne Termin-Id)
-   #   Neben dem Formular wird eine Fehlermeldung zurueck gegeben, wenn Pflichtfelder
-   #   nicht ausgefuellt sind oder Datums-Zeitangaben formal falsch sind.
-   #   Die Formularparameter werden per POST-Parameter $addon::VALUE_NAME.$i uebermittelt
-   #   ($i=01,02,...,count($cols)-1, $cols=Tabellenspalten-Namen).
-   #   $action         aktuelle Aktion ($addon::ACTION_INSERT, $addon::ACTION_UPDATE,
-   #                   $addon::ACTION_COPY)
-   #   $pid            Id des Termins (ggf. auch =0, d.h. Termin noch nicht eingetragen)
-   #   $datum          vorgegebenes Datum des Termins
-   #                   ($action==$addon::ACTION_INSERT/$addon::ACTION_COPY)
-   #   $call_num       Nummer des Durchlaufs der Aktionsfunktion, wird ggf.
-   #                   von 1 auf 2 gesetzt
-   #   benutzte functions:
-   #      self::kal_proof_termin($termin)
-   #      self::kal_action($action,$pid)
-   #      self::kal_eingabeformular()
-   #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
-   #      kal_termine_tabelle::kal_exist_termin($termin)
+public static function kal_funktionsleiste($termin,$men,$action,$kid,$pid) {
+   #   Rueckgabe eines HTML-Formulars fuer die Darstellung einer Funktionsleiste
+   #   ueber verschiedenen Menues.
+   #   $termin         Array eines Termins
+   #   $men            Nummer des Menues, ueber dem die Funktionsleiste
+   #                   angebracht ist:
+   #                   =8: Eingabeformular (Abbrechen, Speichern)
+   #                   =5: Terminblatt (Abbrechen, Editieren, Kopieren, Loeschen)
+   #   $action         Aktion (Eintragen, Korrigieren, Kopieren)
+   #   $kid            Id einer Terminkategorie oder =0/$addon::SPIEL_KATID
+   #   $pid            Termin-Id oder 0
+   #
+   $addon=self::this_addon;
+   $cols=$addon::kal_define_tabellenspalten();
+   $keys=array_keys($cols);
+   $keydat=$keys[3];   // datum
+   $termdat='';
+   if(count($termin)>0) $termdat=$termin[$keydat];
+   #
+   # --- Menuenummern
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'minblatt')>0)  $menteb=$i;  // Terminblatt
+      if(strpos($menues[$i]['name'],'gabeform')>0)  $menins=$i;  // Eingabeformular
+      if(strpos($menues[$i]['name'],'öschform')>0)  $mendel=$i;  // Loeschformular
+      if(strpos($menues[$i]['name'],'gesblatt')>0)  $mentab=$i;  // Tagesblatt
+      endfor;
+   #
+   # --- Menue
+   $str='
+<table class="funktl_table kal_100pro">
+    <tr valign="middle">';
+   #
+   # --- Abbrechen (zurueck zum Tagesblatt)
+   $para=array($addon::KAL_DATUM=>$termdat, $addon::KAL_MENUE=>$mentab);
+   $tita='Abbrechen';
+   $linktext='<span class="kal_icon">'.$addon::AWE_CANCEL.'</span>';
+   $str=$str.'
+        <!----------- Abbrechen --------------------------------->
+        <td class="kal_basecol funktl_td" title="'.$tita.'">'
+       .$addon::kal_link($para,$linktext,$tita,1).'</td>';
+   #
+   # --- Abstand
+   $str=$str.'
+        <td class="funktl_td">&nbsp;</td>';
+   #
+   # --- Korrigieren (weiter zum Eingabeformular)
+   if($men==$menteb):
+     $datum='';
+     if(!empty($termin[$keydat])) $datum=$termin[$keydat];
+     $parb=array($addon::ACTION_NAME=>$addon::ACTION_UPDATE, $addon::KAL_PID=>$pid, $addon::KAL_DATUM=>$datum, $addon::KAL_MENUE=>$menins);
+     $titb='Bearbeiten';
+     $linktext='<span class="kal_icon">'.$addon::AWE_EDIT.'</span>';
+     $str=$str.'
+        <!----------- Korrigieren ------------------------------->
+        <td class="kal_basecol funktl_td" title="'.$titb.'">'.$addon::kal_link($parb,$linktext,$titb,1).'</td>';
+     else:
+     $str=$str.'
+        <td class="funktl_td">&nbsp;</td>';
+     endif;
+   #
+   # --- Kopieren (weiter zum Eingabeformular)
+   if($men==$menteb):
+     $parc=array($addon::ACTION_NAME=>$addon::ACTION_COPY, $addon::KAL_PID=>$pid, $addon::KAL_DATUM=>'', $addon::KAL_MENUE=>$menins);
+     $titc='Kopieren (als Einzeltermin)';
+     $linktext='<span class="kal_icon">'.$addon::AWE_COPY.'</span>';
+     $str=$str.'
+        <!----------- Kopieren ---------------------------------->
+        <td class="kal_basecol funktl_td" title="'.$titc.'">'.$addon::kal_link($parc,$linktext,$titc,1).'</td>';
+     else:
+     $str=$str.'
+        <td class="funktl_td">&nbsp;</td>';
+     endif;
+   #
+   # --- Loeschen (weiter zum Loeschformular)
+   if($men==$menteb):
+     $repeat=$addon::kal_post_in($addon::ACTION_REPEAT,'int');
+     $parl=array($addon::KAL_PID=>$pid, $addon::ACTION_REPEAT=>intval($repeat+1), $addon::KAL_MENUE=>$mendel);
+     $titl='Loeschen';
+     $linktext='<span class="kal_icon">'.$addon::AWE_DELETE.'</span>';
+     $str=$str.'
+        <!----------- Loeschen ---------------------------------->
+        <td class="kal_basecol funktl_td" title="'.$titl.'">'.$addon::kal_link($parl,$linktext,$titl,1).'</td>
+        <!------------------------------------------------------->';
+     endif;
+   #
+   # --- Speichern (weiter zum Eingabeformular)
+   if($men==$menins):
+     $repeat=$addon::kal_post_in($addon::ACTION_REPEAT,'int');
+     $tits='Speichern';
+     $linktext='<span class="kal_icon">'.$addon::AWE_SAVE.'</span>';
+     #     Terminparameter weitergeben durch hidden Input-Felder
+     $hidden='';
+     for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
+        $key=$keys[$i];
+        $val=$termin[$key];
+        $typ=$cols[$key][0];
+        $typ=explode(' ',$typ)[0];
+        $typ=explode('(',$typ)[0];
+        if($typ=='time'):
+          $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'" id="'.$key.'">';
+          else:
+          if(!empty($val)) $hidden=$hidden.'
+    <input  type="hidden" name="'.$key.'" value="'.$val.'">';
+          endif;
+        endfor;
+     #     weitere hidden-Input-Felder
+     $hidden=$hidden.'
+    <input  type="hidden" name="'.$addon::ACTION_NAME.'" value="'.$action.'">
+    <input  type="hidden" name="'.$addon::KAL_PID.'" value="'.$pid.'">
+    <input  type="hidden" name="'.$addon::ACTION_REPEAT.'" value="'.intval($repeat+1).'">';
+     #     Button
+     $str=$str.'
+        <!----------- Speichern --------------------------------->
+        <td class="kal_basecol funktl_td" title="'.$tits.'">
+<form method="post">'.$hidden.'
+    <button type="submit" name="'.$addon::KAL_MENUE.'" value="'.$menins.'"
+            class="kal_transp kal_linkbut">'.$linktext.'</button></td>';
+     endif; 
+   #
+   $str=$str.'
+      </tr>
+</table>
+';
+   return $str;
+   }
+public static function kal_eingabeformular($action,$kid,$pid,$keyneu,$valneu) {
+   #   Rueckgabe eines HTML-Formulars zum Eintragen, Korrigieren oder Kopieren
+   #   eines Termins in die Datenbanktabelle. Zusaetzlich wird eine Fehlermeldung
+   #   zurueck gegeben, falls die Termindaten unvollstaendig bzw. fehlerhaft sind.
+   #   Die neue Termin-Id (Eintragen, Kopieren) wird in $_POST[$addon::KAL_PID]
+   #   zurueck gegeben.
+   #   $action         Aktion (Eintragen, Korrigieren, Kopieren)
+   #   $kid            Id einer Terminkategorie oder =0/$addon::SPIEL_KATID
+   #   $pid            Termin-Id oder =0
+   #   $keyneu         Key eines neu einzutragenden Parameters
+   #   $valneu         Wert des neu einzutragenden Parameters, er wurde in einem
+   #                   sekundaeren Formular eingegeben
+   #   =========================================================
+   #   im Content-Managment-System sollte die Methode NUR EINMAL
+   #   AUFGERUFEN werden (entweder im Frontend oder im Backend)
+   #   =========================================================
    #
    $addon=self::this_addon;
    $keys=$addon::TAB_KEY;
    $keypid=$keys[0];   // pid
+   $keykat=$keys[1];   // kat_id
+   $keynam=$keys[2];   // name
    $keydat=$keys[3];   // datum
    $keytag=$keys[6];   // tage
    $keywch=$keys[7];   // wochen
-   $nextaction=$action;
-   $formular='';
-   $error='';
+   $keymon=$keys[8];   // monate
+   $keykom=$keys[12];  // komm
    #
-   # --- Formular einfuellen
-   if($pid<=0):
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'gabeform')>0)  $menins=$i;  // Eingabeformular
+      if(strpos($menues[$i]['name'],'gesblatt')>0)  $mentab=$i;  // Tagesblatt
+      endfor;
+   $repeat=$addon::kal_post_in($addon::ACTION_REPEAT,'int');
+   #
+   # --- Formulardaten einlesen ($terform)
+   $terform=$addon::kal_post_in_termin();
+   #     war das Formular leer?
+   $nz=0;
+   for($i=1;$i<count($keys);$i=$i+1)   // ohne pid
+      if(!empty($terform[$keys[$i]])) $nz=$nz+1;
+   if($nz<4):   // mind. 4 nicht-leere Terminparameter: kat_id, name, datum, tage
+     $empty=TRUE;
+     else:
+     $empty=FALSE;
+     endif;
+   #
+   $frage='<span class="kal_fail">Sollen die Daten so übernommen werden?</span>';
+   $spida='<span class="kal_fail kal_bold kal_big">Spieldaten können nicht gespeichert werden!</span>';
+   $error='';
+   $pidneu='';
+   if(intval($pid)<=0):
      #
-     # --- Fehlermeldung, falls nicht die Id eines existierenden Termins vorgegeben wurde
-     if($action!=$addon::ACTION_INSERT):
-       $txt='';
-       if($action==$addon::ACTION_UPDATE) $txt='korrigierender';
-       if($action==$addon::ACTION_COPY)   $txt='kopierender';
-       if(!empty($txt)) $error='<span class="kal_fail">Kein zu '.$txt.' Termin angegeben</span>';
-       endif;
-     #
-     # --- leeren Termin setzen
-     $termin=array();
-     $termin[$keypid]=$pid;
-     for($i=1;$i<count($keys);$i=$i+1):
+     # --- neuer Termin ($term), i.W. leere Daten
+     $term=$terform;
+     for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
         $key=$keys[$i];
-        $val='';
-        #     ggf. vorgegebenes Datum beruecksichtigen
-        if($action==$addon::ACTION_INSERT and $key==$keydat and !empty($datum))
-          $val=$datum;
-        $termin[$keys[$i]]=$val;
+        $val=$terform[$key];
+        #     Kategorie-Id>0 und tage>0 setzen
+        if($action==$addon::ACTION_INSERT and $key==$keykat and empty($val))
+          $val=1;
+        if($action==$addon::ACTION_INSERT and $key==$keytag and empty($val))
+          $val=1;
+        #     statt leerem Datum heutiges Datum
+        if($action==$addon::ACTION_INSERT and $key==$keydat and empty($val))
+          $val=kal_termine_kalender::kal_heute();
+        $term[$key]=$val;
         endfor;
      else:
      #
      # --- zu korrigierenden/kopierenden Termin aus der Datenbanktabelle holen
-     $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-     if(count($termin)<=0):
+     $term=kal_termine_tabelle::kal_select_termin($pid);
+     if(count($term)<=0):
        $error='<span class="kal_fail">Der Termin ('.$keypid.'='.$pid.') wurde nicht gefunden</span>';
-       $termin[$keypid]=$pid;
-       for($i=1;$i<count($keys);$i=$i+1) $termin[$keys[$i]]='';
+       for($i=0;$i<count($keys);$i=$i+1) $term[$keys[$i]]='';
+       endif;
+     #
+     # --- neu eingegebene Parameter einfuegen (nur bei nicht-leerem Formular)
+     if(!$empty):
+       for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
+          $key=$keys[$i];
+          if($term[$key]!=$terform[$key]) $term[$key]=$terform[$key];
+          endfor;
+       endif;
+     #
+     # --- Kopie als Einzeltermin anpassen
+     if($action==$addon::ACTION_COPY):
+       for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
+          $key=$keys[$i];
+          $val=$term[$key];
+          #     Termin-Kopie: zum Einzeltermin machen
+          if($key==$keytag) $val=1;
+          if($key==$keywch) $val=0;
+          if($key==$keymon) $val=0;
+          if($key==$keykom and empty($val)) $val='!!! ERSATZTERMIN !!!';
+          $term[$key]=$val;
+          endfor;
        endif;
      endif;
    #
-   # --- alte Termindaten als Formulardaten uebernehmen (nur beim ersten Mal)
-   $firstcall=TRUE;
-   for($i=1;$i<count($keys);$i=$i+1):
-      $sti=$i;
-      if($i<=9) $sti='0'.$i;
-      if(!empty($_POST[$addon::VALUE_NAME.$sti])) $firstcall=FALSE;   // zweiter Durchlauf
-      endfor;
-   if($firstcall):
-     for($i=1;$i<count($keys);$i=$i+1):
-        $key=$keys[$i];
-        $val=$termin[$key];
-        #     Termin-Kopie: zum eintaegigen Einzeltermin machen und das aktuelle Datum einfuegen
-        if($action==$addon::ACTION_COPY and $key==$keytag) $val=1;
-        if($action==$addon::ACTION_COPY and $key==$keywch) $val=0;
-        if($action==$addon::ACTION_COPY and $key==$keydat) $val=$datum;
-        $sti=$i;
-        if($i<=9) $sti='0'.$i;
-        $_POST[$addon::VALUE_NAME.$sti]=$val;
-        endfor;
+   # --- formale Ueberpruefung der Termindaten
+   $error=self::kal_proof_termin($term);
+   #
+   # --- erklickten Parameter eintragen, danach noch einmal fragen
+   if(!empty($keyneu) and !empty($valneu)):
+     $term[$keyneu]=$valneu;
+     if(empty($error)) $error=$frage;
      endif;
    #
-   # --- neue Termindaten aus den Formulardaten uebernehmen
-   #     Formulardaten = $_POST[$addon::VALUE_NAME.$i] ($i = 0, 1, 2, ...)
+   $datum='';
+   $pidneu=0;
    if(empty($error)):
-     $termin=array();
-     $termin[$keypid]='';
-     for($i=1;$i<count($keys);$i=$i+1):
-        $sti=$i;
-        if($i<=9) $sti='0'.$i;
-        $val='';
-        $vni=$addon::VALUE_NAME.$sti;
-        if(!empty($_POST[$vni])) $val=$_POST[$vni];
-        $termin[$keys[$i]]=$val;
-        endfor;
+     $msg='';
      #
-     # --- formale Ueberpruefung der Termindaten
-     $error=self::kal_proof_termin($termin);
+     # --- Termin eintragen ($term) und neue Termin-Id zurueck geben
+     if($action==$addon::ACTION_INSERT):
+       if($repeat>0):
+         if($addon::$SPIELDATEN):
+           $pidneu=$spida;
+           else:
+           $pidneu=kal_termine_tabelle::kal_insert_termin($term);
+           endif;
+         else:
+         $pidneu=$frage;
+         endif;
+       if(intval($pidneu)>0):
+         $term=kal_termine_tabelle::kal_select_termin($pidneu);
+         $datum=$term[$keydat];
+         $titel=$term[$keynam];
+         if(strlen($titel)>15) $titel=substr($titel,0,15).'...';
+         $msg='<span class="kal_msg">Der Termin <code>'.$titel.'</code> wurde neu angelegt</span>';
+         $term[$keypid]=$pidneu;
+         else:
+         $error=$pidneu;
+         endif;
+       endif;
      #
-     # --- kopierter Termin muss sich vom Quell-Termin unterscheiden ($addon::ACTION_COPY)
-     if(empty($error) and $action==$addon::ACTION_COPY):
-       $pex=kal_termine_tabelle::kal_exist_termin($termin);
-       if($pex==$pid) $error='<span class="kal_fail">Die Kopie braucht '.
-                             'ein anderes Datum oder eine andere Uhrzeit!</span>';
+     # --- Termin korrigieren ($term)
+     if($action==$addon::ACTION_UPDATE):
+       if($repeat<=0):
+         $error=$frage;
+         else:
+         #     weiterer Durchlauf: auch leere Eingabedaten beruecksichtigen
+         $term=$addon::kal_post_in_termin();
+         $term[$keypid]='';
+         #     formale Ueberpruefung der Termindaten
+         $error=self::kal_proof_termin($term);
+         if(empty($error)):
+           #     Termindaten neu abspeichern
+           if($addon::$SPIELDATEN):
+             $ret=$spida;
+             else:
+             $ret=kal_termine_tabelle::kal_update_termin($pid,$term);
+             endif;
+           $pidneu=$pid;
+           if(empty($ret)):
+             $datum=$term[$keydat];
+             $titel=$term[$keynam];
+             if(strlen($titel)>15) $titel=substr($titel,0,15).'...';
+             $msg='<span class="kal_msg">Der Termin <code>'.$titel.'</code> wurde korrigiert</span>';
+             else:
+             $error=$ret;
+             $_POST[$addon::ACTION_REPEAT]=0;
+             endif;
+           endif;
+         endif;
+       endif;
+     #
+     # --- Termin kopieren ($term)
+     if($action==$addon::ACTION_COPY):
+       if($repeat<=0):
+         $error=$frage;
+         else:
+         #     weiterer Durchlauf: auch leere Eingabedaten beruecksichtigen
+         for($i=1;$i<count($keys);$i=$i+1):   // ohne pid
+            $key=$keys[$i];
+            $val=$addon::kal_post_in($key);
+            $term[$key]=$val;
+            endfor;
+         #     formale Ueberpruefung der Termindaten
+         $error=self::kal_proof_termin($term);
+         if(empty($error)):
+           #     Termindaten abspeichern und neue Termin-Id zurueck geben
+           if($addon::$SPIELDATEN):
+             $pidneu=$spida;
+             else:
+             $pidneu=kal_termine_tabelle::kal_insert_termin($term);
+             endif;
+           if(intval($pidneu)>0):
+             $datum=$term[$keydat];
+             $titel=$term[$keynam];
+             if(strlen($titel)>15) $titel=substr($titel,0,15).'...';
+             $msg='<span class="kal_msg">Die Kopie von <code>'.$titel.'</code> wurde als Einzeltermin neu angelegt</span>';
+             $term[$keypid]=$pidneu;
+             else:
+             $error=$pidneu;
+             $_POST[$addon::ACTION_REPEAT]=0;
+             endif;
+           endif;
+         endif;
        endif;
      endif;
    #
-   # --- Formularausgabe
-   if($firstcall or !empty($error)):
-     #     Ueberschrift
+   if(!empty($msg) and empty($error)):
+     #
+     # --- erfolgreich, zum Tagesblatt schalten
+     $_POST[$addon::KAL_DATUM]    =$datum;
+     $_POST[$addon::KAL_PID]      =$pidneu;
+     $_POST[$addon::KAL_KATEGORIE]=$kid;
+     $_POST[$addon::KAL_MENUE]    =$mentab;
+     $_POST[$addon::ACTION_REPEAT]=0;
+     $formular='
+<div><br>'.$msg.'<br>&nbsp;</div>'.kal_termine_menues::kal_menue(0,0);
+     else:
+     #
+     # --- zurueck zum Eingabeformular
      $ueber='Eintragen';
      $zwtxt='neuen ';
+     $zus='';
      if($action==$addon::ACTION_UPDATE):
        $ueber='Korrigieren';
        $zwtxt='';
@@ -499,423 +950,103 @@ public static function kal_prepare_action($action,$pid,$datum,$call_num) {
      if($action==$addon::ACTION_COPY):
        $ueber='Kopieren';
        $zwtxt='';
+       $zus=' (als Einzeltermin)';
        endif;
-     $formular=$formular.'
-<h4 align="center">'.$ueber.' eines '.$zwtxt.'Termins</h4>
-<form method="post">';
-     #     Fuellen der Formularfelder
-     $formular=$formular.self::kal_eingabeformular();
-     #     Ausgabe einer Fehlermeldung
-     if(!empty($error)) $formular=$formular.'
-<div class="'.$addon::CSS_EINFORM.'">
-<table class="kal_table">
-    <tr><th class="th_einf left"></th>
-        <td class="td_einf">'.$error.'</td></tr>
-</table>
+     $formular='
+<!---------- Terminformular -------------------------------------------->
+<div id="'.$addon::ID_INPUTFORM.'">'.
+     self::kal_funktionsleiste($term,$menins,$action,$kid,$pid).'
+<h4 align="center">'.$ueber.' eines '.$zwtxt.'Termins'.$zus.'</h4>
+'.self::kal_eingabeform($term,$action,$kid,$error);
+     if(!empty($error))
+       $formular=$formular.'
+<div class="form_empline">&nbsp;</div>
+<div>'.$error.'</div>
+</form>
 </div>
+<!---------- Ende Terminformular --------------------------------------->
 ';
-     # --- Ausgabe der Radio-Buttons (Korrigieren / Abbruch) und Submit-Button
-     $formular=$formular.'<br>'.self::kal_action($nextaction,$pid).'</form>
-';
-     else:
-     $call_num=2;
      endif;
    #
-   # --- naechste Aktion: zurueck zum Startmenue
-   if(!$firstcall and empty($error)) $nextaction=$addon::ACTION_START;
-   #
-   return array($call_num,$nextaction,$error,$formular,$termin);
-   }
-public static function kal_eingeben() {
-   #   Rueckgabe eines HTML-Formulars zur Eintragung, Korrigieren oder Kopieren
-   #   eines Termins in die Datenbanktabelle inkl. Formularanfang und -ende
-   #   (<form> ... </form>). Zusaetzlich wird eine Fehlermeldung zurueck gegeben,
-   #   falls der Termin schon in der Datenbanktabelle enthalten ist oder der
-   #   Termin aus anderen Gruenden nicht eingetragen werden konnte.
-   #   Aufgerufen nur im Modul 'Termine verwalten'.
-   #   erster Durchlauf ($_POST[$addon::CALL_NUM]=1):
-   #      Zur Uebernahme der Daten eines Termins wird ein Formular angezeigt.
-   #      Ggf. ist ein Datum des Termins vorgeschlagen, das aber ueberschrieben
-   #      werden kann. Ein Submit fuehrt zu Fehlermeldungen (und einem weiteren
-   #      ersten Durchlauf) oder zum zweiten Durchlauf.
-   #   zweiter Durchlauf ($_POST[$addon::CALL_NUM]=2):
-   #      Ein Submit fuehrt zum Eintragen des Termins und zur Rueckkehr zum
-   #      Startmenue (aktuelles Monatsmenue).
-   #   Diese Daten werden mitgefuehrt:
-   #      $_POST[$addon::ACTION_NAME] = $addon::ACTION_INSERT / $addon::ACTION_START
-   #      $_POST[$addon::PID_NAME]    = 0
-   #      $_POST[$addon::CALL_NUM]    = Nummer des Durchlauf durch diese
-   #                                    function (=1/2)
-   #      $_POST[$addon::KAL_DATUM]   = vorgegebenes Datum (im Formular aenderbar)
-   #   =================================================================
-   #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
-   #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   =================================================================
-   #   benutzte functions:
-   #      self::kal_prepare_action($action,$pid,$datum,$call_num)
-   #      kal_termine_tabelle::kal_insert_termin($termin)
-   #      kal_termine_menues::kal_menue($selkid,$men)
-   #
-   $addon=self::this_addon;
-   $action=$addon::ACTION_INSERT;
-   #
-   # --- Aktion, Termin-Id und Aufrufnummer als POST-Parameter uebernehmen
-   if(!empty($_POST[$addon::ACTION_NAME])) $action=$_POST[$addon::ACTION_NAME];
-   $pid=0;
-   if(!empty($_POST[$addon::PID_NAME])) $pid=$_POST[$addon::PID_NAME];
-   if(!empty($pid) and $pid<=0) $pid=0;
-   $call_num=1;
-   if(!empty($_POST[$addon::CALL_NUM])) $call_num=$_POST[$addon::CALL_NUM];
-   #     ggf. vorgegebenes Datum auslesen
-   $datum='';
-   if(!empty($_POST[$addon::KAL_DATUM])) $datum=$_POST[$addon::KAL_DATUM];
-   #
-   # ---------- Aktion durchfuehren
-   $pidneu=0;
-   $formular='';
-   $nextaction=$action;
-   if($action!=$addon::ACTION_START):
-     $error='';
-     #
-     # --- einzugebenden Termin im Formular anzeigen/aendern
-     if($call_num<=1):
-       $arr=self::kal_prepare_action($action,$pid,$datum,$call_num);
-       $call_num  =$arr[0];
-       $nextaction=$arr[1];
-       $error     =$arr[2];
-       $formular  =$arr[3];
-       $termin    =$arr[4];
-       endif;
-     #
-     # --- Eintragen des Termins
-     if($call_num>=2):
-       $msg='';
-       if(empty($error)):
-         $pidneu=kal_termine_tabelle::kal_insert_termin($termin);
-         if($pidneu>0):
-           $msg='<span class="kal_msg">Der Termin wurde neu angelegt</span>';
-           $formular=$formular.'
-<div>'.$msg.'<br>&nbsp;</div>
-'.kal_termine_menues::kal_menue(0,0);
-           else:
-           $error=$pidneu;
-           $formular=$formular.'
-<div>'.$error.'<br>&nbsp;</div>';
-           endif;
-         endif;
-       endif;
-     endif;
-   #
-   # ---------- Abbruch
-   if($action==$addon::ACTION_START):
-     $call_num=2;
-     $nextaction=$addon::ACTION_START;
-     endif;
-   #
-   # --- Ergebnisrueckgabe
-   $_POST[$addon::ACTION_NAME]=$nextaction;
-   $_POST[$addon::PID_NAME]   =$pidneu;
-   $_POST[$addon::CALL_NUM]   =$call_num;
    return $formular;
    }
-public static function kal_korrigieren() {
-   #   Rueckgabe eines HTML-Formulars zur Korrektur eines Termins in der
-   #   Datenbanktabelle inkl. Formularanfang und -ende (<form> ... </form>).
-   #   Zusaetzlich wird eine Fehlermeldung zurueck gegeben, falls der Termin
-   #   nicht korrigiert werden konnte.
-   #   Aufgerufen nur im Modul 'Termine verwalten'.
-   #   erster Durchlauf ($_POST[$addon::CALL_NUM]=1):
-   #      Zur Uebernahme der Daten des Termins wird ein Formular angezeigt.
-   #      Ein Submit fuehrt zu Fehlermeldungen (und einem weiteren ersten
-   #      Durchlauf) oder zum zweiten Durchlauf.
-   #   zweiter Durchlauf ($_POST[$addon::CALL_NUM]=2):
-   #      Ein Submit fuehrt zur Korrektur des Termins und zur Rueckkehr zum
-   #      Startmenue (aktuelles Monatsmenue).
-   #   Diese Daten werden mitgefuehrt:
-   #      $_POST[$addon::ACTION_NAME] = $addon::ACTION_UPDATE / $addon::ACTION_START
-   #      $_POST[$addon::PID_NAME]    = Id des Termins
-   #      $_POST[$addon::CALL_NUM]    = Nummer des Durchlauf durch diese
-   #                                    function (=1/2)
-   #   =================================================================
-   #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
-   #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   =================================================================
-   #   benutzte functions:
-   #      self::kal_prepare_action($action,$pid,$datum,$call_num)
-   #      kal_termine_tabelle::kal_update_termin($pid,$termin)
-   #      kal_termine_menues::kal_menue($selkid,$men)
-   #
-   $addon=self::this_addon;
-   $action=$addon::ACTION_UPDATE;
-   #
-   # --- Aktion, Termin-Id und Aufrufnummer als POST-Parameter uebernehmen
-   if(!empty($_POST[$addon::ACTION_NAME])) $action=$_POST[$addon::ACTION_NAME];
-   $pid=0;
-   if(!empty($_POST[$addon::PID_NAME])) $pid=$_POST[$addon::PID_NAME];
-   if(!empty($pid) and $pid<=0) $pid=0;
-   $call_num=1;
-   if(!empty($_POST[$addon::CALL_NUM])) $call_num=$_POST[$addon::CALL_NUM];
-   #
-   # ---------- Aktion durchfuehren
-   $formular='';
-   $nextaction=$action;
-   if($action!=$addon::ACTION_START):
-     $error='';
-     #
-     # --- zu korrigierenden Termin im Formular anzeigen/aendern
-     if($call_num<=1):
-       $arr=self::kal_prepare_action($action,$pid,'',$call_num);
-       $call_num  =$arr[0];
-       $nextaction=$arr[1];
-       $error     =$arr[2];
-       $formular  =$arr[3];     
-       $termin    =$arr[4];
-       endif;
-     #
-     # --- Korrigieren des Termins in der Datenbanktabelle
-     if($call_num>=2):
-       $msg='';
-       if($pid>0 and empty($error)):
-         $ret=kal_termine_tabelle::kal_update_termin($pid,$termin);
-         if(empty($ret)):
-           $msg='<span class="kal_msg">Der Termin wurde korrigiert</span>';
-           $formular=$formular.'
-<div>'.$msg.'<br>&nbsp;</div>
-'.kal_termine_menues::kal_menue(0,0);
-           else:
-           $error='<span class="kal_fail">Der Termin konnte nicht korrigiert werden</span>';
-           $formular=$formular.'
-<div>'.$error.'<br>&nbsp;</div>';
-           endif;
-         endif;
-       endif;
-     endif;
-   #
-   # ---------- Abbruch
-   if($action==$addon::ACTION_START):
-     $call_num=2;
-     $nextaction=$addon::ACTION_START;
-     endif;
-   #
-   # --- Ergebnisrueckgabe
-   $_POST[$addon::ACTION_NAME]=$nextaction;
-   $_POST[$addon::PID_NAME]   =$pid;
-   $_POST[$addon::CALL_NUM]   =$call_num;
-   return $formular;
-   }
-public static function kal_kopieren() {
-   #   Rueckgabe eines HTML-Formulars zum Kopieren eines Termins in der
-   #   Datenbanktabelle inkl. Formularanfang und -ende (<form> ... </form>).
-   #   Zusaetzlich wird eine Fehlermeldung zurueck gegeben, falls der Termin
-   #   nicht kopiert werden konnte.
-   #   Aufgerufen nur im Modul 'Termine verwalten'.
-   #   erster Durchlauf ($_POST[$addon::CALL_NUM]=1):
-   #      Zur Uebernahme der Daten des Quell-Termins wird ein Formular angezeigt.
-   #      Ein Submit fuehrt zu Fehlermeldungen (und einem weiteren ersten
-   #      Durchlauf) oder zum zweiten Durchlauf.
-   #   zweiter Durchlauf ($_POST[$addon::CALL_NUM]=2):
-   #      Ein Submit fuehrt zur Kopie des Quell-Termins und zur Rueckkehr zum
-   #      Startmenue (aktuelles Monatsmenue).
-   #   Diese Daten werden mitgefuehrt:
-   #      $_POST[$addon::ACTION_NAME] = $addon::ACTION_COPY / $addon::ACTION_START
-   #      $_POST[$addon::PID_NAME]    = Id des Quell-Termins
-   #      $_POST[$addon::CALL_NUM]    = Nummer des Durchlauf durch diese
-   #                                    function (=1/2)
-   #      $_POST[$addon::KAL_DATUM]   = vorgegebenes Datum (im Formular aenderbar)
-   #   =================================================================
-   #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
-   #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   =================================================================
-   #   benutzte functions:
-   #      self::kal_prepare_action($action,$pid,$datum,$call_num)
-   #      kal_termine_tabelle::kal_insert_termin($termin)
-   #      kal_termine_menues::kal_menue($selkid,$men)
-   #
-   $addon=self::this_addon;
-   $action=$addon::ACTION_COPY;
-   #
-   # --- Aktion, Termin-Id und Aufrufnummer als POST-Parameter uebernehmen
-   if(!empty($_POST[$addon::ACTION_NAME])) $action=$_POST[$addon::ACTION_NAME];
-   $pid=0;
-   if(!empty($_POST[$addon::PID_NAME]))  $pid=$_POST[$addon::PID_NAME];
-   if(!empty($pid) and $pid<=0) $pid=0;
-   $call_num=1;
-   if(!empty($_POST[$addon::CALL_NUM])) $call_num=$_POST[$addon::CALL_NUM];
-   #     ggf. vorgegebenes Datum auslesen
-   $datum='';
-   if(!empty($_POST[$addon::KAL_DATUM])) $datum=$_POST[$addon::KAL_DATUM];
-   #
-   # ---------- Aktion durchfuehren
-   $pidneu=0;
-   $formular='';
-   $nextaction=$action;
-   if($action!=$addon::ACTION_START):
-     $error='';
-     #
-     # --- zu kopierenden Termin im Formular anzeigen/aendern
-     if($call_num<=1):
-       $arr=self::kal_prepare_action($action,$pid,$datum,$call_num);
-       $call_num  =$arr[0];
-       $nextaction=$arr[1];
-       $error     =$arr[2];
-       $formular  =$arr[3];
-       $termin    =$arr[4];
-       endif;
-     #
-     # --- Kopieren des Termins
-     if($call_num>=2):
-       $msg='';
-       if($pid>0 and empty($error)):
-         $pidneu=kal_termine_tabelle::kal_insert_termin($termin);
-         if($pidneu>0):
-           $msg='<span class="kal_msg">Der Termin wurde als Kopie neu angelegt</span>';
-           $formular=$formular.'
-<div>'.$msg.'<br>&nbsp;</div>';
-           else:
-           $error=$pidneu;
-           $formular=$formular.'
-<div>'.$error.'<br>&nbsp;</div>';
-           endif;
-         $formular=$formular.'
-'.kal_termine_menues::kal_menue(0,0);
-         endif;
-       endif;
-     endif;
-   #
-   # ---------- Abbruch
-   if($action==$addon::ACTION_START):
-     $call_num=2;
-     $nextaction=$addon::ACTION_START;
-     endif;
-   #
-   # --- Ergebnisrueckgabe
-   $_POST[$addon::ACTION_NAME]=$nextaction;
-   $_POST[$addon::PID_NAME]   =$pidneu;
-   $_POST[$addon::CALL_NUM]   =$call_num;
-   return $formular;
-   }
-public static function kal_loeschen() {
+public static function kal_loeschformular($pid) {
    #   Rueckgabe eines HTML-Formulars zum Loeschen eines Termins in der
-   #   Datenbanktabelle inkl. Formularanfang und -ende (<form> ... </form>).
-   #   Zusaetzlich wird eine Fehlermeldung zurueck gegeben, falls der Termin
-   #   nicht geloescht werden kann.
-   #   Aufgerufen nur im Modul 'Termine verwalten'.
-   #   erster Durchlauf ($_POST[$addon::CALL_NUM]=1):
-   #      Die Daten des ausgewaehlten Termins werden angezeigt. Ein Submit fuehrt
-   #      zum zweiten Durchlauf.
-   #   zweiter Durchlauf ($_POST[$addon::CALL_NUM]=2):
-   #      Ein Submit fuehrt zum Loeschen des Termins und zur Rueckkehr zum
-   #      Startmenue (aktuelles Monatsmenue).
-   #   Diese Daten werden mitgefuehrt:
-   #      $_POST[$addon::ACTION_NAME] = $addon::ACTION_COPY / $addon::ACTION_START
-   #      $_POST[$addon::PID_NAME]    = Id des Termins
-   #      $_POST[$addon::CALL_NUM]    = Nummer des Durchlauf durch diese
-   #                                    function (=1/2)
-   #   =================================================================
-   #   im Hauptprogramm sollte darauf geachtet werden, dass die Funktion
-   #   NUR EINMAL AUFGERUFEN wird (entweder im Frontend oder im Backend)
-   #   =================================================================
-   #   benutzte functions:
-   #      self::kal_action($action,$pid)
-   #      kal_termine_tabelle::kal_select_termin_by_pid($pid)
-   #      kal_termine_tabelle::kal_delete_termin($termin)
-   #      kal_termine_menues::kal_menue($selkid,$mennr)
-   #      kal_termine_menues::kal_terminblatt($termin,$realdate,$ruecklinks)
+   #   Datenbanktabelle auf der Basis des Terminblatts. Zusaetzlich wird
+   #   eine Fehlermeldung zurueck gegeben, falls der Termin nicht geloescht
+   #   werden konnte.
+   #   $pid            Termin-Id oder =0
+   #   =========================================================
+   #   im Content-Managment-System sollte die Methode NUR EINMAL
+   #   AUFGERUFEN werden (entweder im Frontend oder im Backend)
+   #   =========================================================
    #
    $addon=self::this_addon;
-   $keypid=$addon::TAB_KEY[0];   // pid
-   $keydat=$addon::TAB_KEY[2];   // datum
+   $keys=$addon::TAB_KEY;
+   $keypid=$keys[0];   // pid
+   $keynam=$keys[2];   // name
+   $keydat=$keys[3];   // datum
+   #
+   # --- Menuenummern
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'gesblatt')>0)  $mentab=$i;  // Tagesblatt
+      if(strpos($menues[$i]['name'],'minblatt')>0)  $menteb=$i;  // Terminblatt
+      endfor;
    #
    $action=$addon::ACTION_DELETE;
+   $_POST[$addon::ACTION_NAME]=$action;
    #
-   # --- Aktion, Termin-Id und Aufrufnummer als POST-Parameter uebernehmen
-   if(!empty($_POST[$addon::ACTION_NAME])) $action=$_POST[$addon::ACTION_NAME];
-   $pid=0;
-   if(!empty($_POST[$addon::PID_NAME])) $pid=$_POST[$addon::PID_NAME];
-   if(!empty($pid) and $pid<=0) $pid=0;
-   $call_num=1;
-   if(!empty($_POST[$addon::CALL_NUM])) $call_num=$_POST[$addon::CALL_NUM];
-   #
-   # ---------- Aktion durchfuehren
-   $formular='';
-   $nextaction=$action;
-   if($action!=$addon::ACTION_START):
-     #
-     # --- Daten des zu loeschenden Termins aus der Datenbanktabelle holen
-     $error='';
-     $datum='';
-     if($pid>0):
-       $termin=kal_termine_tabelle::kal_select_termin_by_pid($pid);
-       if(count($termin)<=0):
-         $error='<span class="kal_fail">Der Termin ('.$keypid.'='.$pid.') wurde nicht gefunden</span>';
-         else:
-         $datum=$termin[$keydat];
-         endif;
+   # --- Daten des zu loeschenden Termins aus der Datenbanktabelle holen
+   $error='';
+   $termin=array();
+   if(intval($pid)<=0):
+     $error='<span class="kal_fail">Kein zu entfernender Termin angegeben</span>';
+     else:
+     $termin=kal_termine_tabelle::kal_select_termin($pid);
+     if(count($termin)<=0):
+       $error='<span class="kal_fail">Der Termin (Id '.$pid.') wurde nicht gefunden</span>';
+       $datum='';
        else:
-       $error='<span class="kal_fail">Kein zu entfernender Termin angegeben</span>';
-       $termin=array();
+       $datum=$termin[$keydat];
        endif;
-     #
-     # --- Terminausgabe zur Loeschungsbestaetigung
-     if($call_num<=1 or !empty($error)):
-       #     Ueberschrift
-       $formular=$formular.'
-<form method="post">
-<h4 align="center">Soll dieser Termin wirklich in der Datenbanktabelle gelöscht werden?</h4>
-<div class="'.$addon::CSS_EINFORM.'">
-<table class="kal_table">';
-       #     zu loeschender Termin
-       $formular=$formular.'
-    <tr><th class="left">Termin:</td>
-        <td>'.kal_termine_menues::kal_terminblatt($termin,$datum,0).'
-        </td></tr>';
-       if(!empty($error)) $formular=$formular.'
-    <tr><th class="left"></th>
-        <td><br>'.$error.'</td></tr>';
-       $formular=$formular.'
-</table>
-</div>
-';
-       #     Ausgabe der Radio-Buttons (Loeschen / Abbruch) und Submit-Button
-       $_POST[$addon::CALL_NUM]=2;
-       $formular=$formular.'<br>'.self::kal_action($action,$pid).'</form>
-';
-       #
+     endif;
+   #
+   # --- noch einmal zur Sicherheit das Terminblatt anzeigen
+   $repeat=$addon::kal_post_in($addon::ACTION_REPEAT,'int');
+   if($repeat<=1)
+     $error='<span class="kal_fail">Soll dieser Termin wirklich gelöscht werden?</span>';
+   #
+   # --- Loeschen durchfuehren
+   $msg='';
+   if(empty($error))
+     if($addon::$SPIELDATEN):
+       $error='<span class="kal_fail kal_bold kal_big">Spieldaten können nicht gelöscht werden!</span>';
        else:
-       #
-       # --- Loeschen des Termins in der Datenbanktabelle
-       $msg='';
-       if($pid>0):
-         $ret=kal_termine_tabelle::kal_delete_termin($pid);
-         if(empty($ret)):
-           $msg='<span class="kal_msg">Der Termin wurde gelöscht</span>';
-           else:
-           $msg=$ret;
-           endif;
-         endif;
-       #
-       #     Erfolgsmeldung ausgeben
-       if(!empty($msg)) $formular=$formular.'
-<div>'.$msg.'<br>&nbsp;</div>';
-       #
-       # --- zurueck zum Startmenue
-       $formular=$formular.'
+       $error=kal_termine_tabelle::kal_delete_termin($pid);
+       endif;
+   if(empty($error)):
+     $msg='<span class="kal_msg">Der Termin <code>'.substr($termin[$keynam],0,15).'...</code> wurde gelöscht</span>';
+     else:
+     $error='
+<div><br>'.$error.'</div>
+';
+     endif;
+   #
+   # --- bei Erfolg zum Tagesblatt
+   if(!empty($msg) and empty($error)):
+     $_POST[$addon::KAL_MENUE]=$mentab;
+     $_POST[$addon::KAL_DATUM]=$datum;
+     $_post[$addon::ACTION_REPEAT]=0;
+     $_post[$addon::KAL_PID]=$pid;
+     return '
+<div><br>'.$msg.'<br>&nbsp;</div>
 '.kal_termine_menues::kal_menue(0,0);
-       $nextaction=$addon::ACTION_START;
-       endif;
+     else:
+     #
+     # --- zurueck zum Terminblatt
+     return kal_termine_menues::kal_terminblatt($termin).$error;     
      endif;
-   #
-   # ---------- Abbruch
-   if($action==$addon::ACTION_START):
-     $call_num=2;
-     $nextaction=$addon::ACTION_START;
-     endif;
-   #
-   # --- Ergebnisrueckgabe
-   $_POST[$addon::ACTION_NAME]=$nextaction;
-   $_POST[$addon::PID_NAME]   =$pid;
-   $_POST[$addon::CALL_NUM]   =$call_num;
-   return $formular;
    }
 }
 ?>

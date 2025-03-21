@@ -2,391 +2,353 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
 class kal_termine_module {
 #
-#----------------------------------------- Inhaltsuebersicht
-#   kal_manage_termine()
-#   kal_terminmenue_select($name,$mennr)
-#   kal_terminmenue_in($men,$ab,$anztage,$katid)
-#   kal_terminmenue_out($men,$ab,$anztage,$katid)
+#----------------------------------------- Methoden
+#   Termine verwalten
+#      kal_manage_termine()
+#   Termine anzeigen
+#      kal_terminmenue_intern()
+#      kal_terminmenue()
+#      kal_config_terminmenue_intern()
+#      kal_config_terminmenue()
+#      kal_show_termine()
 #
 #----------------------------------------- Konstanten
 const this_addon=kal_termine::this_addon;   // Name des AddOns
 #
+#----------------------------------------- Termine verwalten
 public static function kal_manage_termine() {
-   #   Rueckgabe des HTML-Codes fuer ein Menue zur Verwaltung der Termine einer
-   #   Auswahl an Kategorien in der Datenbanktabelle (fuer einen entsprechenden
-   #   Modul). Die Auswahl haengt von den entsprechenden Permissions des aktuell
-   #   im Backend eingeloggten Redakteurs ab.
-   #   Ueber verschiedene Formulare kann man einen neuen Termin eintragen oder
-   #   einen vorhandenen Termin suchen, um ihn zu loeschen, zu korrigieren
-   #   oder zu kopieren.
-   #   Aufgerufen nur im Modul 'Termine verwalten'.
-   #   Die Aktionen werden gesteuert ueber die Werte der Parameter
-   #   $addon::ACTION_NAME und $addon::PID_NAME.
-   #   benutzte functions:
-   #      kal_termine_formulare::kal_action($action,$pid)
-   #      kal_termine_formulare::kal_eingeben()
-   #      kal_termine_formulare::kal_korrigieren()
-   #      kal_termine_formulare::kal_loeschen()
-   #      kal_termine_formulare::kal_kopieren()
-   #      kal_termine_menues::kal_define_menues()
-   #      kal_termine_menues::kal_menue($selkid,$mennr)
-   #
-   #                     +--------------------+
-   #                     | kal_manage_termine |
-   #                     +----------+---------+
-   #                                |
-   #                         +------+-----+
-   #                         |  kal_menue |
-   #                         +------+-----+
-   #                                |
-   #          +-- Tagesblatt -------+-- Terminblatt --+
-   #          |                                       |
-   #          |                   +-------------------+------------------+
-   #          |                   |                   |                  |
-   #  +-------+-------+  +--------+--------+  +-------+-------+  +-------+--------+
-   #  | $action=''    |  | $action=UPDATE  |  | $action=COPY  |  | $action=DELETE |
-   #  | $pid=0        |  | $pid>0          |  | $pid>0        |  | $pid>0         |
-   #  +---------------+  +-----------------+  +---------------+  +----------------+
-   #  |  kal_eingeben |  | kal_korrigieren |  |  kal_kopieren |  |  kal_loeschen  |
-   #  +---------------+  +-----------------+  +---------------+  +----------------+
-   #  | $action=''    |  | $action=UPDATE  |  | $action=COPY  |  | $action=DELETE |
-   #  |         START |  |         START   |  |         START |  |         START  |
-   #  | $pid=$pidneu  |  | $pid=$pid       |  | $pid=$pidneu  |  | $pid=$pid      |
-   #  +---------------+  +-----------------+  +---------------+  +----------------+
+   echo kal_termine_menues::kal_menue(0,'');
+   }
+#
+#----------------------------------------- Termine anzeigen
+public static function kal_terminmenue_intern() {
+   #   Rueckgabe des HTML-Codes zu Auswahl des Terminmenues. Die Menuenummer
+   #   wird aus dem Speicher ausgelesen. Erlaubt sind nur die Menues 1, 6, 7.
    #
    $addon=self::this_addon;
-   #
-   # --- Menue sowie Aktion und Termin-Id als POST-Parameter uebernehmen
-   $men   =0;
-   if(!empty($_POST[$addon::KAL_MENUE])) $men=$_POST[$addon::KAL_MENUE];
-   $action='';
-   if(!empty($_POST[$addon::ACTION_NAME])) $action=$_POST[$addon::ACTION_NAME];
-   $pid   ='';
-   if(!empty($_POST[$addon::PID_NAME]))    $pid   =$_POST[$addon::PID_NAME];
-   #
-   # --- Tagesblatt oder Terminblatt erreicht? ($tagesblatt/$terminblatt==TRUE)
-   $menues=kal_termine_menues::kal_define_menues();
-   $tagesblatt =FALSE;
-   $terminblatt=FALSE;
-   $datum='';
-   if($men>0):
-     if(strpos($menues[$men]['name'],'agesblatt')>0):
-       $tagesblatt=TRUE;
-       $datum=$_POST[$addon::KAL_DATUM];
-       endif;
-     if(strpos($menues[$men]['name'],'rminblatt')>0) $terminblatt=TRUE;
-     endif;
-   #
-   # --- Monatsmenue-Nummer
-   $menmom=0;
-   for($i=1;$i<=count($menues);$i=$i+1)
-      if(strpos($menues[$i]['name'],'natsmenü')>0) $menmom=$i;    // Monatsmenue
-   #
-   # --- Ueberschrift + Erlaeuterung
-   $str='
-<div align="center">
-<h3>Termine verwalten</h3>
-<p align="left">Die <b>Eingabe</b> eines Termins erfolgt im zugehörigen <b>Tagesblatt</b>.<br>
-<b>Korrektur</b>, <b>Löschung</b> oder <b>Kopie</b> eines Termins sind im zugehörigen <b>Terminblatt</b> möglich.</p>
-<div>&nbsp;</div>';
-   #
-   if(empty($action) or $action==$addon::ACTION_START or $action==$addon::ACTION_SELECT):
-     #
-     # --- Termin/Datum suchen (Startformular)
-     $str=$str.kal_termine_menues::kal_menue(0,$menmom).'
-<form method="post">';
-     $act=$action;
-     if($tagesblatt)  $act=$addon::ACTION_INSERT;
-     if($terminblatt) $act=$addon::ACTION_SELECT;
-     $str=$str.'<br>'.kal_termine_formulare::kal_action($act,$pid);
-     $str=$str.'</form>';
-     #
-     else:
-     #
-     # --- neuen Termin eingeben
-     if($action==$addon::ACTION_INSERT and $pid<=0):
-       $str=$str.kal_termine_formulare::kal_eingeben();
-       endif;
-     #
-     # --- Termin korrigieren
-     if($action==$addon::ACTION_UPDATE and $pid>0):
-       $str=$str.kal_termine_formulare::kal_korrigieren();
-       endif;
-     #
-     # --- Termin loeschen
-     if($action==$addon::ACTION_DELETE and $pid>0):
-       $str=$str.kal_termine_formulare::kal_loeschen();
-       endif;
-     #
-     # --- Termin kopieren
-     if($action==$addon::ACTION_COPY and $pid>0):
-       $str=$str.kal_termine_formulare::kal_kopieren();
-       endif;
-     endif;
-   return $str.'
-</div>';
-   }
-public static function kal_terminmenue_select($name,$mennr) {
-   #   Rueckgabe des HTML-Codes fuer die Auswahl der moeglichen Kalendermenues:
-   #   Monatsmenue, Monatsblatt, Wochenblatt, Tagesblatt, Filtermenue, Terminliste.
-   #   $name           Name des select-Formulars
-   #   $mennr          Nummer des vorher gewaehlten Menues (Default: 1)
-   #   benutzte functions:
-   #      kal_termine_menues::kal_define_menues()
-   #
-   $menues=kal_termine_menues::kal_define_menues();
-   $men=$mennr;
-   if($men<=1) $men=1;
-   $string='<select name="'.$name.'">';
+   $menues=$addon::kal_define_menues();
    for($i=1;$i<=count($menues);$i=$i+1):
-      if(strpos($menues[$i]['name'],'natsmenü')<=0 and
-         strpos($menues[$i]['name'],'atsblatt')<=0 and
-         strpos($menues[$i]['name'],'henblatt')<=0 and
-         strpos($menues[$i]['name'],'gesblatt')<=0 and
-         strpos($menues[$i]['name'],'ltermenü')<=0 and
-         strpos($menues[$i]['name'],'minliste')<=0    ) continue;
-      if($i==$men):
-        $sel='selected="selected"';
-        else:
-        $sel='';
-        endif;
-      $string=$string.'
-    <option value="'.$i.'" '.$sel.'>'.$menues[$i]['name'].'</option>';
+      if(strpos($menues[$i]['name'],'natsmenü')>0)   $menmom=$i;  // Monatsmenue
+      if(strpos($menues[$i]['name'],'erminüber')>0)  $menueb=$i;  // Terminübersicht
+      if(strpos($menues[$i]['name'],'minliste')>0)   $mentel=$i;  // Terminliste
       endfor;
-   $string=$string.'
-</select>';
-   return $string;
+   #
+   # --- Auslesen der gespeicherten Menuenummer
+   $param=cms_interface::read_menue_data();
+   $men=$param['men'];
+   if(empty($men)) $men=$menmom;
+   if($men!=$menmom and $men!=$menueb and $men!=$mentel) $men=$menmom;
+   #
+   # --- Anzeige des Auswahlmenues
+   $str='
+<h4>Auswahl eines Startmenüs zur Darstellung von Terminen</h4>
+<div>Der Default-Zeitraum enthält jeweils den heutigen Tag.</div>
+<div class="form_empline">&nbsp;</div>
+<form method="post">
+<table class="kal_table">';
+   #
+   # --- Auswahl Kalendermenue
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if($i!=$menmom and $i!=$menueb and $i!=$mentel) continue;
+      $chk='';
+      if($i==$men) $chk=' checked';
+      $str=$str.'
+    <tr valign="top">
+        <td class="form_left2">
+            <input type="radio" name="'.$addon::KAL_MENNR.'" value="'.$i.'"'.$chk.'>
+            &nbsp;<b>'.$menues[$i]['name'].'</b></td>
+        <td>'.$menues[$i]['titel'].'</td></tr>
+    <tr><td class="form_empline" colspan="2">&nbsp;</td></tr>';
+      endfor;
+   $str=$str.'
+    <tr valign="bottom">
+        <td></td>
+        <td><button class="kal_btn_save" type="submit" name="save_men" value="save_men"
+                    title="Das Kalendermenü auswählen">
+            &nbsp;das&nbsp;Menü&nbsp;auswählen&nbsp;</button></td></tr>
+</table>
+</form>';
+   return $str;
    }
-public static function kal_terminmenue_in($men,$ab,$anztage,$kid) {
-   #   Rueckgabe des HTML-Codes zur Konfigurierung eines Terminmenues.
-   #   Aufgerufen nur im Modul 'Termine anzeigen'.
-   #   $men            ggf. vorher schon gewaehlte Menuenummer
-   #                   (Auswahl ueber REX_VALUE[1])
-   #   $ab             ggf. vorher schon gewaehltes Datum fuer den ersten Tag der
-   #                   auszugebenden Termine (leer: heutiges Datum eingesetzt)
-   #                   (Auswahl ueber REX_VALUE[2])
-   #   $anztage        ggf. vorher schon gewaehlte Anzahl von Tagen fuer den
-   #                   Zeitraum, fuer die Termine ausgegeben werden sollen
-   #                   (Auswahl ueber REX_VALUE[3])
-   #   $kid            ggf. vorher schon gewaehlte Terminkategorie-Id
-   #                   =0: alle erlaubten Kategorien
-   #                   (Auswahl ueber REX_VALUE[4])
-   #   benutzte functions:
-   #      self::kal_terminmenue_select($name,$mennr)
-   #      $addon::kal_allowed_terminkategorien()
-   #      $addon::kal_select_kategorie($name,$kid,$katids,$all)
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #      kal_termine_kalender::kal_heute()
-   #      kal_termine_kalender::kal_monatstage($jahr)
-   #      kal_termine_kalender::kal_kw($datum)
-   #      kal_termine_kalender::kal_kw_montag($kw,$jahr)
-   #      kal_termine_menues::kal_define_menues()
+public static function kal_terminmenue() {
+   #   Rueckgabe des HTML-Codes zu Auswahl des Terminmenues. Das ausgewaehlte
+   #   Menue wird gespeichert und als gespeichert angezeigt. 
    #
    $addon=self::this_addon;
    #
-   $von=$ab;
+   # --- Auslesen der gespeicherten Menuenummer
+   $param=cms_interface::read_menue_data();
+   $menalt=$param['men'];
+   $men=$menalt;
+   #
+   # --- Erstanzeige des Menues
+   $str=self::kal_terminmenue_intern();
+   #
+   # --- neu ausgewaehltes Menue speichern
+   $save_men=$addon::kal_post_in('save_men');
+   if(!empty($save_men)):
+     $men=$addon::kal_post_in($addon::KAL_MENNR,'int');
+     cms_interface::write_menue_data('men',$men);
+     #     Zweitanzeige des Menues (mit neu ausgewaehltem Menue)
+     $str=self::kal_terminmenue_intern();
+     endif;
+   return $str;
+   }
+public static function kal_config_terminmenue_intern() {
+   #   Rueckgabe des HTML-Codes zu Auswahl und Konfigurierung des Terminmenues.
+   #   Erlaubt sind nur die Menues 1, 6, 7.
+   #
+   $addon=self::this_addon;
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'natsmenü')>0)   $menmom=$i;  // Monatsmenue
+      if(strpos($menues[$i]['name'],'erminüber')>0)  $menueb=$i;  // Terminübersicht
+      if(strpos($menues[$i]['name'],'minliste')>0)   $mentel=$i;  // Terminliste
+      endfor;
+   #
+   # --- Auswahl Kalendermenue
+   $str=self::kal_terminmenue();
+   #
+   # --- Auslesen der gespeicherten Parameter
+   $param=cms_interface::read_menue_data();
+   $men    =$param['men'];
+   $von    =$param['datum'];
+   $anztage=$param['anztage'];
+   $kid    =$param['kat_id'];
+   if(empty($men)) $men=$menmom;
+   if($men!=$menmom and $men!=$menueb and $men!=$mentel) $men=$menmom;
+   #
    if(!empty($von)) $von=kal_termine_kalender::kal_standard_datum($von);
-   $menues=kal_termine_menues::kal_define_menues();
-   $ro='';
-   $abtxt='(Default, nicht änderbar)';
-   $zrtxt=$abtxt;
-   if(empty($men)) $men=1;
-   $block='<span class="kal_block_uebernehmen">&laquo; Block übernehmen &raquo;</span>';
    $heute=kal_termine_kalender::kal_heute();
    #
    # --- Schaltjahr?
-   $jahr=substr($heute,7);
-   $nztage=365;
-   $jahr4=intval($jahr/4);
-   if(4*$jahr4>=$jahr) $nztage=366;
+   $jahr=substr($heute,6);
+   $jahrestage=365;
+   if(4*intval($jahr/4)>=$jahr) $jahrestage=366;
    #
-   # --- Zeitdaten ergaenzen
-   #     Monatsmenue / Monatsblatt
-   if(strpos($menues[$men]['name'],'natsmenü')>0 or
-      strpos($menues[$men]['name'],'natsblatt')>0  ):
-     #     Defaultdaten
+   # --- Zeitraum Monatsmenue
+   if($men==$menmom):
      $von='01'.substr($heute,2);
-     $jahr=substr($heute,6);
      $mon=intval(substr($heute,3,2));
-     $defanz=kal_termine_kalender::kal_monatstage($jahr)[$mon];
-     $anz=$defanz;
+     $anz=kal_termine_kalender::kal_monatstage($jahr)[$mon];
+     $ab1='<i>Default: 1. Tag des Monats</i>';
+     $ab2='<b>(nicht änderbar)</b>';
+     $zr1='<i>Default: Anzahl Tage des Monats</i></i>';
+     $zr2='<b>(nicht änderbar)</b>';
      $ro=' readonly';
+     $roclass='form_readonly';
      endif;
-   #     Wochenblatt
-   if(strpos($menues[$men]['name'],'chenblatt')>0):
-     #     Defaultdaten
-     $kw=intval(kal_termine_kalender::kal_kw($heute));
-     $jahr=intval(substr($heute,6));
-     $von=kal_termine_kalender::kal_kw_montag($kw,$jahr);
-     $defanz=7;
-     $anz=$defanz;
-     $ro=' readonly';
-     endif;
-   #     Tagesblatt
-   if(strpos($menues[$men]['name'],'agesblatt')>0):
-     #     Defaultdaten
+   #
+   # --- Zeitraum Terminuebersicht
+   if($men==$menueb):
      $von=$heute;
-     $defanz=1;
-     $anz=$defanz;
+     $anz='';
+     $ab1='<i>Default: der heutige Tag</i>';
+     $ab2='<b>(nicht änderbar)</b>';
+     $zr1='<i>Default: unbegrenzt</i>';
+     $zr2='<b>(nicht änderbar)</b>';
      $ro=' readonly';
+     $roclass='form_readonly';
      endif;
-   #     Filtermenue
-   if(strpos($menues[$men]['name'],'iltermenü')>0):
-     #     Defaultdaten
-     $von='1.1.'.substr($heute,6);
-     $defanz=$nztage;
-     $anz=$defanz;
-     endif;
-   #     Terminliste
-   if(strpos($menues[$men]['name'],'minliste')>0):
-     #     Defaultdaten
-     $von='';
-     if(!empty($ab)):
-       $arr=explode('.',$ab);
-       $von=intval($arr[0]).'.'.intval($arr[1]).'.'.intval($arr[2]);
-       endif;
-     $defanz=$nztage;
+   #
+   # --- Zeitraum Terminliste
+   if($men==$mentel):
      $anz=$anztage;
      if($anz<=0) $anz='';
-     $abtxt='Eingabe im Format <tt>tt.mm.jjjj</tt> (Default: der heutige Tag)';
-     $zrtxt='Eingabe der Anzahl Tage (inkl. Startdatum, Default: '.$defanz.')';
+     $ab1='<i>Default: der heutige Tag</i>';
+     $ab2='(Format <tt>tt.mm.jjjj</tt>)';
+     $zr1='<i>Default: Anzahl Tage des Jahres</i>';
+     $zr2='<i>(ab Startdatum)</i>';
+     $ro='';
+     $roclass='';
      endif;
    #
-   # --- Ueberschrift
-   $strtage='';
-   $str='<h4 align="center">Kalendermenü zur Auswahl von Terminen</h4>
-   <div class="'.$addon::CSS_EINFORM.'">
-   <table class="kal_table">';
-   #
-   # --- Auswahl des Kalendermenues
-   if($men<=0):
-     $titel='';
-     $links='';
-     else:
-     $titel=$menues[$men]['titel'];
-     $links='Links zu anderen Menüs: <i>'.$menues[$men]['links'].'</i>';
-     endif;
    $str=$str.'
-    <tr><th class="left2">Kalendermenü:</th>
-        <td class="left2">
-'.self::kal_terminmenue_select('REX_INPUT_VALUE[1]',$men).'</td>
-        <td class="pad"><b>'.$titel.'</b>
-            Der Default-Zeitraum enthält jeweils den heutigen Tag.<br>
-        '.$links.'</td></tr>
-    <tr><th colspan="2"></th>
-        <td class="pad">Anpassung der Menü-Charakterisierung und des Zeitraums: &nbsp;'.$block.'</td></tr>';
+<form method="post">
+<table class="kal_table">';
    #
-   # --- Datum, ab wann die Termine ausgegeben werden sollen
-   if(!empty($von)):
-     $arr=explode('.',$von);
-     $von=intval($arr[0]).'.'.intval($arr[1]).'.'.intval($arr[2]);
-     endif;
+   # --- Auswahl Datum, ab wann die Termine ausgegeben werden sollen
    $str=$str.'
-    <tr><th class="left2">Termine ab:</th>
-        <td><input type="text" name="REX_INPUT_VALUE[2]" value="'.$von.'" class="date right"'.$ro.'></td>
-        <td class="pad">'.$abtxt.'</td></tr>';
+    <tr valign="top">
+        <td colspan="4">
+            <h4>'.$menues[$men]['name'].':</h4></td></tr>
+    <tr><td colspan="4" class="form_empline">&nbsp;</td></tr>
+    <tr valign="top">
+        <th class="kal_indent form_left2">
+            Termine ab:</th>
+        <td class="form_left2">
+            <input type="text" name="'.$addon::KAL_AB.'" value="'.$von.'"
+                   class="form_date '.$roclass.'"'.$ro.'></td>
+        <td class="form_pad form_left2">
+            '.$ab1.'</td>
+        <td class="form_pad">
+            '.$ab2.'</td></tr>';
    #
-   # --- Zeitraum in Anzahl Tage
+   # --- Auswahl Zeitraum in Anzahl Tage
    $str=$str.'
-    <tr><th class="left2">Anzahl Tage:</th>
-        <td><input type="text" name="REX_INPUT_VALUE[3]" value="'.$anz.'" class="int right"'.$ro.'></td>
-        <td class="pad">'.$zrtxt.'</td></tr>';
+    <tr><td colspan="4" class="form_empline">&nbsp;</td></tr>
+    <tr valign="top">
+        <th class="kal_indent form_left2">
+            Anzahl Tage:</th>
+        <td class="form_left2">
+            <input type="text" name="'.$addon::KAL_ANZTAGE.'" value="'.$anz.'"
+                   class="form_int '.$roclass.'"'.$ro.'></td>
+        <td class="form_pad form_left2">
+            '.$zr1.'</td>
+        <td class="form_pad">
+            '.$zr2.'</td></tr>';
    #
-   # --- Beschraenkung auf eine Kategorie
-   $katids=$addon::kal_allowed_terminkategorien();
-   $name='REX_INPUT_VALUE[4]';
+   # --- Auswahl der Kategorie(n)
+   $katids=cms_interface::allowed_terminkategorien();
    $str=$str.'
-    <tr><th class="left2">Kategorien:</th>
-        <td>'.$addon::kal_select_kategorie($name,$kid,$katids,TRUE).'</td>
-        <td class="pad">Es können die Termine aller erlaubten Terminkategorien ausgewählt werden
+    <tr><td colspan="4" class="form_empline">&nbsp;</td></tr>
+    <tr valign="top">
+        <th class="kal_indent form_left2">
+            Kategorien:</th>
+        <td class="form_left2">
+            '.$addon::kal_select_kategorie($addon::KAL_KATEGORIE,$kid,$katids,TRUE).'</td>
+        <td class="form_pad" colspan="2">
+            Es können die Termine aller erlaubten Terminkategorien ausgewählt werden
             oder aber nur die Termine aus einer dieser Kategorien.</td></tr>';
    #
+   # --- Speichern-Button
    $str=$str.'
+    <tr><td colspan="4" class="form_empline">&nbsp;</td></tr>
+    <tr valign="top">
+        <td></td>
+        <td><button class="kal_btn_save" type="submit" name="save" value="save"
+                    title="alle Parameter speichern">
+            &nbsp;Speichern&nbsp;</button></td>
+        <td class="form_pad" colspan="2">
+            <i>Falls Parameter geändert werden, muss (noch einmal) gespeichert werden.</i></td></tr>
 </table>
-</div>';
+</form>';
    #
    return $str;
    }
-public static function kal_terminmenue_out($mennr,$ab,$anztage,$kid) {
-   #   Rueckgabe des HTML-Codes zur Ausgabe eines Terminmenues.
-   #   Aufgerufen nur im Modul 'Termine anzeigen'.
-   #   $mennr          ggf. vorher schon gewaehlte Menuenummer
-   #                   (Auswahl ueber REX_VALUE[1])
-   #   $ab             ggf. vorher schon gewaehltes Datum fuer den ersten Tag der
-   #                   auszugebenden Termine (leer: heutiges Datum eingesetzt)
-   #                   (Auswahl ueber REX_VALUE[2])
-   #   $anztage        ggf. vorher schon gewaehlte Anzahl von Tagen fuer den
-   #                   Zeitraum, fuer die Termine ausgegeben werden sollen
-   #                   (Auswahl ueber REX_VALUE[3])
-   #   $kid            ggf. vorher schon gewaehlte Terminkategorie-Id
-   #                   =0: alle erlaubten Kategorien
-   #                   (Auswahl ueber REX_VALUE[4])
-   #   benutzte functions:
-   #      $addon::kal_allowed_terminkategorien()
-   #      kal_termine_kalender::kal_standard_datum($datum)
-   #      kal_termine_kalender::kal_heute()
-   #      kal_termine_kalender::kal_datum_vor_nach($datum,$anztage)
-   #      kal_termine_tabelle::kal_get_termine($von,$bis,$katids,$katif)
-   #      kal_termine_tabelle::kal_kategorie_name($katid)
-   #      kal_termine_menues::kal_terminliste($termin)
-   #      kal_termine_menues::kal_define_menues()
-   #      kal_termine_menues::kal_menue($selkid,$mennr)
+public static function kal_config_terminmenue() {
+   #   Rueckgabe des HTML-Codes zu Auswahl und Konfigurierung des Terminmenues.
+   #   Erlaubt sind nur die Menues 1, 6, 7.
    #
    $addon=self::this_addon;
    #
-   $menues=kal_termine_menues::kal_define_menues();
-   $menmom=0;
-   for($i=1;$i<=count($menues);$i=$i+1)
-      if(strpos($menues[$i]['name'],'natsmenü')>0) $menmom=$i;    // Monatsmenue
+   # --- Menue anzeigen
+   $str=self::kal_config_terminmenue_intern();
    #
-   # --- Parameterueberprefung
-   $men=$mennr;
-   if(empty($men)) $men=$menmom;
-   if(empty($ab)):
-     $von=kal_termine_kalender::kal_heute();
-     else:
-     $von=kal_termine_kalender::kal_standard_datum($ab);
+   # --- Auslesen der gespeicherten Parameter
+   $param=cms_interface::read_menue_data();
+   $men    =$param['men'];
+   $von    =$param['datum'];
+   $anztage=$param['anztage'];
+   $kid    =$param['kat_id'];
+   #
+   # --- ggf. alle Parameter neu speichern
+   $save=$addon::kal_post_in('save');
+   if(!empty($save)):
+     $von    =$addon::kal_post_in($addon::KAL_AB);
+     $anztage=$addon::kal_post_in($addon::KAL_ANZTAGE,'int');
+     $kid    =$addon::kal_post_in($addon::KAL_KATEGORIE,'int');
+     if(!empty($von)) $von=kal_termine_kalender::kal_standard_datum($von);
+     cms_interface::write_menue_data('datum',  $von);
+     cms_interface::write_menue_data('anztage',$anztage);
+     cms_interface::write_menue_data('kat_id', $kid);
+     #     Menue erneut anzeigen
+     $str=self::kal_config_terminmenue_intern();
      endif;
-   $anz=$anztage;
-   if(empty($anz)) $anz=365;   // nur bei der Terminliste moeglich
-   $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anz-1));
+   #
+   return $str;
+   }
+public static function kal_show_termine() {
+   #   Ausgabe des HTML-Codes zur Ausgabe von Terminen gemaess einem Terminmenue.
+   #
+   $addon=self::this_addon;
+   $menues=$addon::kal_define_menues();
+   for($i=1;$i<=count($menues);$i=$i+1):
+      if(strpos($menues[$i]['name'],'natsmenü')>0)   $menmom=$i;  // Monatsmenue
+      if(strpos($menues[$i]['name'],'erminüber')>0)  $menueb=$i;  // Terminübersicht
+      if(strpos($menues[$i]['name'],'minliste')>0)   $mentel=$i;  // Terminliste
+      endfor;
+   $heute=kal_termine_kalender::kal_heute();
+   #
+   # --- im Backend: Auswahlmenue zur Speicherung der Parameter
+   #                 Menuenummer, Startdatum, Anzahl Tage, Terminkategorie-Id
+   if(cms_interface::backend())
+     echo self::kal_config_terminmenue();
+   #
+   # --- Auslesen der gespeicherten Parameter
+   $param=cms_interface::read_menue_data();
+   if(!empty($param)):
+     $men    =$param['men'];       // Menuenummer (1, 6, 7)
+     $von    =$param['datum'];     // Startdatum (ggf. auch leer)
+     $anztage=$param['anztage'];   // Anzahl Tage (ggf. auch leer)
+     $kid    =$param['kat_id'];    // Id der Terminkategorie (=0: alle erlaubten Kategorien)
+     else:
+     $men    =$menmom;   // Monatsmenue
+     $von    ='';
+     $anztage=0;
+     $kid    =0;
+     endif;
+   #
+   # --- ggf. Parameter-Interpretation und -Auswertung
+   #     Zeitraum $von - $bis (aufbereitet fuer kal_get_termine)
+   if(!empty($von)) $von=kal_termine_kalender::kal_standard_datum($von);
+   if($men==$menmom):   // Monatsmenue
+     $von='01.'.substr($heute,3);
+     $mon=intval(substr($von,3,2));
+     $jah=substr($von,6);
+     $mons=kal_termine_kalender::kal_monatstage($jah);
+     $anztage=$mons[$mon];
+     $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anztage-1));
+     endif;
+   if($men==$menueb):   // Terminuebersicht
+     $von='';
+     $bis='';
+     endif;
+   if($men==$mentel):   // Terminliste
+     if(empty($von)) $von=$heute;
+     if($anztage<=0) $anztage=365;
+     $bis=kal_termine_kalender::kal_datum_vor_nach($von,intval($anztage-1));
+     endif;
    #     alle oder genau eine Kategorie
-   $katids=$addon::kal_allowed_terminkategorien();
    if($kid<=0):
-     $kids=$katids;
+     $kids=cms_interface::allowed_terminkategorien();
      else:
      $kids=array(1=>$kid);
      endif;
    #
-   # --- alle Termine auslesen 
-   $term=kal_termine_tabelle::kal_get_termine($von,$bis,$kids,0);
-   $nzt=count($term);
-   #
-   # --- Frontend
-   if(!rex::isBackend()):
-     if(strpos($menues[$men]['name'],'minliste')>0):
-       #    Terminliste
-       $str=kal_termine_menues::kal_terminliste($term);
+   # --- im Backend nur eine Zusammenfassung anzeigen
+   if(cms_interface::backend()):
+     if($kid>0):
+       $kateg='Kategorie '.$addon::kal_kategorie_name($kid);
        else:
-       #    Menues ausser Terminliste
-       $str=kal_termine_menues::kal_menue($kid,$men);
+       $kateg='alle Kategorien';
        endif;
-     endif;
+     $term=kal_termine_tabelle::kal_get_termine($von,$bis,$kids,'',1);
+     #     explizite Defaultwerte bestimmen
+     $expvon=$von;
+     $expbis=$bis;
+     if($men==$menueb):
+       $expvon='01'.substr($heute,2);
+       $expbis='(unbegrenzt)';
+       endif;
+     #     Ausgabe
+     echo '
+<br>
+<div class="kal_basecol kal_overline">'.$menues[$men]['name'].', &nbsp; 
+'.$expvon.' - '.$expbis.', &nbsp; '.$kateg.': &nbsp; &nbsp; '.count($term).' Termine</div>
+';
    #
-   # --- Backend: es wird nur eine Zusammenfassung angezeigt
-   if(rex::isBackend()):
-     $kateg='alle';
-     if($kid>0) $kateg=kal_termine_tabelle::kal_kategorie_name($kid);
-     $str='
-<div><span class="kal_msg"><u>'.$menues[$men]['name'].':</u> &nbsp; '.$von.' - '.$bis.
-        ' &nbsp; ('.$nzt.' Termine, &nbsp; Kategorien: '.$kateg.')</span>'.
-        ' &nbsp; <small>(Ausgaben nur im Frontend)</small></div>';
+   # --- im Frontend alles anzeigen
+     else:
+     if($men==$mentel)   // Terminliste
+       echo kal_termine_tabelle::kal_terminliste($von,$bis,$kids);
+     if($men==$menmom or $men==$menueb)   // Monatsmenue bzw. Terminuebersicht
+       echo kal_termine_menues::kal_menue($kid,$men);
      endif;
-   return $str;
    }
 }
 ?>
