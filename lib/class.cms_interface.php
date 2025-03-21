@@ -481,10 +481,22 @@ echo "<div>Einfach nur <big>Abbrechen</big> !</div>";
      $retout=$sql->setQuery('UPDATE '.$table.' SET output=\''.$output.'\' WHERE id='.$id);
      if($retin and $retout) $ret=$ret.' aktualisiert';
      ;else:
-     #     existiert noch nicht: insert
-     $retupd=$sql->setQuery('INSERT INTO '.$table.' (name,input,output) '.
-           'VALUES (\''.$name.'\',\''.$input.'\',\''.$output.'\')');
-     if($retupd) $ret=$ret.' eingefügt';
+     if($ident==$addon::MODUL2_IDENT):
+            #     existiert noch nicht: alte Version 'Termine anzeigen'?
+            $where='name LIKE \'%'.$addon.'%\' AND output LIKE \'%'.$addon::MODUL2A_IDENT.'%\'';
+            $moda=$sql->getArray('SELECT * FROM '.$table.' WHERE '.$where);
+            if(!empty($moda)):
+              $id=$moda[0]['id'];
+              $retin =$sql->setQuery('UPDATE '.$table.' SET  input=\''.$input.'\'  WHERE id='.$id);
+              $retout=$sql->setQuery('UPDATE '.$table.' SET output=\''.$output.'\' WHERE id='.$id);
+              if($retin and $retout) $ret=$ret.' aktualisiert';
+              endif;
+       else:
+       #     existiert noch nicht: insert
+       $retupd=$sql->setQuery('INSERT INTO '.$table.' (name,input,output) '.
+             'VALUES (\''.$name.'\',\''.$input.'\',\''.$output.'\')');
+       if($retupd) $ret=$ret.' eingefügt';
+       endif;
      endif;
    return $ret;
    }
