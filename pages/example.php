@@ -2,24 +2,32 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
-$table=rex::getTablePrefix().kal_termine::this_addon;
-echo '<div><br>Hier werden nur <b>reine Spieldaten</b> benutzt, die nicht in der
-Tabelle <tt>'.$table.'</tt> enthalten sind, gegliedert in insgesamt
-'.count(kal_termine_tabelle::kal_get_spielkategorien()).' Kategorien, und werden
-hier gemeinsam angezeigt.</div>
+$men=kal_termine::kal_post_in(kal_termine::KAL_MENUE,'int');
+#
+# --- Erlaeuterung nur im Falle des Monatsmenues
+if($men<=1):
+  $table=cms_interface::name_termin_tabelle();
+  $nzkat=count(kal_termine::kal_get_spielkategorien());
+  echo '
+<div><br>Hier werden nur <b>reine Spieldaten</b> benutzt, die nicht in der Tabelle
+<tt>'.$table.'</tt> enthalten sind, gegliedert in insgesamt '.$nzkat.' Kategorien.
+Die Termine aller Kategorien werden gemeinsam angezeigt.</div>
 
-<div><br>Es handelt sich um <b>Termine in der aktuellen Woche</b>. Um nennenswert
-viele Spieldaten zu erhalten, wiederholen sie sich wöchentlich über wenige Wochen
-vor und nach dem aktuellen Datum. Trotzdem sind sie nicht vom Typ \'genau ein
-Wochentag über mehrere Wochen\', sondern unabhängige Termine an je einem Tag
-oder über 2 Tage.</div>
+<div><br><b>Nur die Termine der aktuellen Woche sind unterschiedlich definiert.</b>
+Um nennenswert viele Spieldaten zu erhalten, wiederholen sie sich wöchentlich,
+allerdings nur über wenige Wochen vor und nach dem aktuellen Datum. Dabei sind
+sie nicht als &quot;ein Termin über mehrere Wochen&quot; definiert, sondern als
+einmalige ein- oder zweitägige Termine.</div>
 
 <div><br>Hier wird als Startmenü das <b>Monatsmenü</b> angezeigt. <b>Klicke</b>
 hinein, um auch die anderen Menüs kennenzulernen!</div>
 
-<div align="center"><br>
-'.kal_termine_menues::kal_spielmenue().'
-<br>&nbsp;</div>';
+<br>';
+  endif;
+#
+# --- Spielmenues
+echo kal_termine_menues::kal_spielmenue().'
+<div>&nbsp;</div>';
 ?>

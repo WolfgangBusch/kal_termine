@@ -2,8 +2,7 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
-$my_package=$this->getPackageId();
-require_once rex_path::addon($my_package).'/help.php';
+require_once __DIR__.'/../help.php';
 ?>

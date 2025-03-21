@@ -2,7 +2,7 @@
 /* Terminkalender Addon
  * @author wolfgang[at]busch-dettum[dot]de Wolfgang Busch
  * @package redaxo5
- * @version März 2024
+ * @version März 2025
  */
 ?>
 <div><br>Die Terminverwaltung beinhaltet diese <b>Funktionen</b>:</div>
@@ -18,9 +18,9 @@
 <div>
  - Monatsmenü, Tage mit eingetragenen Terminen sind schraffiert<br>
  - Monats-, Wochen-, Tagesblatt mit halbgrafischer Darstellung aller Termine<br>
- - Liste der Termine eines Kalenderjahres mit Filterfunktionen<br>
+ - Übersichtsliste aller Termine mit Filterfunktionen<br>
+ - tabellarische Liste aller Termine<br>
  - tabellarische Darstellung der Daten eines Termins<br>
- - tabellarische Liste der Termine eines Zeitabschnitts<br>
 </div>
 
 <div><br>Alle <b>Kalendermenüs</b> gestatten das <b>Blättern</b> zum vorherigen und
