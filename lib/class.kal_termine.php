@@ -33,13 +33,14 @@ class kal_termine {
 #   Verfuegbare Menues
 #      kal_define_menues()
 #   Breite des Uhrzeit-Bildes
-#      kal_uhrzeit_width($scrwid)
+#      kal_uhrzeit_width($scrwid) kal_termine_module::kal_terminmenue_out
 #
 #----------------------------------------- Konstanten
 const this_addon     =__CLASS__;             // Name des AddOns
 #     Module-Identifizierung
 const MODUL1_IDENT   =__CLASS__.'_module::kal_manage_termine()';   // Termine verwalten
 const MODUL2_IDENT   =__CLASS__.'_module::kal_show_termine()';     // Termine anzeigen
+const MODUL2A_IDENT  =__CLASS__.'_module::kal_terminmenue_out';    // Termine anzeigen (alt)
 #     Kalendermenue-Parameter-Schluessel
 const KAL_MENNR      ='kal_menue';           // Key: Menue-Nummer
 const KAL_AB         ='kal_ab';              // Key: Starttermin
